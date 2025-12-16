@@ -1,0 +1,119 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC721/ERC721.sol)
+
+/**
+ *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
+ *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
+ *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
+ *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
+ *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝   
+ *
+ *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
+ *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ */
+
+pragma solidity ^0.8.24;
+
+
+// import "@openzeppelin/contracts/utils/Context.sol";
+
+import {IUserId} from "@wikitruth-v1/interfaces/IUserId.sol";
+import {ISiweAuth} from "../interfaces2/ISiweAuth.sol";
+import {ITruthBox} from "@wikitruth-v1/interfaces/ITruthBox.sol";
+import {IFundManager} from "@wikitruth-v1/interfaces/IFundManager.sol";
+import {IExchange} from "@wikitruth-v1/interfaces/IExchange.sol";
+import {IAddressManager} from "@wikitruth-v1/interfaces/IAddressManager.sol";
+
+import {Modifier} from "./Modifier.sol";
+
+
+/**
+ *  @notice ExchangeBase
+ * 
+ */
+
+contract ExchangeBase is Modifier{
+
+    ITruthBox internal TRUTH_BOX; 
+    IFundManager internal FUND_MANAGER; 
+    IUserId internal USER_ID;
+    ISiweAuth internal SIWE_AUTH;
+
+    uint256 internal _refundRequestPeriod;
+    uint256 internal _refundReviewPeriod; 
+
+    uint8 internal _bidIncrementRate; 
+
+    // ========================================================================================================
+
+    constructor (address addrManager_) Modifier(addrManager_) {
+
+        _bidIncrementRate = 110;
+        _refundRequestPeriod = 7 days;
+        _refundReviewPeriod = 15 days;
+    }
+
+
+    // =====================================================================================
+    //                                      Basic Parameter Settings
+    // =====================================================================================
+
+    function _setAddress() internal virtual {
+        IAddressManager addrMgr = ADDR_MANAGER;
+
+        address truthBox = addrMgr.truthBox();
+        address fundM = addrMgr.fundManager();
+        address userId = addrMgr.userId();
+        address siweAuth = addrMgr.siweAuth();
+
+        if (truthBox != address(0) && truthBox != address(TRUTH_BOX)) {
+            TRUTH_BOX = ITruthBox(truthBox);
+        }
+        if (fundM != address(0) && fundM != address(FUND_MANAGER)) {
+            FUND_MANAGER = IFundManager(fundM);
+        }
+        if(userId != address(0) && userId != address(USER_ID)) {
+            USER_ID = IUserId(userId);
+        }
+        if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
+            SIWE_AUTH = ISiweAuth(siweAuth);
+        }
+    }
+
+    // 7~15  || 1~7
+    function setRefundRequestPeriod(uint256 period_) external onlyDAO {
+        if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
+        _refundRequestPeriod = period_;
+
+    }
+    // 15~30  || 1~7
+    function setRefundReviewPeriod(uint256 period_) external onlyDAO {
+        if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
+        _refundReviewPeriod = period_;
+
+    }
+
+    // 110
+    function setBidIncrementRate(uint8 rate_) external onlyDAO {
+        if (rate_ <= 100 || rate_ > 150) revert InvalidRate();
+        _bidIncrementRate = rate_;
+    }
+
+    // ========================================================================================================
+    //                                           Getter function
+    // ========================================================================================================
+
+    function refundRequestPeriod() external view returns (uint256) {
+        return _refundRequestPeriod;
+    }
+    function refundReviewPeriod() external view returns (uint256) {
+        return _refundReviewPeriod;
+    }
+
+    function bidIncrementRate() external view returns (uint8) {
+        return _bidIncrementRate;
+    }
+
+}
