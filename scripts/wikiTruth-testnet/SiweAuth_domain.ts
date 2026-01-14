@@ -16,19 +16,21 @@ import { wikiTruth_contracts_address } from "../utils/wikiTruth_contracts_addres
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/SiweAuth_domain.ts --network sapphire-testnet
  */
 
-// NOTE 在部署合约时，已经完成了PrimaryDomain和Domains的设置
-// 所以不需要初始化这个合约。
-
 const primaryDomain = "wikitruth.eth.limo";
 const domains = [
-    // "none", // 不添加任何域名, 每次成功添加后，将none激活，这样可以避免脚本被误执行
-    // "truthwiki.eth.limo", // 已经添加
-    "localhost",
-    "localhost:3000",
+    // "none", 
+    // "truthwiki.eth.limo", 
+    "app.wikitruth.eth.limo", 
+    // "localhost",
+    // "localhost:3000",
+    "localhost:5173",
+    // "wikitruth.xyz",
+    // "app.wikitruth.xyz",
 ];
 
 const domains_remove = [
-    "none", // NOTE 不删除任何域名, 每次成功删除后，将none激活，这样可以避免脚本被误执行
+    // "none", 
+    "truthwiki.eth.limo", 
     // "localhost:3000",
 ];
 
@@ -43,13 +45,6 @@ async function main() {
         console.error("当前网络ID不是23295，请检查网络ID");
         return;
     }
-
-    // let adminAddress = '';
-
-    // if (!adminAddress) {
-    //     console.error("adminAddress不存在");
-    //     return;
-    // }
 
     console.log("\n1. 获取SiweAuthWikiTruth合约...");
     const siweAuth = await ethers.getContractAt("SiweAuthWikiTruth", wikiTruth_contracts_address.siweAuth);

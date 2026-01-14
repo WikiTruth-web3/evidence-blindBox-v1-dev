@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
-import {
-    user_evm_WikiTruth
-} from "../../WikiTruth_account";
+import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
+import { wikiTruth_contracts_address } from "../utils/wikiTruth_contracts_address";
+import { parseUnits } from "ethers";
 const fs = require('fs');
 const path = require('path');
 /**
@@ -13,29 +13,53 @@ const path = require('path');
 
 async function main() {
     console.log("开始转移ERC20代币...");
-    
-    const user_from = user_evm_WikiTruth.admin;
-    console.log("部署账户:", user_from.address);
-    const user_to = user_evm_WikiTruth.buyer;
-    console.log("接收账户:", user_to.address);
-
-    if (!user_from.address) {
-        console.error("部署账户不存在");
-        return;
-    }
 
     // 检查chainId 
     const network = await ethers.provider.getNetwork();
     console.log("🌐 当前网络ID:", network.chainId);
-    if (Number(network.chainId) !== 23295 ) {
+    if (Number(network.chainId) !== 23295) {
         console.error("当前网络ID不是23295，请检查网络ID");
         return;
     }
 
+    const signers = await getSigners_SapphireTestnet()
+
+    const user_from = signers.adminSigner
+
+    const users_to = [signers.buyerSigner, signers.buyer2Signer]
+
+    if (!user_from) {
+        console.error("部署账户不存在");
+        return;
+    }
+
+    for (const user of users_to) {
+        if (!user) {
+            console.error("接收账户不存在");
+            return;
+        }
+
+    }
+
+    const erc20_address = wikiTruth_contracts_address.officialToken;
+
+    const amount = parseUnits("50000", 18);
+
     // 1. 转移ERC20代币
     console.log("\n1. 转移ERC20代币...");
-    const mockToken = await ethers.getContractAt("MockERC20", contract.address);
-    await mockToken.transfer(user_to.address, amount_transfer);
+    const mockToken = await ethers.getContractAt("MockERC20", erc20_address);
+    const mockToken_from = mockToken.connect(user_from);
+
+    for (const user of users_to) {
+        const address = user?.getAddress();
+        if (!address) {
+            console.error("接收账户不存在");
+            return;
+        }
+        await mockToken_from.transfer(address, amount);
+        console.log(`transfer_${amount} to ${address} success`);
+        await new Promise(resolve => setTimeout(resolve, 8000));
+    }
 
 }
 
@@ -46,3 +70,6 @@ main()
         console.error("部署失败:", error);
         process.exit(1);
     });
+
+
+    
