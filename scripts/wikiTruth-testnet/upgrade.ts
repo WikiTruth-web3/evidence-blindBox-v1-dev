@@ -18,9 +18,9 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 const nowList = [
     // 'AddressManager',
     'Exchange',
-    // 'FundManager',
-    // 'TruthBox',
-    // 'TruthNFT',
+    'FundManager',
+    'TruthBox',
+    'TruthNFT',
     // 'UserId',
     // 'SiweAuth',
     // 'Dao',

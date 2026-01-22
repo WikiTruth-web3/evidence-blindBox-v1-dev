@@ -210,8 +210,8 @@ contract TruthBox is TruthBoxBase, ITruthBox {
                     // If there is a buyer, then the status is Paid
                     return Status.Paid;
                 }
-            } else if (status == Status.InSecrecy) {
-                // 2, Box in InSecrecy status, then the status is Published
+            } else if (status == Status.Delaying) {
+                // 2, Box in Delaying status, then the status is Published
                 return Status.Published;
             }
         }
@@ -272,8 +272,8 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         ) {
             // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
             if (sender != _minterOf(boxId_)) revert InvalidCaller();
-        } else if (status == Status.InSecrecy || status == Status.Paid) {
-            // The value of the status: if it is InSecrecy, Paid, then check if the msg.sender is buyer
+        } else if (status == Status.Delaying || status == Status.Paid) {
+            // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
             if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
         }
         // The value of the status: 
@@ -374,7 +374,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         //     bytes memory privateKey = _decrypt(boxId_);
         //     emit PrivateKeyPublished(boxId_, privateKey, userId);
         // }
-        if (status_ == Status.InSecrecy) {
+        if (status_ == Status.Delaying) {
             _setDeadline(boxId_, block.timestamp + 15 days); // NOTE 365----15
         }
         if (status_ != _publicData[boxId_]._status) {
@@ -432,11 +432,11 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
     /**
      * @dev Publish TruthBox, which administrators can call,
-     * If the buyer wants to publish, it must be InSecrecy status.
+     * If the buyer wants to publish, it must be Delaying status.
      */
     function publishByBuyer(uint256 boxId_) external {
         if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
-        _checkStatus(boxId_, Status.InSecrecy);
+        _checkStatus(boxId_, Status.Delaying);
 
         _setPublished(boxId_);
     }
@@ -456,9 +456,9 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         }
         Status status = _publicData[boxId_]._status;
         // The Box in the blacklist needs to be burned,
-        // but if it is a completed transaction Box(InSecrecy status and Sold status),
+        // but if it is a completed transaction Box(Delaying status and Sold status),
         // it cannot be burned.
-        if (status != Status.Published && status != Status.InSecrecy) {
+        if (status != Status.Published && status != Status.Delaying) {
             NFT.burn(boxId_);
         }
         _publicData[boxId_]._status = Status.Blacklisted;
@@ -484,10 +484,10 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         _addDeadline(boxId_, time_);
     }
 
-    function _payConfiFee(uint256 boxId_) private {
+    function _payDelayFee(uint256 boxId_) private {
         uint256 amount = _publicData[boxId_]._price;
 
-        FUND_MANAGER.payConfidentialityFee(boxId_, msg.sender, amount);
+        FUND_MANAGER.payDelayFee(boxId_, msg.sender, amount);
 
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);
@@ -495,12 +495,11 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         _addDeadline(boxId_, 15 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
     }
 
-    // Pay Confidentiality Fee
     // Safe payment, NFT must not be public and invalid
-    function payConfiFee(uint256 boxId_) external {
-        _checkStatus(boxId_, Status.InSecrecy);
+    function delay(uint256 boxId_) external {
+        _checkStatus(boxId_, Status.Delaying);
         _isDeadlineIn30days(boxId_);
-        _payConfiFee(boxId_);
+        _payDelayFee(boxId_);
     }
 
     // ==========================================================================================================

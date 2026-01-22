@@ -43,7 +43,7 @@ struct SecretData {
 
 ### 2.2 状态生命周期 (Status Lifecycle)
 ```solidity
-enum Status {Storing, Selling, Auctioning, Paid, Refunding, InSecrecy, Published, Blacklisted}
+enum Status {Storing, Selling, Auctioning, Paid, Refunding, Delaying, Published, Blacklisted}
 
 ```
 Box 的状态流转是业务的核心：
@@ -53,7 +53,7 @@ Box 的状态流转是业务的核心：
 3.  **Auctioning (拍卖中)**: 正在市场上进行拍卖。
 4.  **Paid (已支付/待交割)**: 买家已付款，等待确认或申请退款。
 5.  **Refunding (退款仲裁中)**: 买家发起了退款申请，等待 Minter 或 DAO 处理。
-6.  **InSecrecy (私密持有中)**: 交易完成，Box 归买家所有，内容仅买家可见。
+6.  **Delaying (私密持有中)**: 交易完成，Box 归买家所有，内容仅买家可见。
 7.  **Published (已公开)**: 信息被完全公开，任何人（包括未付费用户）均可查看解密内容。
 8.  **Blacklisted (黑名单)**: 因违规被 DAO 封禁。
 9.  
@@ -68,12 +68,12 @@ function payConfiFee(uint256 boxId_) external；
 ```
 1. **getPrivateData**: 读取私密数据（privateKey）, 需要siwe令牌验证当前用户。
    - `box.status === Storing/Selling/Auctioning`时，只有minter可以查看。
-   - `box.status === Paid/InSecrecy`时，只有buyer可以查看。
+   - `box.status === Paid/Delaying`时，只有buyer可以查看。
    - `box.status === Refunding/Published`时，所有人均可查看。
 2. **extendDeadline**：延迟deadline，
    - `box.status === Storing`，并且`now < box.deadline`(未到期)，只有minter有该权限。
-3. **payConfiFee**：支付保密费，
-   - `box.status === InSecrecy`, 并且`now <= box.deadline - 30 days`(距离到期小于30天)，所有人都可以代为支付保密费。
+3. **payConfiFee**：支付延期费用，
+   - `box.status === Delaying`, 并且`now <= box.deadline - 30 days`(距离到期小于30天)，所有人都可以代为支付延期费用。
 ---
 
 ## 3. Exchange：交易引擎
@@ -125,10 +125,10 @@ function completeOrder(uint256 boxId_) external;
 1.  **Request Refund (申请退款)**: 买家在 `Paid` 状态,且在 `now < refundRequestDeadline`（未到期），若发现内容虚假，可申请退款。状态变为 `Refunding`。
 2.  **Agree/Refuse Refund (处理退款)**: Minter 或 DAO 介入审核。
     *   同意退款 -> 钱退回买家，Box 变为 `Published` (既然是假的或有争议，往往意味着不再通过私密获利)。
-    *   拒绝退款 -> 状态恢复为 `InSecrecy`，资金结算。
+    *   拒绝退款 -> 状态恢复为 `Delaying`，资金结算。
     *   如果`now > refundReviewPeriod`(超过审核期)，那么任何人都可以调用agreeRefund。
 
-3.  **Complete Order (完成订单)**: 若无退款申请`box.status === Paid`，或买家主动确认，订单完成。状态变为 `InSecrecy`，资金在 FundManager 中进行结算分发。
+3.  **Complete Order (完成订单)**: 若无退款申请`box.status === Paid`，或买家主动确认，订单完成。状态变为 `Delaying`，资金在 FundManager 中进行结算分发。
     * 如果`now >= refundRequestDeadline`（超过了退款申请期限），那么任何人都可以执行完成订单，成为completer并获得奖励。
 
 **注意**：拒绝退款功能在当前前端页面中不需要实现，因为它应该是一个DAO社区治理功能。
@@ -179,7 +179,7 @@ function withdrawMinterRewards(address token_) external;
 1.  **铸造 (Mint)**: Alice 创建一个 TruthBox，设置价格 100 USDT，保护期 15 天。状态 `Storing`。
 2.  **上架 (Sell)**: Alice (Minter) 调用 `sell`。状态变为 `Selling`。
 3.  **购买 (Buy)**: Peter 支付 100 USDT。状态变为 `Paid`。资金暂存 FundManager。
-4.  **确认 (Complete)**: Peter 检查解密内容无误，调用 `completeOrder`。状态变为 `InSecrecy`。
+4.  **确认 (Complete)**: Peter 检查解密内容无误，调用 `completeOrder`。状态变为 `Delaying`。
     *   Alice 收到 100 USDT 减去手续费的收入。
     *   Peter 成为 Box 的 Owner。
 5.  **限制期**: 在 15 天内，Peter 无法转售该 Box。

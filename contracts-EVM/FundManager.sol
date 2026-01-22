@@ -97,12 +97,12 @@ contract FundManager is FundManagerBase, IFundManager{
     }
 
     /**
-     * @dev Pay confidentiality fee
+     * @dev Pay delay fee
      * @param boxId_ TruthBox ID
      * @param sender_ Sender address
      * @param amount_ Amount to pay
      */
-    function payConfidentialityFee(
+    function payDelayFee(
         uint256 boxId_,
         address sender_,
         uint256 amount_
@@ -111,18 +111,13 @@ contract FundManager is FundManagerBase, IFundManager{
         IERC20(officialToken).transferFrom(sender_, address(this), amount_);
 
         address minter = TRUTH_BOX.minterOf(boxId_);
-        uint256 serviceFee = (amount_ * _serviceFeeRate) / 1000;
-        uint256 minterReward = amount_ - serviceFee;
+        _calculateAllocation(boxId_, minter, amount_, officialToken);
 
         unchecked {
+            // Record total reward amount
             _totalRewardAmounts[officialToken] += amount_;
-            _minterRewardAmounts[minter][officialToken] += minterReward;
         }
-        // Directly assign the service fee to the DAO fund manager contract
-        IERC20(officialToken).safeTransfer(ADDR_MANAGER.daoFundManager(), serviceFee);
-
         emit RewardsAdded(boxId_, officialToken, amount_, RewardType.Total);
-        emit RewardsAdded(boxId_, officialToken, minterReward, RewardType.Minter);
     }
 
     // ====================================================================================================================
@@ -144,9 +139,10 @@ contract FundManager is FundManagerBase, IFundManager{
         _orderAmounts[boxId_][buyer] = 0;
         _calculateAllocation(boxId_, minter, amount, token);
         
-        // Record total reward amount
-        _totalRewardAmounts[token] += amount;
-        
+        unchecked {
+            // Record total reward amount
+            _totalRewardAmounts[token] += amount;
+        }
         emit RewardsAdded(boxId_, token, amount, RewardType.Total);
     }
 

@@ -92,13 +92,13 @@ interface IFundManager {
     function payOrderAmount(uint256 boxId_, address buyer_, uint256 amount_) external;
     
     /**
-     * @notice Pay confidentiality fee
+     * @notice Pay delay fee
      * @param boxId_ TruthBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
      * @dev Only callable by project contracts
      */
-    function payConfidentialityFee(uint256 boxId_, address buyer_, uint256 amount_) external;
+    function payDelayFee(uint256 boxId_, address buyer_, uint256 amount_) external;
     
     /**
      * @notice Allocate rewards

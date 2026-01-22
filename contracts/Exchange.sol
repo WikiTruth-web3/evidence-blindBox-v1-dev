@@ -292,7 +292,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
             emit ReviewDeadlineChanged(boxId_, deadline);
 
         } else {
-            truthBox.setStatus(boxId_, Status.InSecrecy);
+            truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         }
     }
@@ -307,7 +307,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         // _checkStatus(boxId_, Status.Refunding);
         ITruthBox truthBox = TRUTH_BOX;
         if (truthBox.getStatus(boxId_) != Status.Refunding) revert InvalidStatus();
-        truthBox.setStatus(boxId_, Status.InSecrecy);
+        truthBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
 
     }
@@ -354,7 +354,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         if (isInReviewDeadline(boxId_)) {
             // Check role: DAO
             if (msg.sender != ADDR_MANAGER.dao()) revert InvalidCaller();
-            truthBox.setStatus(boxId_, Status.InSecrecy);
+            truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
@@ -372,7 +372,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
      * @notice Complete order function, after completing order, the box status becomes Sold
      * Need to check: refundPermit.
      * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of TRUTH_BOX to InSecrecy
+     * Complete order also needs to set the status of TRUTH_BOX to Delaying
      * Complete order also needs to set refundRequestDeadline.
      */
     function completeOrder(uint256 boxId_) external {
@@ -390,7 +390,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
                 emit CompleterAssigned(boxId_,userId);
             }
         }
-        truthBox.setStatus(boxId_, Status.InSecrecy);
+        truthBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
 
     }

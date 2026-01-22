@@ -15,7 +15,7 @@
 
 pragma solidity ^0.8.24;
 
-enum Status {Storing, Selling, Auctioning, Paid, Refunding, InSecrecy, Published, Blacklisted}
+enum Status {Storing, Selling, Auctioning, Paid, Refunding, Delaying, Published, Blacklisted}
 
 /**
  * @title ITruthBox
@@ -187,7 +187,7 @@ interface ITruthBox {
     /**
      * @notice Publish TruthBox by buyer
      * @param boxId_ Box ID
-     * @dev Only callable by buyer, box must be in InSecrecy status
+     * @dev Only callable by buyer, box must be in Delaying status
      */
     function publishByBuyer(uint256 boxId_) external;
     
@@ -200,11 +200,11 @@ interface ITruthBox {
     function extendDeadline(uint256 boxId_, uint256 time_) external;
     
     /**
-     * @notice Pay confidentiality fee
+     * @notice Delay
      * @param boxId_ Box ID
-     * @dev Box must be in InSecrecy status and within 30 days before deadline
+     * @dev Box must be in Delaying status and within 30 days before deadline
      */
-    function payConfiFee(uint256 boxId_) external;
+    function delay(uint256 boxId_) external;
 
     // =====================================================================================
     //                                          Blacklist Functions

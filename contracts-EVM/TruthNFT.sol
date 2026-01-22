@@ -102,7 +102,7 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT{
      * @dev Check if the token can be swapped (transferred), authorized, etc.
      * @param tokenId The ID of the token to check
      * @return Whether the token can be swapped
-     * Only InSecrecy and Published status tokens can be swapped, authorized, etc.
+     * Only delaying and Published status tokens can be swapped, authorized, etc.
      * This means that the transaction has been completed, and is a valid token
      * Of course, it cannot be in the blacklist
      */
@@ -110,7 +110,7 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT{
         ITruthBox truthBox = TRUTH_BOX;
         if (truthBox.isInBlacklist(tokenId)) return false;
         Status status = truthBox.getStatus(tokenId);
-        if (status != Status.InSecrecy && status != Status.Published) return false;
+        if (status != Status.delaying && status != Status.Published) return false;
         return true;
     }
 
