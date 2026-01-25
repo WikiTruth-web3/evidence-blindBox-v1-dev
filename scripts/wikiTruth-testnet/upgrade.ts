@@ -17,10 +17,10 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 // 需要更新的合约列表
 const nowList = [
     // 'AddressManager',
-    'Exchange',
-    'FundManager',
+    // 'Exchange',
+    // 'FundManager',
     'TruthBox',
-    'TruthNFT',
+    // 'TruthNFT',
     // 'UserId',
     // 'SiweAuth',
     // 'Dao',

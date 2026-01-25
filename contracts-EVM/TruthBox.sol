@@ -192,8 +192,8 @@ contract TruthBox is TruthBoxBase, ITruthBox{
                     // If there is a buyer, then it is Paid status
                     return Status.Paid;
                 }
-            } else if (status == Status.delaying) {
-                // 2, If the box is in delaying status, then it is Published status
+            } else if (status == Status.Delaying) {
+                // 2, If the box is in Delaying status, then it is Published status
                 return Status.Published;
             }
         }
@@ -259,10 +259,10 @@ contract TruthBox is TruthBoxBase, ITruthBox{
             // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
             if (sender != _minterOf(boxId_)) revert InvalidCaller();
         } else if (
-            status == Status.delaying || 
+            status == Status.Delaying || 
             status == Status.Paid
         ) {
-            // The value of the status: if it is delaying, Paid, then check if the msg.sender is buyer
+            // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
             if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
         } 
         // The value of the status: if it is Published,Refunding, then everyone can view, no need to check
@@ -349,19 +349,8 @@ contract TruthBox is TruthBoxBase, ITruthBox{
     function _setStatus(uint256 boxId_, Status status_) internal {
         // If the incoming status is Storing status, then do not set
         if (status_ == Status.Storing) revert InvalidStatus();
-        // if (status_ == Status.Refunding) {
-        //     address buyer = EXCHANGE.buyerOf(boxId_);
-        //     uint256 userId = USER_ID.getUserId(buyer);
 
-        //     bytes memory privateKey = Sapphire.decrypt(
-        //         bytes32(0), // Do not use secretKey, in order to keep its interface pure and stable.
-        //         _secretData[boxId_]._nonce,
-        //         _secretData[boxId_]._encryptedData,
-        //         ""
-        //     );
-        //     emit PrivateKeyPublished(boxId_, privateKey, userId);
-        // }
-        if (status_ == Status.delaying) {
+        if (status_ == Status.Delaying) {
             _setDeadline(boxId_, block.timestamp + 15 days); // NOTE 365----15
         }
         if (status_ != _publicData[boxId_]._status) {
@@ -395,7 +384,7 @@ contract TruthBox is TruthBoxBase, ITruthBox{
         uint256 userId = USER_ID.getUserId(msg.sender);
         // EVM
         bytes memory privateKey = _secretData[boxId_]._encryptedData;
-        emit BoxStatusChanged(boxId_, Status.Published);
+        // emit BoxStatusChanged(boxId_, Status.Published);
         emit PrivateKeyPublished(boxId_, privateKey, userId);
     } 
 
@@ -411,11 +400,11 @@ contract TruthBox is TruthBoxBase, ITruthBox{
 
     /**
      * @dev Publish TruthBox, which administrators can call, 
-     * If the buyer wants to publish, it must be delaying status.
+     * If the buyer wants to publish, it must be Delaying status.
      */
     function publishByBuyer(uint256 boxId_) external {
         if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
-        _checkStatus(boxId_, Status.delaying);
+        _checkStatus(boxId_, Status.Delaying);
         
         _setPublished(boxId_);
     }
@@ -435,11 +424,11 @@ contract TruthBox is TruthBoxBase, ITruthBox{
         }
         Status status = _publicData[boxId_]._status;
         // The Box in the blacklist needs to be burned, 
-        // but if it is a completed transaction Box(delaying status and Sold status), 
+        // but if it is a completed transaction Box(Delaying status and Sold status), 
         // it cannot be burned.
         if(
             status != Status.Published && 
-            status != Status.delaying
+            status != Status.Delaying
         ){
             NFT.burn(boxId_);
         }
@@ -478,7 +467,7 @@ contract TruthBox is TruthBoxBase, ITruthBox{
 
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
-        _checkStatus(boxId_, Status.delaying);
+        _checkStatus(boxId_, Status.Delaying);
         _isDeadlineIn30days(boxId_);
         _delay(boxId_);
     }

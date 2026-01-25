@@ -410,15 +410,14 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     //                                                 public Functions
     // ==========================================================================================================
 
-    function _setPublished(uint256 boxId_) internal {
-        _setStatus(boxId_, Status.Published);
+    // function _setPublished(uint256 boxId_) internal {
+    //     _setStatus(boxId_, Status.Published);
 
-        bytes memory privateKey = _decrypt(boxId_);
+        // bytes memory privateKey = _decrypt(boxId_);
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
-        emit BoxStatusChanged(boxId_, Status.Published);
-        emit PrivateKeyPublished(boxId_, privateKey, userId);
-    }
+        // uint256 userId = USER_ID.getUserId(msg.sender);
+        // emit PrivateKeyPublished(boxId_, privateKey, userId);
+    // }
 
     /**
      * @dev Publish TruthBox, which minter can call,
@@ -427,7 +426,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     function publishByMinter(uint256 boxId_) external {
         if (msg.sender != _secretData[boxId_]._minter) revert InvalidCaller();
         _checkStatus(boxId_, Status.Storing);
-        _setPublished(boxId_);
+        _setStatus(boxId_, Status.Published);
     }
 
     /**
@@ -438,7 +437,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
         _checkStatus(boxId_, Status.Delaying);
 
-        _setPublished(boxId_);
+        _setStatus(boxId_, Status.Published);
     }
 
     // ==========================================================================================================

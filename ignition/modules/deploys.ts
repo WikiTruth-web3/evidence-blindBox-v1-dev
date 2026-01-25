@@ -1,20 +1,20 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { wikiTruth_contracts_address } from "../../scripts/utils/wikiTruth_contracts_address";
 
-export default buildModule("Deploy_20260122", (m) => {
+export default buildModule("Deploy_20260125", (m) => {
   const addressManager_Proxy = wikiTruth_contracts_address.addressManager;
 
-  const exchange = m.contract("Exchange", [addressManager_Proxy]);
+  // const exchange = m.contract("Exchange", [addressManager_Proxy]);
   const truthBox = m.contract("TruthBox", [addressManager_Proxy]);
-  const truthNFT = m.contract("TruthNFT", [addressManager_Proxy]);
-  const fundManager = m.contract("FundManager", [addressManager_Proxy]);
+  // const truthNFT = m.contract("TruthNFT", [addressManager_Proxy]);
+  // const fundManager = m.contract("FundManager", [addressManager_Proxy]);
   // const userId = m.contract("UserId", [addressManager_Proxy]);
   
   return { 
-    exchange, 
+    // exchange, 
     truthBox,
-    fundManager,
-    truthNFT, 
+    // fundManager,
+    // truthNFT, 
     // userId 
   };
 });
