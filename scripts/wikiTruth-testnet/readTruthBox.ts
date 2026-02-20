@@ -60,7 +60,7 @@ async function main() {
     // console.log("getPrivateData:", tx_truthBox);
     // await new Promise(resolve => setTimeout(resolve, 5000));
 
-    const getBasicData = await truthBox_minter.getBasicData(0);
+    const getBasicData = await truthBox_minter.getBasicData(15);
     console.log("getBasicData_0:", getBasicData);
     await new Promise(resolve => setTimeout(resolve, 5000));
 

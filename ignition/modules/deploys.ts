@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { wikiTruth_contracts_address } from "../../scripts/utils/wikiTruth_contracts_address";
 
-export default buildModule("Deploy_20260125", (m) => {
+export default buildModule("Deploy_20260213", (m) => {
   const addressManager_Proxy = wikiTruth_contracts_address.addressManager;
 
   // const exchange = m.contract("Exchange", [addressManager_Proxy]);

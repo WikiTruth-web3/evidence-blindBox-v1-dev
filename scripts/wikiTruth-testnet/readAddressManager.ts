@@ -28,11 +28,11 @@ async function main() {
     console.log("\n3. 设置各个合约的数据...");
     console.log("   3.1 读取 AddressManager...");
     const addressManager = await ethers.getContractAt("AddressManager", wikiTruth_contracts_address.addressManager);
-    // const tx_addressManager = await addressManager.getTokenList();
-    // console.log("addressManager_tokenList :", tx_addressManager);
-    const tx_addressManager = await addressManager.officialToken();
-    console.log("addressManager_officialToken() :", tx_addressManager);
-    // await new Promise(resolve => setTimeout(resolve, 5000));
+    const tx_tokenList = await addressManager.getTokenList();
+    console.log("addressManager_tokenList :", tx_tokenList);
+    const tx_officialToken = await addressManager.officialToken();
+    console.log("addressManager_officialToken() :", tx_officialToken);
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     //   '0x449e2CD61F0328Ae68f4A530170C892B45b4B269',
     //   '0xDf698806B03C54e9CafE81caCaE54Ce1727DD134',

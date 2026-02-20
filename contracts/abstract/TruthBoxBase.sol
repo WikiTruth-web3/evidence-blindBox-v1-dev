@@ -6,7 +6,7 @@
  *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
  *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
  *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝   
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
  *
  *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
  *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
@@ -15,12 +15,12 @@
 
 pragma solidity ^0.8.24;
 
-
 import {IUserId} from "@wikitruth-v1/interfaces/IUserId.sol";
 import {ISiweAuth} from "../interfaces2/ISiweAuth.sol";
 import {ITruthNFT} from "@wikitruth-v1/interfaces/ITruthNFT.sol";
 import {ITruthBox} from "@wikitruth-v1/interfaces/ITruthBox.sol";
 import {IFundManager} from "@wikitruth-v1/interfaces/IFundManager.sol";
+import {IDaoFundManager} from "@wikitruth-v1/interfaces/IDaoFundManager.sol";
 import {IExchange} from "@wikitruth-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@wikitruth-v1/interfaces/IAddressManager.sol";
 
@@ -28,16 +28,16 @@ import {IAddressManager} from "@wikitruth-v1/interfaces/IAddressManager.sol";
 import {Modifier} from "./Modifier.sol";
 /**
  *  @notice TruthBoxBase
- * 
+ *
  */
 
-contract TruthBoxBase is Modifier{
-
+contract TruthBoxBase is Modifier {
     IUserId internal USER_ID;
     ISiweAuth internal SIWE_AUTH;
     ITruthNFT internal NFT;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
+    IDaoFundManager internal DAO_FUND_MANAGER;
 
     uint8 internal _incrementRate; // 2.0 * 100
 
@@ -51,6 +51,8 @@ contract TruthBoxBase is Modifier{
     // ==================================================================================================
 
     // ==========================================================================================================
+
+    // TODO Add the address of the DAO fund manager
     function _setAddress() internal virtual {
         IAddressManager addrMgr = ADDR_MANAGER;
 
@@ -98,5 +100,4 @@ contract TruthBoxBase is Modifier{
     function nextBoxId() external view returns (uint256) {
         return _nextBoxId;
     }
-
 }

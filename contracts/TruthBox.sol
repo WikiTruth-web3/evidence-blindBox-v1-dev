@@ -276,13 +276,13 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
             if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
         }
-        // The value of the status: 
+        // The value of the status:
         // if it is Published,Refunding, then everyone can view, no need to check
 
         return _decrypt(boxId_);
     }
 
-    function _decrypt(uint256 boxId_) internal view returns(bytes memory){
+    function _decrypt(uint256 boxId_) internal view returns (bytes memory) {
         return
             Sapphire.decrypt(
                 bytes32(0), // Do not use secretKey, in order to keep its interface pure and stable.
@@ -290,7 +290,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
                 _secretData[boxId_]._encryptedData,
                 ""
             );
-    } 
+    }
 
     // ==================================================================================================
 
@@ -413,10 +413,10 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     // function _setPublished(uint256 boxId_) internal {
     //     _setStatus(boxId_, Status.Published);
 
-        // bytes memory privateKey = _decrypt(boxId_);
+    // bytes memory privateKey = _decrypt(boxId_);
 
-        // uint256 userId = USER_ID.getUserId(msg.sender);
-        // emit PrivateKeyPublished(boxId_, privateKey, userId);
+    // uint256 userId = USER_ID.getUserId(msg.sender);
+    // emit PrivateKeyPublished(boxId_, privateKey, userId);
     // }
 
     /**
@@ -470,8 +470,14 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     }
 
     // ==========================================================================================================
-    //                                                Pay fee function
+    //                                                delay function
     // ==========================================================================================================
+
+    function _checkExtendsFee() internal {
+        if (extendsFee > 0) {
+            DAO_FUND_MANAGER.receiveExtendsFee(msg.sender, extendsFee);
+        }
+    }
 
     // If the caster wishes to extend the confidentiality period, they will need to verify by minter account
     function extendDeadline(uint256 boxId_, uint256 time_) external {
@@ -480,10 +486,12 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         _isDeadlineIn30days(boxId_);
         if (time_ > 15 days) revert InvalidPeriod(); // NOTE: 365----15
 
+        _checkExtendsFee();
+
         _addDeadline(boxId_, time_);
     }
 
-    function _payDelayFee(uint256 boxId_) private {
+    function _delay(uint256 boxId_) private {
         uint256 amount = _publicData[boxId_]._price;
 
         FUND_MANAGER.payDelayFee(boxId_, msg.sender, amount);
@@ -498,7 +506,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     function delay(uint256 boxId_) external {
         _checkStatus(boxId_, Status.Delaying);
         _isDeadlineIn30days(boxId_);
-        _payDelayFee(boxId_);
+        _delay(boxId_);
     }
 
     // ==========================================================================================================

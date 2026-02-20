@@ -10,7 +10,7 @@ import { boxList } from "../../private/boxList";
  * 
  * @returns 创建WikiTruth的TruthBox合约数据
  * 
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/createTruthBox.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/wikiTruth-testnet/truthBox_create.ts --network sapphire-testnet
  */
 
 /**

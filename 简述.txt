@@ -1,0 +1,42 @@
+犯罪证据交易市场（Truth Market）合约深度解析报告
+本项目是一个基于 Oasis Sapphire 隐私链构建的去中心化犯罪证据交易市场。它利用区块链的透明性记录交易过程，同时利用 Sapphire 的隐私特性保护证据内容仅对授权方可见。
+
+1. 核心架构设计
+项目采用典型的多合约协作模式，通过 AddressManager 进行全局依赖管理和权限控制。
+
+2. 模块深度解析
+2.1 隐私保护机制 (
+TruthBox.sol
+)
+技术实现: 利用 Oasis Sapphire 的 Sapphire.encrypt 和 Sapphire.decrypt。
+数据存储: 证据（私钥/关键数据）被加密存储在 SecretData 中。
+访问控制: 只有证据的铸造者（Minter）或已支付的买家（Buyer）能通过合约函数解密内容。在 View 函数中，通过 SIWE (Sign-In with Ethereum) 绕过 Sapphire 默认 msg.sender 为零地址的限制，实现严格的读取权限校验。
+2.2 交易与披露流程 (
+Exchange.sol
+)
+支持两种交易模式：
+
+Selling: 固定价格出售。
+Auctioning: 竞价拍卖，每次加价比例（默认 110%）和截止日期可动态延长。
+披露机制: 交易完成后进入 Paid 状态。买家有 7-15 天的“退款申请期”。如果买家在此期间对证据真实性无异议，订单转为 Delaying 并进行最终资金分配。
+2.3 资金管理与自动兑换 (
+FundManager.sol
+)
+多代币支持: 买家可以使用多种代币支付。
+Uniswap V3 集成: 如果支付的是非官方代币，合约会自动通过 SwapRouter 将手续费部分兑换成官方代币，用于支付 DAO 运营费用和辅助性奖励。
+分配逻辑: 资金被细分为 Minter 奖励、Seller 奖励、Completer 奖励（辅助结算者）以及 DAO 服务费。
+2.4 NFT 状态锁定 (
+TruthNFT.sol
+)
+动态流动性: 与普通 NFT 不同，其转账权限受 TruthBox 状态约束。只有在证据进入披露流程（Delaying 或 Published）后，NFT 才被允许转账或授权。
+黑名单机制: 恶意证据可被 DAO 标记并黑名单化，此时 NFT 将被“冻结”甚至销毁。
+3. 业务流转示例
+发布: 用户通过 TruthBox 提交证据描述（CID）和加密原始数据，系统铸造 TruthNFT。
+上架: Minter 设置价格（sell）或起拍价（auction）。
+交易: 买家支付资金到 FundManager 锁定。
+验货与结算:
+如果买家认可，调用 completeOrder，资金分配，证据进入披露延迟期。
+如果发生纠纷，买家申请 requestRefund，由 DAO 介入调解。
+披露: 超过延迟期后，证据状态转为 Published，解密权限向所有人开放（视业务配置而定）。
+4. 总结
+该系统具备极高的完备性，通过隐私链解决了“证据交易”的悖论（即如何让买家在没看证据前愿意付钱，而在付钱后卖方不能赖账）。其自动化奖励分配和集成的 Swap 机制展示了复杂的 DeFi 工程实践。
