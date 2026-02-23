@@ -19,17 +19,17 @@ import {
     Sapphire
 } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 
-import {TruthBoxBase} from "./abstract/TruthBoxBase.sol";
+import {TruthBoxBaseRelayer} from "./abstract/TruthBoxBaseRelayer.sol";
 import {ITruthBox, Status} from "@wikitruth-v1/interfaces/ITruthBox.sol";
 
 /**
- *  @notice TruthBox contract
- *  Implement basic TruthBox functions, including mint, publish, blacklist, etc.
- *  Also includes important transaction-related functions, including setPrice, setDeadline, addDeadline, setStatus
- *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
+ *  @notice TruthBoxRelayer contract
+ *  ERC-2771 compatible version of TruthBox.
+ *  User-facing write functions use _msgSender() instead of msg.sender
+ *  to support meta-transactions via trusted forwarder.
  */
 
-contract TruthBox is TruthBoxBase, ITruthBox {
+contract TruthBoxRelayer is TruthBoxBaseRelayer, ITruthBox {
     error InvalidToken();
     error EmptyKey();
     error DeadlineNotIn30days();
@@ -51,15 +51,10 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     mapping(uint256 boxId => SecretData) internal _secretData;
 
     // ==================================================================================================
-    constructor(address addrManager_) TruthBoxBase(addrManager_) {}
-
-    /**
-     * @notice Set the contract address
-     * @dev Get and set the related contract addresses from AddressManager
-     */
-    function setAddress() external checkSetCaller {
-        _setAddress();
-    }
+    constructor(
+        address addrManager_,
+        address trustedForwarder_
+    ) TruthBoxBaseRelayer(addrManager_, trustedForwarder_) {}
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -73,6 +68,8 @@ contract TruthBox is TruthBoxBase, ITruthBox {
      * @param deadline_ The deadline of the box
      * @param key_ The key of the box
      * @return The ID of the box
+     *
+     * NOTE [ERC-2771]: msg.sender -> _msgSender() for minter identity and randomness seed
      */
     function _setBoxData(
         string calldata boxInfoCID_,
@@ -82,6 +79,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         bytes memory key_
     ) internal returns (uint256) {
         uint256 boxId = _nextBoxId;
+        address sender = _msgSender(); // ERC-2771: extract real sender
 
         bytes32 nonce;
         bytes memory encryptedData;
@@ -89,7 +87,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         if (key_.length != 0) {
             // Generate encrypted nonce (critical fix: save nonce for decryption)
             nonce = bytes32(
-                Sapphire.randomBytes(32, abi.encodePacked(boxId, msg.sender))
+                Sapphire.randomBytes(32, abi.encodePacked(boxId, sender))
             );
 
             encryptedData = Sapphire.encrypt(
@@ -107,7 +105,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         });
 
         _secretData[boxId] = SecretData({
-            _minter: msg.sender,
+            _minter: sender, // ERC-2771: use real sender as minter
             _nonce: nonce,
             _encryptedData: encryptedData
         });
@@ -116,7 +114,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             _nextBoxId++;
         }
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_ID.getUserId(sender); // ERC-2771: use real sender
         emit BoxCreated(boxId, userId, boxInfoCID_);
 
         return boxId;
@@ -132,12 +130,8 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
     /**
      * @dev Create a truth box
-     * @param to_ The address to mint the NFT to
-     * @param tokenCID_ The CID of the token
-     * @param boxInfoCID_ The CID of the box info
-     * @param key_ The key of the box
-     * @param price_ The price of the box
-     * @return The ID of the box
+     *
+     * NOTE [ERC-2771]: msg.sender replaced with _msgSender() in _setBoxData
      */
     function create(
         address to_,
@@ -169,11 +163,13 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
         emit PriceChanged(boxId, price_);
         emit DeadlineChanged(boxId, deadline);
-        // Log the price and deadline, do not record status, because status is Storing status
 
         return boxId;
     }
 
+    /**
+     * NOTE [ERC-2771]: msg.sender replaced with _msgSender() in _setBoxData
+     */
     function createAndPublish(
         address to_,
         string calldata tokenCID_,
@@ -193,25 +189,16 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     //                                      Get Info Functions
     //==================================================================================================
 
-    /**
-     * @dev Get the status of a box
-     * @param boxId_ The ID of the box
-     * @return The status of the box
-     */
     function _getStatus(uint256 boxId_) internal view returns (Status) {
         Status status = _publicData[boxId_]._status;
-        // If the deadline has passed, then you need to judge the status of the box
         if (_publicData[boxId_]._deadline < block.timestamp) {
-            // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
             if (status == Status.Selling || status == Status.Auctioning) {
                 if (EXCHANGE.buyerOf(boxId_) == address(0)) {
                     return Status.Published;
                 } else {
-                    // If there is a buyer, then the status is Paid
                     return Status.Paid;
                 }
             } else if (status == Status.Delaying) {
-                // 2, Box in Delaying status, then the status is Published
                 return Status.Published;
             }
         }
@@ -232,13 +219,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
     // ==========================================================================================================
 
-    /**
-     * @dev Get public data of a box
-     * @param boxId_ The ID of the box
-     * @return status The status of the box
-     * @return price The price of the box
-     * @return deadline The deadline of the box
-     */
     function getBasicData(
         uint256 boxId_
     ) external view returns (Status, uint256, uint256) {
@@ -252,16 +232,13 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
     /**
      * @dev Get private data of a box
-     * @param boxId_ The ID of the box
-     * @param siweToken_ The siwe token of the user
-     * @return key The key of the box
-     * siweToken_ The siwe token of the user
+     * Uses SIWE _msgSender for read-path authentication (unchanged from original)
      */
     function getPrivateData(
         uint256 boxId_,
         bytes memory siweToken_
     ) external view returns (bytes memory) {
-        address sender = _msgSender(siweToken_);
+        address sender = _msgSenderSiwe(siweToken_);
         if (sender == address(0)) revert InvalidToken();
         Status status = _getStatus(boxId_);
 
@@ -270,14 +247,10 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             status == Status.Selling ||
             status == Status.Auctioning
         ) {
-            // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
             if (sender != _minterOf(boxId_)) revert InvalidCaller();
         } else if (status == Status.Delaying || status == Status.Paid) {
-            // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
             if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
         }
-        // The value of the status:
-        // if it is Published,Refunding, then everyone can view, no need to check
 
         return _decrypt(boxId_);
     }
@@ -285,7 +258,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     function _decrypt(uint256 boxId_) internal view returns (bytes memory) {
         return
             Sapphire.decrypt(
-                bytes32(0), // Do not use secretKey, in order to keep its interface pure and stable.
+                bytes32(0),
                 _secretData[boxId_]._nonce,
                 _secretData[boxId_]._encryptedData,
                 ""
@@ -303,7 +276,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             revert InBlacklist();
     }
 
-    // Check if the current time is within the 30 days of the deadline
     function _isDeadlineIn30days(uint256 boxId_) internal view {
         uint256 deadline = _publicData[boxId_]._deadline;
         if (
@@ -318,17 +290,11 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     //                                      Only callable by Exchange or FundManager contract
     //==================================================================================================
     function _setPrice(uint256 boxId_, uint256 price_) internal {
-        // If the price_ is 0, then do not set
         if (price_ != 0) {
             _publicData[boxId_]._price = price_;
             emit PriceChanged(boxId_, price_);
         }
     }
-
-    // function _safeSetPrice(uint256 boxId_, uint256 price_) internal {
-    //     _checkIsBlacklisted(boxId_);
-    //     _setPrice(boxId_, price_);
-    // }
 
     function setPrice(
         uint256 boxId_,
@@ -342,7 +308,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             _publicData[boxId_]._deadline = deadline_;
             emit DeadlineChanged(boxId_, deadline_);
         }
-        // If the incoming deadline is less than the current time, then do not set
     }
 
     function _addDeadline(uint256 boxId_, uint256 seconds_) internal {
@@ -352,11 +317,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         emit DeadlineChanged(boxId_, newDeadline);
     }
 
-    // function _safeAddDeadline(uint256 boxId_, uint256 seconds_) internal {
-    //     _checkIsBlacklisted(boxId_);
-    //     _addDeadline(boxId_, seconds_);
-    // }
-
     function addDeadline(
         uint256 boxId_,
         uint256 seconds_
@@ -365,15 +325,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     }
 
     function _setStatus(uint256 boxId_, Status status_) internal {
-        // If the incoming status is Storing status, then do not set
         if (status_ == Status.Storing) revert InvalidStatus();
-        // if (status_ == Status.Refunding) {
-        //     address buyer = EXCHANGE.buyerOf(boxId_);
-        //     uint256 userId = USER_ID.getUserId(buyer);
-
-        //     bytes memory privateKey = _decrypt(boxId_);
-        //     emit PrivateKeyPublished(boxId_, privateKey, userId);
-        // }
         if (status_ == Status.Delaying) {
             _setDeadline(boxId_, block.timestamp + 15 days); // NOTE 365----15
         }
@@ -382,11 +334,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
             emit BoxStatusChanged(boxId_, status_);
         }
     }
-
-    // function _safeSetStatus(uint256 boxId_, Status status_) internal {
-    //     _checkIsBlacklisted(boxId_);
-    //     _setStatus(boxId_, status_);
-    // }
 
     function setStatus(
         uint256 boxId_,
@@ -407,34 +354,25 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     }
 
     // ==========================================================================================================
-    //                                                 public Functions
+    //                                                 publish Functions
     // ==========================================================================================================
 
-    // function _setPublished(uint256 boxId_) internal {
-    //     _setStatus(boxId_, Status.Published);
-
-    // bytes memory privateKey = _decrypt(boxId_);
-
-    // uint256 userId = USER_ID.getUserId(msg.sender);
-    // emit PrivateKeyPublished(boxId_, privateKey, userId);
-    // }
-
     /**
-     * @dev Publish TruthBox, which minter can call,
-     * If the minter wants to publish, it must be Storing status.
+     * @dev Publish TruthBox by minter.
+     * NOTE [ERC-2771]: msg.sender -> _msgSender()
      */
     function publishByMinter(uint256 boxId_) external {
-        if (msg.sender != _secretData[boxId_]._minter) revert InvalidCaller();
+        if (_msgSender() != _secretData[boxId_]._minter) revert InvalidCaller();
         _checkStatus(boxId_, Status.Storing);
         _setStatus(boxId_, Status.Published);
     }
 
     /**
-     * @dev Publish TruthBox, which administrators can call,
-     * If the buyer wants to publish, it must be Delaying status.
+     * @dev Publish TruthBox by buyer.
+     * NOTE [ERC-2771]: msg.sender -> _msgSender()
      */
     function publishByBuyer(uint256 boxId_) external {
-        if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+        if (_msgSender() != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
         _checkStatus(boxId_, Status.Delaying);
 
         _setStatus(boxId_, Status.Published);
@@ -449,14 +387,10 @@ contract TruthBox is TruthBoxBase, ITruthBox {
 
         _checkIsBlacklisted(boxId_);
 
-        // If the Box has a buyer, then set RefundPermit to true
         if (EXCHANGE.buyerOf(boxId_) != address(0)) {
             EXCHANGE.setRefundPermit(boxId_, true);
         }
         Status status = _publicData[boxId_]._status;
-        // The Box in the blacklist needs to be burned,
-        // but if it is a completed transaction Box(Delaying status and Sold status),
-        // it cannot be burned.
         if (status != Status.Published && status != Status.Delaying) {
             NFT.burn(boxId_);
         }
@@ -473,9 +407,12 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     //                                                delay function
     // ==========================================================================================================
 
-    // If the caster wishes to extend the confidentiality period, they will need to verify by minter account
+    /**
+     * @dev Extend deadline by minter.
+     * NOTE [ERC-2771]: msg.sender -> _msgSender()
+     */
     function extendDeadline(uint256 boxId_, uint256 time_) external {
-        if (msg.sender != _minterOf(boxId_)) revert InvalidCaller();
+        if (_msgSender() != _minterOf(boxId_)) revert InvalidCaller();
         _checkStatus(boxId_, Status.Storing);
         _isDeadlineIn30days(boxId_);
         if (time_ > 15 days) revert InvalidPeriod(); // NOTE: 365----15
@@ -483,18 +420,25 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         _addDeadline(boxId_, time_);
     }
 
+    /**
+     * @dev Internal delay logic.
+     * NOTE [ERC-2771]: msg.sender -> _msgSender() for payDelayFee caller
+     */
     function _delay(uint256 boxId_) private {
         uint256 amount = _publicData[boxId_]._price;
 
-        FUND_MANAGER.payDelayFee(boxId_, msg.sender, amount);
+        FUND_MANAGER.payDelayFee(boxId_, _msgSender(), amount); // ERC-2771: use real sender
 
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);
         // NOTE: 365----15
-        _addDeadline(boxId_, 15 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
+        _addDeadline(boxId_, 15 days);
     }
 
-    // Safe payment, NFT must not be public and invalid
+    /**
+     * @dev Delay function (user-facing).
+     * NOTE [ERC-2771]: _delay uses _msgSender() internally
+     */
     function delay(uint256 boxId_) external {
         _checkStatus(boxId_, Status.Delaying);
         _isDeadlineIn30days(boxId_);
@@ -511,12 +455,11 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     }
 
     /**
-     * @notice Check if the sender is correct.
-     * @param siweToken_ The siwe token of the user
-     * @return The sender of the function
-     * In sapphire, msg.sender is the zero address, so you need to get the sender through siweToken_.
+     * @notice SIWE-based _msgSender for read (view) operations.
+     * @dev This is separate from the ERC-2771 _msgSender() used for write operations.
+     * In Sapphire, msg.sender is zero in view calls, so SIWE token is needed.
      */
-    function _msgSender(
+    function _msgSenderSiwe(
         bytes memory siweToken_
     ) internal view returns (address) {
         address sender = msg.sender;
@@ -530,7 +473,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         uint256 boxId_,
         bytes memory siweToken_
     ) external view returns (address) {
-        address sender = _msgSender(siweToken_);
+        address sender = _msgSenderSiwe(siweToken_);
         if (sender != _minterOf(boxId_)) revert InvalidCaller();
 
         return sender;
@@ -546,10 +489,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     //                      Debugging Functions
     // ----------------------------------------------------------------
 
-    // /**
-    //  * @notice Debugging function,
-    //  * @dev Production environment needs to be commented, and the minterOf function above is used
-    //  */
     function minterOf_debug(uint256 boxId_) external view returns (address) {
         return _minterOf(boxId_);
     }

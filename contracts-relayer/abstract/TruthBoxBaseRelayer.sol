@@ -18,19 +18,18 @@ pragma solidity ^0.8.24;
 import {IUserId} from "@wikitruth-v1/interfaces/IUserId.sol";
 import {ISiweAuth} from "../interfaces2/ISiweAuth.sol";
 import {ITruthNFT} from "@wikitruth-v1/interfaces/ITruthNFT.sol";
-import {ITruthBox} from "@wikitruth-v1/interfaces/ITruthBox.sol";
-import {IFundManager} from "@wikitruth-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@wikitruth-v1/interfaces/IExchange.sol";
+import {IFundManager} from "@wikitruth-v1/interfaces/IFundManager.sol";
 import {IAddressManager} from "@wikitruth-v1/interfaces/IAddressManager.sol";
 
-// import "./library.sol";
-import {Modifier} from "./Modifier.sol";
+import {RelayerModifier} from "./RelayerModifier.sol";
+
 /**
- *  @notice TruthBoxBase
- *
+ * @title TruthBoxBaseRelayer
+ * @dev ERC-2771 compatible version of TruthBoxBase
  */
 
-contract TruthBoxBase is Modifier {
+abstract contract TruthBoxBaseRelayer is RelayerModifier {
     IUserId internal USER_ID;
     ISiweAuth internal SIWE_AUTH;
     ITruthNFT internal NFT;
@@ -39,18 +38,34 @@ contract TruthBoxBase is Modifier {
 
     uint8 internal _incrementRate; // 2.0 * 100
 
+    // =====================================================================================
+
+    uint256 internal _boxCount;
+    uint8 internal _minDeadlineDays;
+    uint8 internal _maxDeadlineDays;
+    uint8 internal _minPublicDays;
+    uint8 internal _maxPublicDays;
+
     // ==================================================================================================
     uint256 internal _nextBoxId;
 
-    // ==================================================================================================
-    constructor(address addrManager_) Modifier(addrManager_) {
+    // =====================================================================================
+
+    constructor(
+        address addrManager_,
+        address trustedForwarder_
+    ) RelayerModifier(addrManager_, trustedForwarder_) {
         _incrementRate = 200;
+        _minDeadlineDays = 3;
+        _maxDeadlineDays = 90;
+        _minPublicDays = 1;
+        _maxPublicDays = 14;
     }
-    // ==================================================================================================
 
-    // ==========================================================================================================
+    // =====================================================================================
+    //                           internal: set address
+    // =====================================================================================
 
-    // TODO Add the address of the DAO fund manager
     function _setAddress() internal virtual {
         IAddressManager addrMgr = ADDR_MANAGER;
 
@@ -75,6 +90,34 @@ contract TruthBoxBase is Modifier {
         if (userId != address(0) && userId != address(USER_ID)) {
             USER_ID = IUserId(userId);
         }
+    }
+
+    // =====================================================================================
+    //                           external: set address (admin)
+    // =====================================================================================
+
+    function setAddress() external checkSetCaller {
+        _setAddress();
+    }
+
+    // =====================================================================================
+    //                              Set Deadline and Public Days
+    // =====================================================================================
+
+    function setMinDeadlineDays(uint8 minDeadlineDays_) external onlyAdminDAO {
+        _minDeadlineDays = minDeadlineDays_;
+    }
+
+    function setMaxDeadlineDays(uint8 maxDeadlineDays_) external onlyAdminDAO {
+        _maxDeadlineDays = maxDeadlineDays_;
+    }
+
+    function setMinPublicDays(uint8 minPublicDays_) external onlyAdminDAO {
+        _minPublicDays = minPublicDays_;
+    }
+
+    function setMaxPublicDays(uint8 maxPublicDays_) external onlyAdminDAO {
+        _maxPublicDays = maxPublicDays_;
     }
 
     /**

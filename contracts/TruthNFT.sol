@@ -6,14 +6,12 @@
  *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
  *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
  *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝   
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
  *
  *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
  *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
  *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
  */
-
-
 
 pragma solidity ^0.8.24;
 
@@ -32,30 +30,30 @@ import {Modifier} from "./abstract/Modifier.sol";
  */
 
 contract TruthNFT is ERC721, Modifier, ITruthNFT {
-    
     // =====================================================================================
-    
+
     ITruthBox internal TRUTH_BOX;
 
     string internal _network;
     string internal _uriSuffix;
 
     // ==================================================================================================
-    uint256 internal _nextTokenId; 
-    // uint256 internal _blackSupply; 
-    
-    // mapping (uint256 tokenId => bool) internal _blackTokenIds; 
-    mapping (uint256 tokenId => string) internal _tokenCID; 
+    uint256 internal _nextTokenId;
+    // uint256 internal _blackSupply;
+
+    // mapping (uint256 tokenId => bool) internal _blackTokenIds;
+    mapping(uint256 tokenId => string) internal _tokenCID;
 
     // ==================================================================================================
 
-    constructor(address addrManager_) ERC721('Truth Box NFT', 'TBN') Modifier(addrManager_) {
-    }
+    constructor(
+        address addrManager_
+    ) ERC721("Truth Box NFT", "TBN") Modifier(addrManager_) {}
 
     // ==========================================================================================================
     //                                          Override Functions
     // ==========================================================================================================
-    
+
     /**
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
@@ -72,7 +70,9 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override returns (string memory) {
         if (TRUTH_BOX.isInBlacklist(tokenId)) revert InBlacklist();
         _requireOwned(tokenId);
         string memory tokenCID_ = _tokenCID[tokenId];
@@ -86,7 +86,10 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
      * @param uri_ URI suffix for token URI
      * @dev Only callable by admin
      */
-    function setNetwork(string calldata network_, string calldata uri_) public override onlyAdmin {
+    function setNetwork(
+        string calldata network_,
+        string calldata uri_
+    ) public override onlyAdmin {
         _network = network_;
         _uriSuffix = uri_;
     }
@@ -97,12 +100,12 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
      */
     function totalSupply() public view override returns (uint256) {
         return _nextTokenId;
-    } 
+    }
 
     // ==========================================================================================================
     //                                         Functions
     // ==========================================================================================================
-    
+
     /**
      * @notice Mint a new NFT
      * @param tokenId_ Box ID (used as token ID)
@@ -124,7 +127,6 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
         unchecked {
             _nextTokenId++;
         }
-
     }
 
     // ==========================================================================================================
@@ -142,7 +144,8 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
         ITruthBox truthBox = TRUTH_BOX;
         if (truthBox.isInBlacklist(tokenId)) return false;
         Status status = truthBox.getStatus(tokenId);
-        if (status != Status.Delaying && status != Status.Published) return false;
+        if (status != Status.Delaying && status != Status.Published)
+            return false;
         return true;
     }
 
@@ -152,7 +155,9 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
      * @return Whether the token can be executed
      * @dev Only Delaying and Published status tokens can be executed, and must not be in blacklist
      */
-    function isExecuteAble(uint256 tokenId) public view override returns (bool) {
+    function isExecuteAble(
+        uint256 tokenId
+    ) public view override returns (bool) {
         return _isExecuteAble(tokenId);
     }
 
@@ -167,7 +172,11 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
     /**
      * @dev Override the _update function to check blacklist status before any transfer operation
      */
-    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override returns (address) {
         address from = _ownerOf(tokenId);
         // Neither mint nor burn, then check if it is in the blacklist
         if (from != address(0) && to != address(0)) {
@@ -175,7 +184,6 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
         }
         return super._update(to, tokenId, auth);
     }
-
 
     /**
      * @notice Burn an NFT
@@ -186,5 +194,4 @@ contract TruthNFT is ERC721, Modifier, ITruthNFT {
         if (msg.sender != address(TRUTH_BOX)) revert InvalidCaller();
         super._burn(tokenId);
     }
-
 }
