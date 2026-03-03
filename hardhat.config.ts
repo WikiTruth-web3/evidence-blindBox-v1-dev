@@ -11,8 +11,6 @@ import "@nomicfoundation/hardhat-foundry";
 import { hardhat_accounts } from "./test_account";
 
 
-// import { resolve } from "path";
-
 const sapphire_testnet_admin = process.env.ADMIN_PRIVATE_KEY_EVM ? process.env.ADMIN_PRIVATE_KEY_EVM : "";
 const sapphire_testnet_minter = process.env.MINTER_PRIVATE_KEY_EVM ? process.env.MINTER_PRIVATE_KEY_EVM : "";
 const sapphire_testnet_buyer = process.env.BUYER_PRIVATE_KEY_EVM ? process.env.BUYER_PRIVATE_KEY_EVM : "";
@@ -26,6 +24,7 @@ const sapphire_mainnet_admin = process.env.ADMIN_PRIVATE_KEY_EVM ? process.env.A
 
 const config: HardhatUserConfig = {
   solidity: {
+
     compilers: [
       {
         version: "0.8.24",

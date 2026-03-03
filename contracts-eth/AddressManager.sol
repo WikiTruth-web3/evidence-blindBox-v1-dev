@@ -1,0 +1,313 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+/**
+ *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
+ *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
+ *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
+ *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
+ *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+ *
+ *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
+ *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ */
+
+pragma solidity ^0.8.24;
+
+import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
+import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
+import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+
+import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
+
+/**
+ * @title AddressManager
+ * @dev Address management contract, also responsible for token registration
+ */
+
+contract AddressManager is ProxyUpgrade, IAddressManager {
+    error TokenIsActive();
+    error TokenIsNotActive();
+    error InvalidAddress();
+    error RemoveError();
+    error InvalidIndex();
+    error CannotRemoveOfficialToken();
+
+    /**
+     * @dev The admin is managed by the ProxyUpgrade contract
+     * The variable will be re-enabled in the production environment
+     */
+    // address public admin;
+
+    // DAO governance related contracts
+    address public dao;
+    address public governance;
+    address public daoFundManager;
+
+    // User registration related contracts
+    address public userId;
+    address public siweAuth;
+
+    // Core trading contracts
+    address public truthBox;
+    address public fundManager;
+    address public exchange;
+
+    /**
+     * @dev Settlement token contract
+     * @dev The token used for settlement
+     */
+    address public settlementToken;
+
+    // Other supported token addresses
+    address[] internal _tokenList;
+    /**
+     * @dev Enumerate token status
+     * @param UnExsited Not added to the token array, does not support the token.
+     * @param Active Added to the array, supports the token.
+     * @param Inactive Added to the array, exists, but not activated.
+     */
+    enum TokenEnum {
+        UnExsited,
+        Active,
+        Inactive
+    }
+    mapping(address token => TokenEnum) internal _tokenStatus;
+
+    // Uniswap V3 SwapRouter contract and quoter contract
+    address[] internal _swapContracts;
+
+    // Reserved contract addresses
+    address[] internal _reservedList;
+
+    // Project contract addresses
+    // Used for white list check of project contracts
+    mapping(address contracts => bool) internal _isProjectContract;
+
+    // =======================================================================================================
+    constructor() {
+        // admin = msg.sender;
+    }
+
+    // =====================================================================================
+
+    // modifier onlyAdmin() {
+    //     if (msg.sender != admin) revert NotAdmin();
+    //     _;
+    // }
+    // =====================================================================================
+
+    /**
+     * @dev Set addresses
+     * @param list_ Address list
+     * [
+        dao, 
+        governance, 
+        daoFundManager, 
+        userId, 
+        siweAuth, 
+        truthBox, 
+        exchange, 
+        fundManager
+        ]
+     */
+    function setAddressList(address[] memory list_) external onlyAdmin {
+        // DAO contract
+        if (list_[0] != address(0)) {
+            if (_mappingBool(dao, list_[0])) {
+                dao = list_[0];
+            }
+        }
+        if (list_[1] != address(0)) {
+            if (_mappingBool(governance, list_[1])) {
+                governance = list_[1];
+            }
+        }
+        if (list_[2] != address(0)) {
+            if (_mappingBool(daoFundManager, list_[2])) {
+                daoFundManager = list_[2];
+            }
+        }
+        // Identity verification contracts
+        if (list_[3] != address(0)) {
+            if (_mappingBool(userId, list_[3])) {
+                userId = list_[3];
+            }
+        }
+        if (list_[4] != address(0)) {
+            if (_mappingBool(siweAuth, list_[4])) {
+                siweAuth = list_[4];
+            }
+        }
+        // Trading contracts
+        if (list_[5] != address(0)) {
+            if (_mappingBool(truthBox, list_[5])) {
+                truthBox = list_[5];
+            }
+        }
+        if (list_[6] != address(0)) {
+            if (_mappingBool(exchange, list_[6])) {
+                exchange = list_[6];
+            }
+        }
+        if (list_[7] != address(0)) {
+            if (_mappingBool(fundManager, list_[7])) {
+                fundManager = list_[7];
+            }
+        }
+    }
+
+    function setSwapContracts(address[] memory list_) external onlyAdmin {
+        for (uint256 i = 0; i < list_.length; i++) {
+            if (list_[i] != address(0)) {
+                if (i < _swapContracts.length) {
+                    if (_mappingBool(_swapContracts[i], list_[i])) {
+                        _swapContracts[i] = list_[i];
+                    }
+                } else {
+                    _swapContracts.push(list_[i]);
+                    _isProjectContract[list_[i]] = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * @dev Update the project contract mapping
+     * @param old_ Old contract address
+     * @param new_ New contract address
+     * @return Whether to update
+     */
+    function _mappingBool(address old_, address new_) internal returns (bool) {
+        if (old_ == address(0)) {
+            _isProjectContract[new_] = true;
+            return true;
+        }
+        if (old_ == new_) {
+            return false;
+        }
+        _isProjectContract[old_] = false;
+        _isProjectContract[new_] = true;
+        return true;
+    }
+
+    /**
+     * Set all contract addresses
+     */
+    function setAllAddress() external onlyAdmin {
+        IExchange(exchange).setAddress();
+        IFundManager(fundManager).setAddress();
+        ITruthBox(truthBox).setAddress();
+        IUserId(userId).setAddress();
+    }
+
+    /**
+     * @dev Add reserved address
+     * The reserved address can only be added, cannot be deleted, to avoid unnecessary impact.
+     */
+    function addReservedAddress(address reservedAddress_) external onlyAdmin {
+        if (reservedAddress_ == address(0)) revert InvalidAddress();
+        _reservedList.push(reservedAddress_);
+    }
+
+    /**
+     * @dev Set admin
+     * The admin is managed by the ProxyUpgrade contract
+     * The function will be re-enabled in the production environment
+     */
+    // function setAdmin(address newAdmin_) external onlyAdmin {
+    //     if (newAdmin_ == address(0)) revert InvalidAddress();
+    //     admin = newAdmin_;
+    // }
+
+    // =================================== Token management ==================================================
+
+    /**
+     * @dev Set settlement token
+     */
+    function setSettlementToken(address token_) external onlyAdmin {
+        address oldToken = settlementToken;
+        if (token_ == address(0) || token_ == oldToken) revert InvalidAddress();
+
+        if (oldToken != address(0)) {
+            _tokenStatus[oldToken] = TokenEnum.UnExsited; // Important
+        }
+
+        if (_tokenStatus[token_] != TokenEnum.Active) {
+            _tokenStatus[token_] = TokenEnum.Active;
+        }
+        settlementToken = token_;
+    }
+
+    function addToken(address token_) external onlyAdmin {
+        if (token_ == address(0)) revert InvalidAddress();
+        if (_tokenStatus[token_] == TokenEnum.Active) revert TokenIsActive();
+
+        if (_tokenStatus[token_] == TokenEnum.UnExsited) {
+            _tokenList.push(token_);
+        }
+        _tokenStatus[token_] = TokenEnum.Active;
+    }
+
+    function _removeToken(address token_) internal {
+        if (_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
+        if (token_ == settlementToken) revert IsSettlementToken();
+        _tokenStatus[token_] = TokenEnum.Inactive;
+    }
+
+    /**
+     * @dev Remove token: set the token status to Inactive
+     * @param token_ Token contract address
+     */
+    function removeToken(address token_) external onlyAdmin {
+        _removeToken(token_);
+    }
+
+    // =================================== getters Token ==================================================
+
+    function isProjectContract(address contract_) external view returns (bool) {
+        return _isProjectContract[contract_];
+    }
+
+    function getTokenList() external view returns (address[] memory) {
+        return _tokenList;
+    }
+
+    function swapContracts() external view returns (address[] memory) {
+        return _swapContracts;
+    }
+
+    /**
+     * @dev Check if the token is supported
+     * @param token_ Token contract address
+     * @return Whether the token is supported
+     */
+    function isTokenSupported(address token_) external view returns (bool) {
+        return _tokenStatus[token_] == TokenEnum.Active;
+    }
+
+    /**
+     * @dev Check if the token is official token
+     */
+    function isSettlementToken(address token_) external view returns (bool) {
+        if (token_ == address(0)) revert InvalidAddress();
+        return token_ == settlementToken;
+    }
+
+    // ----------------------------------- Reserved address management --------------------------------------------------
+
+    function reservedList() external view returns (address[] memory) {
+        return _reservedList;
+    }
+
+    function getAddressFromIndex(
+        uint256 index_
+    ) external view returns (address) {
+        if (index_ >= _reservedList.length) revert InvalidIndex();
+        return _reservedList[index_];
+    }
+}

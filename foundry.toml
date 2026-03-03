@@ -10,5 +10,6 @@ remappings = [
     "@oasisprotocol/opl-contracts/=node_modules/@oasisprotocol/sapphire-contracts/contracts/opl/",
     "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
     "@ignition/=ignition/",
-    "@wikitruth-v1/=wikitruth-v1/"
+    "@marketplace-v1/=marketplace-v1/",
+    "@uniswap-v3/=uniswap-v3/"
 ]
