@@ -79,8 +79,8 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external checkSetCaller {
-        _setAddress();
+    function setAddress() external onlyManager {
+        _setAddress("fundManager");
     }
 
     // ====================================================================================================================
@@ -102,7 +102,7 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
 
         _orderAmounts[boxId_][buyer_] += amount_;
 
-        uint256 userId = USER_ID.getUserId(buyer_);
+        uint256 userId = USER_MANAGER.getUserId(buyer_);
         emit OrderAmountPaid(boxId_, userId, token, amount_);
     }
 
@@ -369,7 +369,7 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         // Execute refund
         IERC20(token_).safeTransfer(sender, amount);
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit OrderAmountWithdraw(list_, token_, userId, amount, type_);
     }
 
@@ -415,7 +415,7 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         _helperRewrdAmounts[sender][token_] = 0;
         IERC20(token_).safeTransfer(sender, amount);
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit HelperRewrdsWithdraw(userId, token_, amount);
     }
 
@@ -437,7 +437,7 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         // Execute safeTransfer
         IERC20(token_).safeTransfer(sender, amount);
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit MinterRewardsWithdraw(userId, token_, amount);
     }
 
@@ -462,23 +462,6 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
     }
 
     /**
-     * @notice verify the sender is correct
-     * @param siweToken_ The siwe token of the user
-     * @return The sender of the function
-     * In sapphire, msg.sender is the zero address, so we need to get sender through siweToken_
-     * siwe
-     */
-    function _msgSenderSiwe(
-        bytes memory siweToken_
-    ) internal view returns (address) {
-        address sender = msg.sender;
-        if (sender == address(0)) {
-            sender = SIWE_AUTH.getMsgSender(siweToken_);
-        }
-        return sender;
-    }
-
-    /**
      * @dev Get order amount
      * @param boxId_ TruthBox ID
      * @param siweToken_ User siwe token
@@ -488,7 +471,8 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         uint256 boxId_,
         bytes memory siweToken_
     ) external view onlyProjectContract returns (uint256) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         return _orderAmounts[boxId_][sender];
     }
 
@@ -502,7 +486,8 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         address token_,
         bytes memory siweToken_
     ) external view returns (uint256) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         return _minterRewardAmounts[sender][token_];
     }
 
@@ -516,7 +501,8 @@ contract FundManager is FundManagerBase, IFundManager, ERC2771Context {
         address token_,
         bytes memory siweToken_
     ) external view returns (uint256) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         return _helperRewrdAmounts[sender][token_];
     }
 

@@ -22,11 +22,13 @@ import {
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
 import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
 import {FeeRate} from "./FeeRate.sol";
 
@@ -44,7 +46,7 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
 
     // ====================================================================================================================
     // State Variables
-    IUserId internal USER_ID;
+    IUserManager internal USER_MANAGER;
     // ISiweAuth internal SIWE_AUTH;
     IExchange internal EXCHANGE;
     ITruthBox internal TRUTH_BOX;
@@ -52,7 +54,7 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
     // =======================================================================================
 
     // Withdraw pause status
-    bool private _paused;
+    bool private _isPaused;
 
     // ====================================================================================================================
 
@@ -62,7 +64,7 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
     // Modifiers
 
     modifier whenNotPaused() {
-        if (_paused) revert EnforcedPause();
+        if (_isPaused) revert EnforcedPause();
         _;
     }
 
@@ -74,8 +76,8 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
      * @return Current pause status
      */
     function togglePause() public onlyAdmin returns (bool) {
-        bool to = !_paused;
-        _paused = to;
+        bool to = !_isPaused;
+        _isPaused = to;
         emit PauseToggled(to);
         return to;
     }
@@ -88,7 +90,7 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
 
         address truthBox = addrMgr.truthBox();
         address exchange = addrMgr.exchange();
-        address userId = addrMgr.userId();
+        address userManager = addrMgr.userManager();
         // address siweAuth = addrMgr.siweAuth();
         // address[] memory swapContracts = addrMgr.swapContracts();
 
@@ -98,8 +100,8 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
         if (exchange != address(0) && exchange != address(EXCHANGE)) {
             EXCHANGE = IExchange(exchange);
         }
-        if (userId != address(0) && userId != address(USER_ID)) {
-            USER_ID = IUserId(userId);
+        if (userManager != address(0) && userManager != address(USER_MANAGER)) {
+            USER_MANAGER = IUserManager(userManager);
         }
         // if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
         //     SIWE_AUTH = ISiweAuth(siweAuth);
@@ -116,8 +118,8 @@ contract FundManagerBase is FeeRate, ReentrancyGuard {
      * @dev Get withdraw pause status
      * @return Whether withdrawal is paused
      */
-    function paused() external view returns (bool) {
-        return _paused;
+    function isPaused() external view returns (bool) {
+        return _isPaused;
     }
 
     // ====================================================================================================================

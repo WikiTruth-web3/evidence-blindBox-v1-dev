@@ -65,8 +65,8 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external checkSetCaller {
-        _setAddress();
+    function setAddress() external onlyManager {
+        _setAddress("exchange");
     }
 
     // ========================================================================================================
@@ -118,7 +118,7 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();
 
         if (sender != truthBox.minterOf(boxId_)) {
@@ -215,7 +215,7 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
 
         address sender = _msgSender();
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         _boxExchengData[boxId_]._buyer = sender;
 
         // Buy operation, should directly set the deadline for applying for refund
@@ -245,7 +245,7 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
 
         _boxExchengData[boxId_]._buyer = sender;
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BidPlaced(boxId_, userId);
     }
 
@@ -286,7 +286,8 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
         uint256 boxId_,
         bytes memory siweToken_
     ) public view returns (uint256) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         uint256 price = TRUTH_BOX.getPrice(boxId_);
 
         return _calcPayMoney(boxId_, sender, price);
@@ -429,7 +430,7 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
             if (isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
             if (sender != truthBox.minterOf(boxId_)) {
                 _boxExchengData[boxId_]._completer = sender;
-                uint256 userId = USER_ID.getUserId(sender);
+                uint256 userId = USER_MANAGER.getUserId(sender);
                 emit CompleterAssigned(boxId_, userId);
             }
         }
@@ -516,22 +517,6 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
     }
 
     // ========================================================================================================
-
-    /**
-     * @notice verify the sender is correct
-     * @param siweToken_ The siwe token of the user
-     * @return The sender of the function
-     * In sapphire, msg.sender is the zero address, so we need to get sender through siweToken_
-     */
-    function _msgSenderSiwe(
-        bytes memory siweToken_
-    ) internal view returns (address) {
-        address sender = msg.sender;
-        if (sender == address(0)) {
-            sender = SIWE_AUTH.getMsgSender(siweToken_);
-        }
-        return sender;
-    }
 
     // ----------------------------------------------------------------
     //                      Debugging Functions

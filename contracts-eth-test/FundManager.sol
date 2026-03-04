@@ -63,7 +63,7 @@ contract FundManager is FundManagerBase, IFundManager {
 
     constructor(address addrManager_) FundManagerBase(addrManager_) {}
 
-    function setAddress() external checkSetCaller {
+    function setAddress() external onlyManager {
         _setAddress();
     }
 
@@ -92,7 +92,7 @@ contract FundManager is FundManagerBase, IFundManager {
 
         _orderAmounts[boxId_][buyer_] += amount_;
 
-        uint256 userId = USER_ID.getUserId(buyer_);
+        uint256 userId = USER_MANAGER.getUserId(buyer_);
         emit OrderAmountPaid(boxId_, userId, token, amount_);
     }
 
@@ -332,7 +332,7 @@ contract FundManager is FundManagerBase, IFundManager {
         // Execute refund
         IERC20(token_).safeTransfer(msg.sender, amount);
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
         emit OrderAmountWithdraw(list_, token_, userId, amount, type_);
     }
 
@@ -376,7 +376,7 @@ contract FundManager is FundManagerBase, IFundManager {
         _helperRewrdAmounts[msg.sender][token_] = 0;
         IERC20(token_).safeTransfer(msg.sender, amount);
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
         emit HelperRewrdsWithdraw(userId, token_, amount);
     }
 
@@ -396,7 +396,7 @@ contract FundManager is FundManagerBase, IFundManager {
         // Execute safeTransfer
         IERC20(token_).safeTransfer(msg.sender, amount);
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
         emit MinterRewardsWithdraw(userId, token_, amount);
     }
 

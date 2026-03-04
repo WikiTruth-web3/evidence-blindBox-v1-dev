@@ -75,7 +75,7 @@ interface IWikiTruthEvents {
         uint256 indexed userId
     );
 
-    // ========== UserId ==========
+    // ========== UserManager ==========
     event Blacklist(address user, bool status);
 
     // ====================

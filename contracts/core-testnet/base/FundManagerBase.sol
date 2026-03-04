@@ -15,23 +15,12 @@
 
 pragma solidity ^0.8.24;
 
-// import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import {Pausable} from "../openzeppelin/contracts/utils/Pausable.sol";
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-// import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Pausable} from "../utils/Pausable.sol";
 
-import {IUserId} from "@marketplace-v1/interfaces/IUserId.sol";
-import {ISiweAuth} from "@marketplace-v1/interfaces-siwe/ISiweAuth.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-// import {Error} from "@truth-marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-// import "../interfaces/ISwapRouter.sol";
-
-import {FeeRate} from "./FeeRate.sol";
+import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
  * @title FundManagerBase
@@ -39,90 +28,119 @@ import {FeeRate} from "./FeeRate.sol";
  * v1.6 upgraded version of FundManager, extending existing FundManager to support multi-token transactions
  */
 
-contract FundManagerBase is FeeRate, ReentrancyGuard {
-    // ====================================================================================================================
+contract FundManagerBase is ModifierV2, ReentrancyGuard, Pausable {
     error EnforcedPause();
 
-    event PauseToggled(bool isPaused);
+    event BuyerRefundRateAdded(uint256 boxId, uint8 rate);
+    event DaoFeeRateAdded(uint256 boxId, uint8 rate);
+    // =====================================================================================
 
-    // ====================================================================================================================
-    // State Variables
-    IUserId internal USER_ID;
-    ISiweAuth internal SIWE_AUTH;
-    IExchange internal EXCHANGE;
-    ITruthBox internal TRUTH_BOX;
-
-    // =======================================================================================
-
-    // Withdraw pause status
-    bool private _paused;
-
-    // ====================================================================================================================
-
-    constructor(address addrManager_) FeeRate(addrManager_) {}
-
-    // ====================================================================================================================
-    // Modifiers
-
-    modifier whenNotPaused() {
-        if (_paused) revert EnforcedPause();
-        _;
-    }
-
-    // ====================================================================================================================
-    // Management Functions
+    // rate / 1000 = %
+    /**
+     * @dev The official service fee rate
+     */
+    uint8 internal _serviceFeeRate;
+    /**
+     * @dev The ecosystem participant reward rate
+     */
+    uint8 internal _helperRewardRate;
 
     /**
-     * @dev Toggle withdraw pause status
-     * @return Current pause status
+     * @dev Extra fee:
+     * when using non-settlement tokens, this fee will be incurred
      */
-    function togglePause() public onlyAdmin returns (bool) {
-        bool to = !_paused;
-        _paused = to;
-        emit PauseToggled(to);
-        return to;
-    }
+    uint8 internal _extraFeeRate;
 
     /**
-     * @dev Set contract addresses
+     * @dev Slippage protection:
+     * when swapping, this slippage protection will be applied
      */
-    function _setAddress() internal virtual {
-        IAddressManager addrMgr = ADDR_MANAGER;
+    uint8 internal _slippageProtection;
 
-        address truthBox = addrMgr.truthBox();
-        address exchange = addrMgr.exchange();
-        address userId = addrMgr.userId();
-        address siweAuth = addrMgr.siweAuth();
-        // address[] memory swapContracts = addrMgr.swapContracts();
+    // =====================================================================================
+    constructor(address addrManager_) ModifierV2(addrManager_) {
+        _serviceFeeRate = 30; // 30
+        _helperRewardRate = 10; // 10
+        _extraFeeRate = 10; // 10
+        _slippageProtection = 10; // 10
+    }
 
-        if (truthBox != address(0) && truthBox != address(TRUTH_BOX)) {
-            TRUTH_BOX = ITruthBox(truthBox);
-        }
-        if (exchange != address(0) && exchange != address(EXCHANGE)) {
-            EXCHANGE = IExchange(exchange);
-        }
+    // =====================================================================================
+    //                                  Management Functions
+    // =====================================================================================
 
-        if (userId != address(0) && userId != address(USER_ID)) {
-            USER_ID = IUserId(userId);
-        }
-        if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
-            SIWE_AUTH = ISiweAuth(siweAuth);
-        }
-        // if (
-        //     swapContracts.length > 0 &&
-        //     swapContracts[0] != address(SWAP_CONTRACT)
-        // ) {
-        //     SWAP_CONTRACT = swapContracts[0];
-        // }
+    function pause() external onlyAdminDAO {
+        _pause();
+    }
+
+    function unpause() external onlyAdminDAO {
+        _unpause();
+    }
+
+    // =====================================================================================================
+
+    // ==========================================================================================================
+
+    /**
+     * @dev Set service fee rate
+     * @param Rate_ The service fee rate
+     * Can be set to 0-50
+     */
+    function setServiceFeeRate(uint8 Rate_) external onlyDAO {
+        if (Rate_ > 50) revert InvalidRate();
+        _serviceFeeRate = Rate_;
     }
 
     /**
-     * @dev Get withdraw pause status
-     * @return Whether withdrawal is paused
+     * @dev Set helper reward rate
+     * @param Rate_ The helper reward rate
+     * Can be set to 0-30
      */
-    function paused() external view returns (bool) {
-        return _paused;
+    function setHelperRewardRate(uint8 Rate_) external onlyDAO {
+        if (Rate_ > 30) revert InvalidRate();
+        _helperRewardRate = Rate_;
     }
 
-    // ====================================================================================================================
+    /**
+     * @dev Set extra fee rate
+     * @param Rate_ The extra fee rate
+     * Can be set to 0-20
+     */
+    function setExtraFeeRate(uint8 Rate_) external onlyDAO {
+        if (Rate_ > 20) revert InvalidRate();
+        _extraFeeRate = Rate_;
+    }
+
+    /**
+     * @dev Set slippage protection
+     * @param slippageProtection_ The slippage protection rate
+     * Can be set to 0-100
+     */
+    function setSlippageProtection(
+        uint8 slippageProtection_
+    ) external onlyAdminDAO {
+        if (slippageProtection_ > 100) revert InvalidRate();
+        _slippageProtection = slippageProtection_;
+    }
+
+    // ==========================================================================================================
+    //                                         view get fee rate
+    // ==========================================================================================================
+
+    // change name
+    function helperRewardRate() external view returns (uint8) {
+        return _helperRewardRate;
+    }
+
+    function serviceFeeRate() external view returns (uint8) {
+        return _serviceFeeRate;
+    }
+
+    function extraFeeRate() external view returns (uint8) {
+        return _extraFeeRate;
+    }
+
+    function slippageProtection() external view returns (uint8) {
+        return _slippageProtection;
+    }
 }

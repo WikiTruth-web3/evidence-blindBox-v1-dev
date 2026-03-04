@@ -86,13 +86,6 @@ interface IAddressManager {
     function siweAuth() external view returns (address);
 
     /**
-     * @notice Get Forwarder contract address
-     * @return Forwarder contract address
-     * erc2771 forwarder
-     */
-    function forwarder() external view returns (address);
-
-    /**
      * @notice Get swap contracts address list
      * @return Swap contracts address list
      */

@@ -18,26 +18,20 @@ pragma solidity ^0.8.24;
 
 // import "@openzeppelin/contracts/utils/Context.sol";
 
-import {IUserId} from "@marketplace-v1/interfaces/IUserId.sol";
-import {ISiweAuth} from "@marketplace-v1/interfaces-siwe/ISiweAuth.sol";
+import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 
-import {Modifier} from "../modifier/Modifier.sol";
+import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
  *  @notice ExchangeBase
  *
  */
 
-contract ExchangeBase is Modifier {
-    ITruthBox internal TRUTH_BOX;
-    IFundManager internal FUND_MANAGER;
-    IUserId internal USER_ID;
-    ISiweAuth internal SIWE_AUTH;
-
+contract ExchangeBase is ModifierV2 {
     uint256 internal _refundRequestPeriod;
     uint256 internal _refundReviewPeriod;
 
@@ -45,7 +39,7 @@ contract ExchangeBase is Modifier {
 
     // ========================================================================================================
 
-    constructor(address addrManager_) Modifier(addrManager_) {
+    constructor(address addrManager_) ModifierV2(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
         _refundReviewPeriod = 15 days;
@@ -54,28 +48,6 @@ contract ExchangeBase is Modifier {
     // =====================================================================================
     //                                      Basic Parameter Settings
     // =====================================================================================
-
-    function _setAddress() internal virtual {
-        IAddressManager addrMgr = ADDR_MANAGER;
-
-        address truthBox = addrMgr.truthBox();
-        address fundM = addrMgr.fundManager();
-        address userId = addrMgr.userId();
-        address siweAuth = addrMgr.siweAuth();
-
-        if (truthBox != address(0) && truthBox != address(TRUTH_BOX)) {
-            TRUTH_BOX = ITruthBox(truthBox);
-        }
-        if (fundM != address(0) && fundM != address(FUND_MANAGER)) {
-            FUND_MANAGER = IFundManager(fundM);
-        }
-        if (userId != address(0) && userId != address(USER_ID)) {
-            USER_ID = IUserId(userId);
-        }
-        if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
-            SIWE_AUTH = ISiweAuth(siweAuth);
-        }
-    }
 
     // 7~15  || 1~7
     function setRefundRequestPeriod(uint256 period_) external onlyDAO {

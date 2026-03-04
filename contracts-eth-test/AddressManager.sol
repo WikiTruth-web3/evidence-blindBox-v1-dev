@@ -15,12 +15,14 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
 import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
 import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 
@@ -35,7 +37,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     error InvalidAddress();
     error RemoveError();
     error InvalidIndex();
-    error CannotRemoveOfficialToken();
+    error IsSettlementToken();
 
     /**
      * @dev The admin is managed by the ProxyUpgrade contract
@@ -49,7 +51,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     address public daoFundManager;
 
     // User registration related contracts
-    address public userId;
+    address public userManager;
     address public siweAuth;
 
     // Core trading contracts
@@ -108,7 +110,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         dao, 
         governance, 
         daoFundManager, 
-        userId, 
+        userManager, 
         siweAuth, 
         truthBox, 
         exchange, 
@@ -134,8 +136,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         }
         // Identity verification contracts
         if (list_[3] != address(0)) {
-            if (_mappingBool(userId, list_[3])) {
-                userId = list_[3];
+            if (_mappingBool(userManager, list_[3])) {
+                userManager = list_[3];
             }
         }
         if (list_[4] != address(0)) {
@@ -202,7 +204,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         IExchange(exchange).setAddress();
         IFundManager(fundManager).setAddress();
         ITruthBox(truthBox).setAddress();
-        IUserId(userId).setAddress();
+        IUserManager(userManager).setAddress();
     }
 
     /**

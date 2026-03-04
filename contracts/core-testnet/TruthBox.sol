@@ -18,7 +18,7 @@ pragma solidity ^0.8.24;
 import {
     Sapphire
 } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
-
+import {SiweContext} from "@siwe/SiweContext.sol";
 import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
@@ -64,8 +64,8 @@ contract TruthBox is TruthBoxBase, ITruthBox, ERC2771Context {
      * @notice Set the contract address
      * @dev Get and set the related contract addresses from AddressManager
      */
-    function setAddress() external checkSetCaller {
-        _setAddress();
+    function setAddress() external onlyManager {
+        _setAddress("truthBox");
     }
 
     // ==========================================================================================================
@@ -126,7 +126,7 @@ contract TruthBox is TruthBoxBase, ITruthBox, ERC2771Context {
             _nextBoxId++;
         }
 
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BoxCreated(boxId, userId, boxInfoCID_);
 
         return boxId;
@@ -264,7 +264,8 @@ contract TruthBox is TruthBoxBase, ITruthBox, ERC2771Context {
         uint256 boxId_,
         bytes memory siweToken_
     ) external view returns (bytes memory) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         if (sender == address(0)) revert InvalidToken();
         Status status = _getStatus(boxId_);
 
@@ -372,7 +373,7 @@ contract TruthBox is TruthBoxBase, ITruthBox, ERC2771Context {
         if (status_ == Status.Storing) revert InvalidStatus();
         // if (status_ == Status.Refunding) {
         //     address buyer = EXCHANGE.buyerOf(boxId_);
-        //     uint256 userId = USER_ID.getUserId(buyer);
+        //     uint256 userId = USER_MANAGER.getUserId(buyer);
 
         //     bytes memory privateKey = _decrypt(boxId_);
         //     emit PrivateKeyPublished(boxId_, privateKey, userId);
@@ -501,27 +502,12 @@ contract TruthBox is TruthBoxBase, ITruthBox, ERC2771Context {
         return minter;
     }
 
-    /**
-     * @notice Check if the sender is correct.
-     * @param siweToken_ The siwe token of the user
-     * @return The sender of the function
-     * In sapphire, msg.sender is the zero address, so you need to get the sender through siweToken_.
-     */
-    function _msgSenderSiwe(
-        bytes memory siweToken_
-    ) internal view returns (address) {
-        address sender = msg.sender;
-        if (sender == address(0)) {
-            sender = SIWE_AUTH.getMsgSender(siweToken_);
-        }
-        return sender;
-    }
-
     function minterOf(
         uint256 boxId_,
         bytes memory siweToken_
     ) external view returns (address) {
-        address sender = _msgSenderSiwe(siweToken_);
+        // Use SiweContext get sender
+        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
         if (sender != _minterOf(boxId_)) revert InvalidCaller();
 
         return sender;

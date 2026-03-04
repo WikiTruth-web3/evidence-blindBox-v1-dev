@@ -28,8 +28,7 @@ import {
     SiweParser
 } from "@oasisprotocol/sapphire-contracts/contracts/SiweParser.sol";
 
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {SiweAuthError} from "@marketplace-v1/interfaces-siwe/siweAuthError.sol";
+import {SiweAuthError} from "./interfaces/siweAuthError.sol";
 
 /// @title AuthToken structure for SIWE-based authentication (Keep consistent with the official)
 struct AuthToken {

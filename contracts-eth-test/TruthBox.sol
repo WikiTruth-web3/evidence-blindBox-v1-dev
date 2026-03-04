@@ -50,7 +50,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     // ==================================================================================================
     constructor(address addrManager_) TruthBoxBase(addrManager_) {}
 
-    function setAddress() external checkSetCaller {
+    function setAddress() external onlyManager {
         _setAddress();
     }
 
@@ -102,7 +102,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
         unchecked {
             _nextBoxId++;
         }
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
 
         emit BoxCreated(boxId, userId, boxInfoCID_);
         return boxId;
@@ -386,7 +386,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     function _setPublished(uint256 boxId_) internal {
         _setStatus(boxId_, Status.Published);
 
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
         // EVM
         bytes memory privateKey = _secretData[boxId_]._encryptedData;
         // emit BoxStatusChanged(boxId_, Status.Published);
@@ -491,6 +491,6 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     }
 
     function getUserId(address address_) external returns (uint256) {
-        return USER_ID.getUserId(address_);
+        return USER_MANAGER.getUserId(address_);
     }
 }

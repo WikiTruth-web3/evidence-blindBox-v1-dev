@@ -16,29 +16,19 @@
 pragma solidity ^0.8.24;
 
 import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {ProxyUpgrade} from "../../proxy/ProxyUpgrade.sol";
+import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 
-/**
- * @title Modifier
- * @dev This contract is used to manage modifiers
- * @dev Inherits ERC2771Context to support meta-transactions
- */
-
-contract ModifierERC2771 is ProxyUpgrade, ERC2771Context {
+contract Modifier is ProxyUpgrade {
     IAddressManager internal ADDR_MANAGER;
     // address internal ADMIN;
 
     // =======================================================================================================
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) ERC2771Context(trustedForwarder_) {
-        // ADMIN = msg.sender;
+    constructor(address addrManager_) {
         ADDR_MANAGER = IAddressManager(addrManager_);
+        // ADMIN = msg.sender;
     }
 
     function setAddressManager(address addrManager_) external onlyAdmin {
@@ -55,10 +45,6 @@ contract ModifierERC2771 is ProxyUpgrade, ERC2771Context {
 
     // =====================================================================================
 
-    /**
-     * @dev The admin is managed by the ProxyUpgrade contract
-     * The modifier will be re-enabled in the production environment
-     */
     // modifier onlyAdmin() {
     //     if (msg.sender != ADMIN) revert NotAdmin();
     //     _;
@@ -69,23 +55,21 @@ contract ModifierERC2771 is ProxyUpgrade, ERC2771Context {
         _;
     }
 
-    modifier onlyProjectContract() {
-        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert InvalidCaller();
-        }
-        _;
-    }
-
-    // =====================================================================================
-
     modifier onlyAdminDAO() {
         if (msg.sender != ADDR_MANAGER.dao() && msg.sender != admin())
             revert NotAdminOrDAO();
         _;
     }
 
-    modifier checkSetCaller() {
+    modifier onlyManager() {
         if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {
+            revert InvalidCaller();
+        }
+        _;
+    }
+
+    modifier onlyProjectContract() {
+        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
             revert InvalidCaller();
         }
         _;

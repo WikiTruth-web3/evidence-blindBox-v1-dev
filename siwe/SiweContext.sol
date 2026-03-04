@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC721/ERC721.sol)
 
 /**
  *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
@@ -15,69 +16,35 @@
 
 pragma solidity ^0.8.24;
 
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
+import {ISiweAuth} from "./interfaces/ISiweAuth.sol";
 
 /**
- * @title Modifier
- * @dev This contract is used to manage modifiers
+ *  @notice SiweContext contract
+ *  Implement basic Siwe functions
  */
 
-contract Modifier is ProxyUpgrade {
-    IAddressManager internal ADDR_MANAGER;
-    // address internal ADMIN;
+contract SiweContext {
+    // ISiweAuth internal SIWE_AUTH;
 
-    // =======================================================================================================
-    constructor(address addrManager_) {
-        // ADMIN = msg.sender;
-        ADDR_MANAGER = IAddressManager(addrManager_);
-    }
-
-    function setAddressManager(address addrManager_) external onlyAdmin {
-        ADDR_MANAGER = IAddressManager(addrManager_);
-    }
-
-    // function setAdmin(address admin_) external onlyAdmin {
-    //     ADMIN = admin_;
+    // constructor(address siweAuth_) {
+    //     SIWE_AUTH = ISiweAuth(siweAuth_);
     // }
-
-    // function admin() external view returns (address) {
-    //     return ADMIN;
-    // }
-
-    // =====================================================================================
+    constructor() {}
 
     /**
-     * @dev The admin is managed by the ProxyUpgrade contract
-     * The modifier will be re-enabled in the production environment
+     * @notice verify the sender is correct
+     * @param siweToken_ The siwe token of the user
+     * @return The sender of the function
+     * In sapphire, msg.sender is the zero address, so we need to get sender through siweToken_
      */
-    // modifier onlyAdmin() {
-    //     if (msg.sender != ADMIN) revert NotAdmin();
-    //     _;
-    // }
-
-    modifier onlyDAO() {
-        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
-        _;
-    }
-
-    modifier onlyAdminDAO() {
-        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != admin())
-            revert NotAdminOrDAO();
-        _;
-    }
-
-    modifier onlyManager() {
-        if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {
-            revert InvalidCaller();
+    function _msgSenderSiwe(
+        address siweContract_,
+        bytes memory siweToken_
+    ) internal view returns (address) {
+        address sender = msg.sender;
+        if (sender == address(0)) {
+            sender = ISiweAuth(siweContract_).getMsgSender(siweToken_);
         }
-        _;
-    }
-
-    modifier onlyProjectContract() {
-        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert InvalidCaller();
-        }
-        _;
+        return sender;
     }
 }

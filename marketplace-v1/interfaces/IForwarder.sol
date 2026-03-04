@@ -13,50 +13,53 @@
  *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
  */
 
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-
-import {ModifierV2} from "../modifier/ModifierV2.sol";
 /**
- *  @notice TruthBoxBase
- *
+ * @title IForwarder
+ * @dev Has enhanced control functions ERC-2771 forwarder.
+ * Includes: relayer whitelist, target contract whitelist, gas limit and emergency pause function.
+ * This contract is specifically used to handle meta-transactions, using EIP-712 signatures.
  */
+interface IForwarder {
+    // =====================================================================================
+    //                                  System Configuration
+    // =====================================================================================
 
-contract TruthBoxBase is ModifierV2 {
-    uint8 internal _incrementRate; // 2.0 * 100
-
-    uint256 internal _nextBoxId;
-
-    // ==================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
-        _incrementRate = 200;
-    }
-    // ==================================================================================================
-
-    // ==========================================================================================================
     /**
-     * @dev Set the increment rate
-     * @param rate_ The increment rate
-     * Default: 200 (200%)
+     * @notice Initialize contract references
      */
-    function setIncrementRate(uint8 rate_) external onlyDAO {
-        if (rate_ == 0 || rate_ > 200) revert InvalidRate();
-        _incrementRate = rate_;
-    }
+    function setAddress() external;
 
-    // ==========================================================================================================
-    //                                      Getter Functions
-    // ==========================================================================================================
+    // =====================================================================================
+    //                                  Management Functions
+    // =====================================================================================
 
-    function incrementRate() external view returns (uint8) {
-        return _incrementRate;
-    }
+    /**
+     * @notice Set target contract whitelist status
+     */
+    // function setTargetStatus(address target_, bool status_) external;
 
-    function nextBoxId() external view returns (uint256) {
-        return _nextBoxId;
-    }
+    /**
+     * @notice Set gas limit per transaction
+     */
+    // function setMaxGasLimit(uint256 maxGasLimit_) external;
+
+    /**
+     * @notice pause status
+     */
+    // function pause() external;
+
+    /**
+     * @notice unpause status
+     */
+    // function unpause() external;
+
+    // =====================================================================================
+    //                                     Getters
+    // =====================================================================================
+
+    function isTargetWhitelisted(address target_) external view returns (bool);
+
+    function getMaxGasLimit() external view returns (uint256);
 }

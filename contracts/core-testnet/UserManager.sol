@@ -16,30 +16,24 @@
 pragma solidity ^0.8.24;
 
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {ISiweAuth} from "@marketplace-v1/interfaces-siwe/ISiweAuth.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IUserId} from "@marketplace-v1/interfaces/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 
-import {Modifier} from "./modifier/Modifier.sol";
+import {SiweContext} from "@siwe/SiweContext.sol";
+
+import {ModifierV2} from "./modifier/ModifierV2.sol";
 
 /**
- * @title UserId
+ * @title UserManager
  * @notice This contract is used to get user id
  * @dev In WikiTruth, use user ID instead of address in event, to avoid address being broadcast, protect user privacy.
  * At the same time, you can use the user ID to query user information, so as to realize the rapid lookup of the index protocol!
- * Inherits IUserId interface to ensure consistency between interface and implementation
+ * Inherits IUserManager interface to ensure consistency between interface and implementation
  */
 
-contract UserId is Modifier, IUserId {
+contract UserManager is ModifierV2, IUserManager, SiweContext {
     error Blacklisted();
     error NotBlacklisted();
-
-    // =====================================================================================
-
-    address internal TRUTH_BOX;
-    address internal FUND_MANAGER;
-    address internal EXCHANGE;
-    address internal SIWE_AUTH;
 
     mapping(address => uint256) internal _userIds;
     mapping(address => bool) internal _blacklist;
@@ -47,32 +41,14 @@ contract UserId is Modifier, IUserId {
     uint256 internal _currentUserId;
 
     // =======================================================================================================
-    constructor(address addrManager_) Modifier(addrManager_) {
+    constructor(address addrManager_) ModifierV2(addrManager_) {
         _currentUserId = 10000;
     }
 
     // =====================================================================================
 
-    function setAddress() external checkSetCaller {
-        IAddressManager addrMgr = ADDR_MANAGER;
-
-        address truthBox = addrMgr.truthBox();
-        address exchange = addrMgr.exchange();
-        address fundManager = addrMgr.fundManager();
-        address siweAuth = addrMgr.siweAuth();
-
-        if (truthBox != address(0) && truthBox != TRUTH_BOX) {
-            TRUTH_BOX = truthBox;
-        }
-        if (exchange != address(0) && exchange != EXCHANGE) {
-            EXCHANGE = exchange;
-        }
-        if (fundManager != address(0) && fundManager != FUND_MANAGER) {
-            FUND_MANAGER = fundManager;
-        }
-        if (siweAuth != address(0) && siweAuth != SIWE_AUTH) {
-            SIWE_AUTH = siweAuth;
-        }
+    function setAddress() external onlyManager {
+        _setAddress("userManager");
     }
 
     // =====================================================================================
@@ -102,12 +78,13 @@ contract UserId is Modifier, IUserId {
 
     /**
      * @dev Get my user id
-     * @param token_ SIWE token
+     * @param siweToken_ SIWE token
      */
-    function myUserId(bytes memory token_) public view returns (uint256) {
+    function myUserId(bytes memory siweToken_) public view returns (uint256) {
         address sender = msg.sender;
         if (sender == address(0)) {
-            sender = ISiweAuth(SIWE_AUTH).getMsgSender(token_);
+            // Use SiweContext get sender
+            sender = _msgSenderSiwe(SIWE_AUTH, token_);
         }
         if (_blacklist[sender]) revert Blacklisted();
         return _userIds[sender];

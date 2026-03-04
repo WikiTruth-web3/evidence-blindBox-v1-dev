@@ -18,12 +18,14 @@ pragma solidity ^0.8.24;
 
 // import "@openzeppelin/contracts/utils/Context.sol";
 
-import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
 import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
 import {Modifier} from "../modifier/Modifier.sol";
 
@@ -35,7 +37,7 @@ import {Modifier} from "../modifier/Modifier.sol";
 contract ExchangeBase is Modifier {
     ITruthBox internal TRUTH_BOX;
     IFundManager internal FUND_MANAGER;
-    IUserId internal USER_ID;
+    IUserManager internal USER_MANAGER;
     // ISiweAuth internal SIWE_AUTH;
 
     uint256 internal _refundRequestPeriod;
@@ -60,7 +62,7 @@ contract ExchangeBase is Modifier {
 
         address truthBox = addrMgr.truthBox();
         address fundM = addrMgr.fundManager();
-        address userId = addrMgr.userId();
+        address userManager = addrMgr.userManager();
 
         if (truthBox != address(0) && truthBox != address(TRUTH_BOX)) {
             TRUTH_BOX = ITruthBox(truthBox);
@@ -68,8 +70,8 @@ contract ExchangeBase is Modifier {
         if (fundM != address(0) && fundM != address(FUND_MANAGER)) {
             FUND_MANAGER = IFundManager(fundM);
         }
-        if (userId != address(0) && userId != address(USER_ID)) {
-            USER_ID = IUserId(userId);
+        if (userManager != address(0) && userManager != address(USER_MANAGER)) {
+            USER_MANAGER = IUserManager(userManager);
         }
     }
 

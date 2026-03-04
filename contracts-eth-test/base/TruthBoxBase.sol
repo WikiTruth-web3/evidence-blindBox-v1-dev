@@ -15,11 +15,13 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
 import {Modifier} from "../modifier/Modifier.sol";
 /**
@@ -29,7 +31,7 @@ import {Modifier} from "../modifier/Modifier.sol";
 
 contract TruthBoxBase is Modifier {
     // address internal DAO;
-    IUserId internal USER_ID;
+    IUserManager internal USER_MANAGER;
     // ISiweAuth internal SIWE_AUTH;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
@@ -52,7 +54,7 @@ contract TruthBoxBase is Modifier {
         address fundManager = addrMgr.fundManager();
         // address dao = addrMgr.dao();
         // address siwe = addrMgr.siweAuth();
-        address userId = addrMgr.userId();
+        address userManager = addrMgr.userManager();
 
         if (exchange != address(0) && exchange != address(EXCHANGE)) {
             EXCHANGE = IExchange(exchange);
@@ -66,8 +68,8 @@ contract TruthBoxBase is Modifier {
         // if (siwe != address(0) && siwe != address(SIWE_AUTH)) {
         //     SIWE_AUTH = ISiweAuth(siwe);
         // }
-        if (userId != address(0) && userId != address(USER_ID)) {
-            USER_ID = IUserId(userId);
+        if (userManager != address(0) && userManager != address(USER_MANAGER)) {
+            USER_MANAGER = IUserManager(userManager);
         }
     }
 
@@ -99,7 +101,7 @@ contract TruthBoxBase is Modifier {
      * @return The user id
      */
     // function getUserId(address user_) external returns (uint256) {
-    //     uint256 userId = USER_ID.getUserId(user_);
+    //     uint256 userId = USER_MANAGER.getUserId(user_);
     //     return userId;
     // }
 }

@@ -16,18 +16,20 @@
 pragma solidity ^0.8.24;
 
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IUserId} from "@marketplace-v1/interfaces-eth/IUserId.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
 import {Modifier} from "./modifier/Modifier.sol";
 
 /**
- * @title UserId
+ * @title UserManager
  * @dev This contract is used to get user id
  * In WikiTruth, use user ID instead of address in event, to avoid address being broadcast, protect user privacy.
  * At the same time, you can use the user ID to query user information, so as to realize the rapid lookup of the index protocol!
  */
 
-contract UserId is Modifier, IUserId {
+contract UserManager is Modifier, IUserManager {
     error Blacklisted();
     error NotBlacklisted();
 
@@ -51,7 +53,7 @@ contract UserId is Modifier, IUserId {
 
     // =====================================================================================
 
-    function setAddress() external checkSetCaller {
+    function setAddress() external onlyManager {
         IAddressManager addrMgr = ADDR_MANAGER;
 
         address truthBox = addrMgr.truthBox();

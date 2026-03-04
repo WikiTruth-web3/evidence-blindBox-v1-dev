@@ -15,14 +15,15 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserId} from "@marketplace-v1/interfaces/IUserId.sol";
+import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
 
-import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
+import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 
 /**
  * @title AddressManager
@@ -44,19 +45,28 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      */
     // address public admin;
 
+    //--------------------------core contracts------------------------------
     // DAO governance related contracts
     address public dao;
     address public governance;
     address public daoFundManager;
 
     // User registration related contracts
-    address public userId;
+    address public userManager;
     address public siweAuth;
 
     // Core trading contracts
     address public truthBox;
     address public fundManager;
     address public exchange;
+
+    // ERC2771 forwarder contract
+    address public forwarder;
+
+    //--------------------------------------------------------
+
+    // Uniswap V3 SwapRouter contract and quoter contract
+    address[] internal _swapContracts;
 
     /**
      * @dev Settlement token contract
@@ -79,8 +89,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     }
     mapping(address token => TokenEnum) internal _tokenStatus;
 
-    // Uniswap V3 SwapRouter contract and quoter contract
-    address[] internal _swapContracts;
+    //--------------------------other contracts------------------------------
 
     // Reserved contract addresses
     address[] internal _reservedList;
@@ -100,6 +109,17 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     //     if (msg.sender != admin) revert NotAdmin();
     //     _;
     // }
+
+    /**
+     * @dev Set admin
+     * The admin is managed by the ProxyUpgrade contract
+     * The function will be re-enabled in the production environment
+     */
+    // function setAdmin(address newAdmin_) external onlyAdmin {
+    //     if (newAdmin_ == address(0)) revert InvalidAddress();
+    //     admin = newAdmin_;
+    // }
+
     // =====================================================================================
 
     /**
@@ -109,11 +129,12 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         dao, 
         governance, 
         daoFundManager, 
-        userId, 
+        userManager, 
         siweAuth, 
         truthBox, 
         exchange, 
-        fundManager
+        fundManager,
+        forwarder
         ]
      */
     function setAddressList(address[] memory list_) external onlyAdmin {
@@ -135,8 +156,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         }
         // Identity verification contracts
         if (list_[3] != address(0)) {
-            if (_mappingBool(userId, list_[3])) {
-                userId = list_[3];
+            if (_mappingBool(userManager, list_[3])) {
+                userManager = list_[3];
             }
         }
         if (list_[4] != address(0)) {
@@ -160,6 +181,12 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
                 fundManager = list_[7];
             }
         }
+        // ERC2771 forwarder contract
+        if (list_[8] != address(0)) {
+            if (_mappingBool(forwarder, list_[8])) {
+                forwarder = list_[8];
+            }
+        }
     }
 
     function setSwapContracts(address[] memory list_) external onlyAdmin {
@@ -171,7 +198,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
                     }
                 } else {
                     _swapContracts.push(list_[i]);
-                    _isProjectContract[list_[i]] = true;
                 }
             }
         }
@@ -203,7 +229,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         IExchange(exchange).setAddress();
         IFundManager(fundManager).setAddress();
         ITruthBox(truthBox).setAddress();
-        IUserId(userId).setAddress();
+        IUserManager(userManager).setAddress();
+        IForwarder(forwarder).setAddress();
     }
 
     /**
@@ -214,16 +241,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         if (reservedAddress_ == address(0)) revert InvalidAddress();
         _reservedList.push(reservedAddress_);
     }
-
-    /**
-     * @dev Set admin
-     * The admin is managed by the ProxyUpgrade contract
-     * The function will be re-enabled in the production environment
-     */
-    // function setAdmin(address newAdmin_) external onlyAdmin {
-    //     if (newAdmin_ == address(0)) revert InvalidAddress();
-    //     admin = newAdmin_;
-    // }
 
     // =================================== Token management ==================================================
 

@@ -43,7 +43,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
 
     constructor(address addrManager_) ExchangeBase(addrManager_) {}
 
-    function setAddress() external checkSetCaller {
+    function setAddress() external onlyManager {
         _setAddress();
     }
 
@@ -93,7 +93,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         ITruthBox truthBox = TRUTH_BOX;
         if (truthBox.getStatus(boxId_) != Status.Storing)
             revert InvalidStatus();
-        uint256 userId = USER_ID.getUserId(msg.sender);
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
         address token = ADDR_MANAGER.settlementToken();
 
         if (msg.sender != truthBox.minterOf(boxId_)) {
@@ -187,7 +187,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         truthBox.setStatus(boxId_, Status.Paid);
 
         address sender = _msgSender();
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         _boxExchengData[boxId_]._buyer = sender;
 
         // Buy operation, should directly set the deadline for applying for refund
@@ -216,7 +216,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount); // need approve to FUND_MANAGER。
 
         _boxExchengData[boxId_]._buyer = sender;
-        uint256 userId = USER_ID.getUserId(sender);
+        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BidPlaced(boxId_, userId);
     }
 
@@ -284,7 +284,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
 
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
-            truthBox.setStatus(boxId_, Status.delaying);
+            truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         }
     }
@@ -300,7 +300,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         ITruthBox truthBox = TRUTH_BOX;
         if (truthBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
-        truthBox.setStatus(boxId_, Status.delaying);
+        truthBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 
@@ -345,7 +345,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
         if (isInReviewDeadline(boxId_)) {
             // Check role: DAO
             if (msg.sender != ADDR_MANAGER.dao()) revert InvalidCaller();
-            truthBox.setStatus(boxId_, Status.delaying);
+            truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
@@ -377,11 +377,11 @@ contract Exchange is Context, ExchangeBase, IExchange {
             if (isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
             if (msg.sender != truthBox.minterOf(boxId_)) {
                 _boxExchengData[boxId_]._completer = msg.sender;
-                uint256 userId = USER_ID.getUserId(msg.sender);
+                uint256 userId = USER_MANAGER.getUserId(msg.sender);
                 emit CompleterAssigned(boxId_, userId);
             }
         }
-        truthBox.setStatus(boxId_, Status.delaying);
+        truthBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 
