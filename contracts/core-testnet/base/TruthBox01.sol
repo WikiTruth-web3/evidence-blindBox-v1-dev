@@ -19,7 +19,6 @@ import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 /**
@@ -36,15 +35,6 @@ contract TruthBox01 is ModifierV2 {
     constructor(address addrManager_) ModifierV2(addrManager_) {
         _incrementRate = 200;
     }
-
-    /**
-     * @notice Set the contract address
-     * @dev Get and set the related contract addresses from AddressManager
-     */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.TruthBox);
-    }
-    // ==================================================================================================
 
     // ==========================================================================================================
     /**

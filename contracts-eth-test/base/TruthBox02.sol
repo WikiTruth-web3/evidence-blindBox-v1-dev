@@ -15,16 +15,19 @@
 
 pragma solidity ^0.8.24;
 
-import {
-    Sapphire
-} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
-import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+// import {
+//     Sapphire
+// } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
+// import {SiweContext} from "@siwe/SiweContext.sol";
+// import {
+//     ERC2771Context
+// } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {TruthBox01} from "./TruthBox01.sol";
-import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {
+    TruthBoxEvents,
+    Status
+} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
 
 /**
  *  @notice TruthBox contract
@@ -33,7 +36,7 @@ import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
  *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
+contract TruthBox02 is TruthBox01, TruthBoxEvents {
     struct BasicData {
         Status _status;
         uint256 _price;

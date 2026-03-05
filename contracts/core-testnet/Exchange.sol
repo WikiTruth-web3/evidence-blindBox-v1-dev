@@ -17,8 +17,9 @@
 pragma solidity ^0.8.24;
 
 import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
-
-import {Exchange02} from "./base/Exchange02.sol";
+import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
+import {Exchange03} from "./base/Exchange03.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange contract
@@ -26,13 +27,23 @@ import {Exchange02} from "./base/Exchange02.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange is Exchange02 {
+contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
     constructor(
         address addrManager_,
         address trustedForwarder_
-    ) Exchange02(addrManager_, trustedForwarder_) {}
+    ) Exchange03(addrManager_, trustedForwarder_) {}
+
+    // ==========================================================================================================
+
+    /**
+     * @notice Set contract addresses
+     * @dev Get and set related contract addresses from AddressManager
+     */
+    function setAddress() external onlyManager {
+        _setAddress(CoreContracts.Exchange);
+    }
 
     // ========================================================================================================
     //                                          Listing related functions
@@ -80,26 +91,7 @@ contract Exchange is Exchange02 {
      * Bid also needs to calculate, and pay: payAmount
      */
     function buy(uint256 boxId_) external {
-        ITruthBox truthBox = TRUTH_BOX;
-
-        // _checkStatus(boxId_, Status.Selling);
-        if (truthBox.getStatus(boxId_) != Status.Selling)
-            revert InvalidStatus();
-
-        truthBox.setStatus(boxId_, Status.Paid);
-
-        address sender = _msgSender();
-
-        uint256 userId = USER_MANAGER.getUserId(sender);
-        _boxExchengData[boxId_]._buyer = sender;
-
-        // Buy operation, should directly set the deadline for applying for refund
-        _setRefundRequestDeadline(boxId_, block.timestamp);
-
-        uint256 payAmount = truthBox.getPrice(boxId_);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount);
-
-        emit BoxPurchased(boxId_, userId);
+        _buy(boxId_);
     }
 
     /**
@@ -110,18 +102,7 @@ contract Exchange is Exchange02 {
      * Bid also needs to calculate, and pay: payAmount
      */
     function bid(uint256 boxId_) external {
-        address sender = _msgSender();
-        if (sender == _buyerOf(boxId_)) revert InvalidCaller();
-
-        uint256 price = _bid(boxId_);
-
-        uint256 payAmount = _calcPayMoney(boxId_, sender, price);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount); // need approve to FUND_MANAGER。
-
-        _boxExchengData[boxId_]._buyer = sender;
-
-        uint256 userId = USER_MANAGER.getUserId(sender);
-        emit BidPlaced(boxId_, userId);
+        _bid(boxId_);
     }
 
     /**
@@ -145,6 +126,9 @@ contract Exchange is Exchange02 {
     //                                           Refund function
     // ========================================================================================================
 
+    function setRefundPermit(uint256 boxId_, bool permission_) external {
+        _setRefundPermit(boxId_, permission_);
+    }
     /**
      * @notice Request refund function, after requesting refund, the box status becomes Refunding
      * Need to check: status、deadline.
@@ -152,40 +136,14 @@ contract Exchange is Exchange02 {
      * Request refund also needs to set the status of TRUTH_BOX to Published
      */
     function requestRefund(uint256 boxId_) external {
-        // _checkStatus(boxId_, Status.Paid);
-        ITruthBox truthBox = TRUTH_BOX;
-        // canRequestRefund?
-        if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
-
-        if (isInRequestRefundDeadline(boxId_)) {
-            uint256 deadline = block.timestamp + _refundReviewPeriod;
-            _boxExchengData[boxId_]._refundReviewDeadline = deadline;
-            truthBox.setStatus(boxId_, Status.Refunding);
-
-            emit ReviewDeadlineChanged(boxId_, deadline);
-        } else {
-            truthBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
-        }
+        _requestRefund(boxId_);
     }
 
     /**
      * @notice Cancel refund function, after canceling refund, the box status becomes Sold
      */
     function cancelRefund(uint256 boxId_) external {
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
-
-        // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
-            revert InvalidStatus();
-        truthBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+        _cancelRefund(boxId_);
     }
 
     /**
@@ -195,52 +153,14 @@ contract Exchange is Exchange02 {
      * Agree refund also needs to set the status of TRUTH_BOX to Published
      */
     function agreeRefund(uint256 boxId_) external {
-        // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
-
-        // canAgree?
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
-            revert InvalidStatus();
-
-        // erc2771 - _msgSender() is the real caller
-        if (isInReviewDeadline(boxId_)) {
-            // Check role: minter、DAO
-            if (
-                _msgSender() != truthBox.minterOf(boxId_) &&
-                msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use _msgSender()
-            ) {
-                revert InvalidCaller();
-            }
-        }
-        // If it exceeds the deadline, then it means anyone can call this function.
-        _boxExchengData[boxId_]._refundPermit = true;
-        truthBox.setStatus(boxId_, Status.Published);
-
-        emit RefundPermitChanged(boxId_, true);
+        _agreeRefund(boxId_);
     }
 
     /**
      * @notice Refuse refund function, after refusing refund, the box status becomes Published!
      */
     function refuseRefund(uint256 boxId_) external {
-        // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
-        // canRefuse?
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
-            revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
-        // According to whether it is within the review deadline, determine.
-        if (isInReviewDeadline(boxId_)) {
-            // Check role: DAO
-            if (msg.sender != ADDR_MANAGER.dao()) revert InvalidCaller();
-            truthBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
-        } else {
-            _boxExchengData[boxId_]._refundPermit = true;
-            truthBox.setStatus(boxId_, Status.Published);
-
-            emit RefundPermitChanged(boxId_, true);
-        }
+        _refuseRefund(boxId_);
     }
 
     // =========================================================================================================
@@ -255,24 +175,74 @@ contract Exchange is Exchange02 {
      * Complete order also needs to set refundRequestDeadline.
      */
     function completeOrder(uint256 boxId_) external {
-        // _checkStatus(boxId_, Status.Paid);
-        ITruthBox truthBox = TRUTH_BOX;
-        // canComplete?
-        if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
+        _completeOrder(boxId_);
+    }
 
-        // erc2771
-        address sender = _msgSender();
+    // ========================================================================================================
+    //                                           Getter function
+    // ========================================================================================================
 
-        if (sender != _buyerOf(boxId_)) {
-            if (isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
-            if (sender != truthBox.minterOf(boxId_)) {
-                _boxExchengData[boxId_]._completer = sender;
-                uint256 userId = USER_MANAGER.getUserId(sender);
-                emit CompleterAssigned(boxId_, userId);
-            }
-        }
-        truthBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+    /**
+     * @notice Get buyer address
+     * @param boxId_ Box ID
+     * @return Buyer address
+     */
+    function buyerOf(
+        uint256 boxId_
+    ) external view onlyProjectContract returns (address) {
+        return _buyerOf(boxId_);
+    }
+
+    /* NOTE If the _seller is address(0),
+     * it means that the _seller is the minter
+     */
+    function sellerOf(
+        uint256 boxId_
+    ) external view onlyProjectContract returns (address) {
+        return _sellerOf(boxId_);
+    }
+
+    /**
+     * @notice Get completer address
+     * @param boxId_ Box ID
+     * @return Completer address
+     */
+    function completerOf(
+        uint256 boxId_
+    ) external view onlyProjectContract returns (address) {
+        return _completerOf(boxId_);
+    }
+
+    // ===========================
+    function acceptedToken(uint256 boxId_) external view returns (address) {
+        return _acceptedToken(boxId_);
+    }
+
+    // ===========================
+
+    function refundPermit(uint256 boxId_) external view returns (bool) {
+        return _refundPermit(boxId_);
+    }
+
+    function refundRequestDeadline(
+        uint256 boxId_
+    ) external view returns (uint256) {
+        return _refundRequestDeadline(boxId_);
+    }
+
+    function refundReviewDeadline(
+        uint256 boxId_
+    ) external view returns (uint256) {
+        return _refundReviewDeadline(boxId_);
+    }
+
+    function isInRequestRefundDeadline(
+        uint256 boxId_
+    ) external view returns (bool) {
+        return _isInRequestRefundDeadline(boxId_);
+    }
+
+    function isInReviewDeadline(uint256 boxId_) external view returns (bool) {
+        return _isInReviewDeadline(boxId_);
     }
 }

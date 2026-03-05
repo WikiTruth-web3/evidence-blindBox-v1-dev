@@ -16,14 +16,14 @@
 
 pragma solidity ^0.8.24;
 
-import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+// import {
+//     ERC2771Context
+// } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
-import {ExchangeEvents} from "@marketplace-v1/interfaces/IExchange.sol";
+import {ITruthBox, Status} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
+import {ExchangeEvents} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
+// import {SiweContext} from "@siwe/SiweContext.sol";
 
 /**
  *  @notice Exchange02 contract
@@ -31,7 +31,7 @@ import {SiweContext} from "@siwe/SiweContext.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
+contract Exchange02 is Exchange01, ExchangeEvents {
     // =======================================================================================================
 
     struct BoxExchengData {
@@ -48,10 +48,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
 
     // ========================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) Exchange01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    constructor(address addrManager_) Exchange01(addrManager_) {}
 
     // ========================================================================================================
     //                                           Checker functions

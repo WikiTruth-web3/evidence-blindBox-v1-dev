@@ -22,6 +22,8 @@ pragma solidity ^0.8.24;
 interface SiweAuthError {
     /// Not admin error
     error NotAdmin();
+    /// Invalid token error
+    error InvalidToken();
 
     /// Invalid domain error
     error InvalidDomain();

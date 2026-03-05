@@ -127,13 +127,9 @@ interface ITruthBox {
     /**
      * @notice Get secret data of a box (key)
      * @param boxId_ Box ID
-     * @param siweToken_ SIWE token of the user
      * @return key Key of the box
      */
-    function getSecretData(
-        uint256 boxId_,
-        bytes memory siweToken_
-    ) external view returns (bytes memory);
+    function getSecretData(uint256 boxId_) external view returns (bytes memory);
 
     // =====================================================================================
     //                                          Setter Functions (Project Contracts Only)

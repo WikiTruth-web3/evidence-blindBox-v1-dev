@@ -60,6 +60,9 @@ interface Error {
     /// @dev Thrown when a contract caller is not authorized
     error InvalidContractCaller();
 
+    /// @dev Thrown when seconds is invalid
+    error InvalidSeconds();
+
     // =====================================================================================
     // State and Validation Errors
     // =====================================================================================
@@ -101,8 +104,17 @@ interface Error {
     /// @dev Thrown when box info CID is empty
     error EmptyBoxInfoCID();
 
-    /// @dev Thrown when period parameter is invalid
-    error InvalidPeriod();
+    /// @dev Thrown when list is empty
+    error EmptyList();
+
+    /// @dev Thrown when key is empty
+    error EmptyKey();
+
+    /// @dev Thrown when withdraw failed
+    error WithdrawError();
+
+    /// @dev Thrown when approval failed
+    error ApprovalFailed();
 
     // =====================================================================================
     // Transaction and Business Logic Errors
@@ -114,6 +126,9 @@ interface Error {
     /// @dev Thrown when deadline is not over yet
     error DeadlineNotOver();
 
+    /// @dev Thrown when not in window period
+    error NotInWindowPeriod();
+
     /// @dev Thrown when deadline is already over
     error DeadlineIsOver();
 
@@ -123,8 +138,11 @@ interface Error {
     /// @dev Thrown when public time is not ended
     error PublicTimeNotEnd();
 
+    /// @dev Thrown when period parameter is invalid
+    error InvalidPeriod();
+
     // =====================================================================================
-    // v1.6 Errors
+    // v1.8 Errors
     // =====================================================================================
 
     /// @dev Thrown when an invalid or incompatible contract address is provided
@@ -136,67 +154,15 @@ interface Error {
     /// @dev Thrown when a contract does not implement the required ERC20 interface
     error InvalidERC20Interface();
 
-    // /// @dev Thrown when attempting to remove an office token that should be preserved
-    // error CannotRemoveOfficeToken();
-
     /// @dev Thrown when attempting to interact with a token that doesn't exist in the registry
     error TokenNotExists();
-
-    // /// @dev Thrown when the exchange rate is outside acceptable bounds
-    // error InvalidExchangeRate();
-
-    // /// @dev Thrown when an operation requires an exchange rate but none is set
-    // error ExchangeRateNotSet();
-
-    // =====================================================================================
-    // v1.6 FundManager Errors
-    // =====================================================================================
-
-    // /// @dev Thrown when the exchange functionality is currently paused
-    // error ExchangeIsPaused();
-
-    // /// @dev Thrown when ETH is sent directly to the contract outside of designated functions
-    // error DirectETHTransferNotAllowed();
-
-    // /// @dev Thrown when calling a function with invalid parameters or in an invalid context
-    // error InvalidFunctionCall();
-
-    // /// @dev Thrown when attempting to add an adapter that already exists
-    // error AdapterAlreadyExists();
-
-    // /// @dev Thrown when adapter name does not match expected value
-    // error AdapterNameMismatch();
-
-    // /// @dev Thrown when an adapter does not implement the required interface
-    // error InvalidAdapterInterface();
-
-    // /// @dev Thrown when attempting to use an adapter that doesn't exist
-    // error AdapterNotExists();
-
-    // /// @dev Thrown when slippage tolerance exceeds maximum allowed value
-    // error SlippageToleranceTooHigh();
-
-    // /// @dev Thrown when a token transfer operation fails
-    // error TransferFailed();
-
-    // /// @dev Thrown when attempting to swap a token for itself
-    // error SameTokenSwap();
 
     /// @dev Thrown when an amount parameter is zero or empty
     error AmountIsZero();
 
-    // /// @dev Thrown when no suitable swap path can be found between tokens
-    // error NoSuitableSwapPath();
-
-    // /// @dev Thrown when a swap operation fails during execution
-    // error SwapExecutionFailed();
-
-    // /// @dev Thrown when the output amount is less than required minimum
-    // error InsufficientOutputAmount();
-
-    // /// @dev Thrown when a function is called that has not been implemented yet
-    // error NotImplemented();
-
     /// @dev Thrown when attempting to use a token that is not supported by the protocol
     error TokenNotSupported();
+
+    /// @dev Thrown when refund permit is true
+    error RefundPermitTrue();
 }

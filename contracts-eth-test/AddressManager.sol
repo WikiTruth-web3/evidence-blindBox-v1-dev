@@ -16,10 +16,10 @@
 pragma solidity ^0.8.24;
 
 import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
+import {ITruthBox} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
+import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 import {
     IAddressManager
 } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";

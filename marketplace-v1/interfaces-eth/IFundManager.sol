@@ -168,36 +168,21 @@ interface IFundManager {
     ) external view returns (uint256);
 
     /**
-     * @notice Get order amount
-     * @param boxId_ TruthBox ID
-     * @param siweToken_ User SIWE token
-     * @return Order amount
-     */
-    function orderAmounts(
-        uint256 boxId_,
-        bytes memory siweToken_
-    ) external view returns (uint256);
-
-    /**
      * @notice Get minter reward amount
      * @param token_ Token address
-     * @param siweToken_ User SIWE token
      * @return Minter reward amount
      */
     function minterRewardAmounts(
-        address token_,
-        bytes memory siweToken_
+        address token_
     ) external view returns (uint256);
 
     /**
      * @notice Get helper reward amount
      * @param token_ Token address
-     * @param siweToken_ User SIWE token
      * @return Helper reward amount
      */
     function helperRewardAmounts(
-        address token_,
-        bytes memory siweToken_
+        address token_
     ) external view returns (uint256);
 
     /**

@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC721/ERC721.sol)
 
 /**
  *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
@@ -17,67 +16,48 @@
 pragma solidity ^0.8.24;
 
 // import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-// import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-// import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
+// import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
 // import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 // import {
 //     IAddressManager
 // } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
-
 /**
- *  @notice ExchangeBase
- *
+ *  @notice TruthBox01
+ *  This contract defines the basic variables and functions of TruthBox
  */
 
-contract ExchangeBase is ModifierV2 {
-    uint256 internal _refundRequestPeriod;
-    uint256 internal _refundReviewPeriod;
+contract TruthBox01 is ModifierV2 {
+    uint8 internal _incrementRate; // 2.0 * 100
 
-    uint8 internal _bidIncrementRate;
+    uint256 internal _nextBoxId;
 
-    // ========================================================================================================
-
+    // ==================================================================================================
     constructor(address addrManager_) ModifierV2(addrManager_) {
-        _bidIncrementRate = 110;
-        _refundRequestPeriod = 7 days;
-        _refundReviewPeriod = 15 days;
+        _incrementRate = 200;
     }
 
-    // =====================================================================================
-    //                                      Basic Parameter Settings
-    // =====================================================================================
-    // 7~15  || 1~7
-    function setRefundRequestPeriod(uint256 period_) external onlyDAO {
-        if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
-        _refundRequestPeriod = period_;
-    }
-    // 15~30  || 1~7
-    function setRefundReviewPeriod(uint256 period_) external onlyDAO {
-        if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
-        _refundReviewPeriod = period_;
+    // ==========================================================================================================
+    /**
+     * @dev Set the increment rate
+     * @param rate_ The increment rate
+     * Default: 200 (200%)
+     */
+    function setIncrementRate(uint8 rate_) external onlyDAO {
+        if (rate_ == 0 || rate_ > 200) revert InvalidRate();
+        _incrementRate = rate_;
     }
 
-    // 110
-    function setBidIncrementRate(uint8 rate_) external onlyDAO {
-        if (rate_ <= 100 || rate_ > 150) revert InvalidRate();
-        _bidIncrementRate = rate_;
+    // ==========================================================================================================
+    //                                      Getter Functions
+    // ==========================================================================================================
+
+    function incrementRate() external view returns (uint8) {
+        return _incrementRate;
     }
 
-    // ========================================================================================================
-    //                                           Getter function
-    // ========================================================================================================
-
-    function refundRequestPeriod() external view returns (uint256) {
-        return _refundRequestPeriod;
-    }
-    function refundReviewPeriod() external view returns (uint256) {
-        return _refundReviewPeriod;
-    }
-
-    function bidIncrementRate() external view returns (uint8) {
-        return _bidIncrementRate;
+    function nextBoxId() external view returns (uint256) {
+        return _nextBoxId;
     }
 }

@@ -15,8 +15,9 @@
 
 pragma solidity ^0.8.24;
 
-import {TruthBox02} from "./base/TruthBox02.sol";
-import {Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {TruthBox03} from "./base/TruthBox03.sol";
+import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 /**
  *  @notice TruthBox contract
@@ -25,12 +26,20 @@ import {Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
  *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox is TruthBox02 {
+contract TruthBox is TruthBox03, ITruthBox {
     // ==================================================================================================
     constructor(
         address addrManager_,
         address trustedForwarder_
-    ) TruthBox02(addrManager_, trustedForwarder_) {}
+    ) TruthBox03(addrManager_, trustedForwarder_) {}
+
+    /**
+     * @notice Set the contract address
+     * @dev Get and set the related contract addresses from AddressManager
+     */
+    function setAddress() external onlyManager {
+        _setAddress(CoreContracts.TruthBox);
+    }
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -50,42 +59,14 @@ contract TruthBox is TruthBox02 {
         bytes calldata key_,
         uint256 price_
     ) external returns (uint256) {
-        if (key_.length == 0) revert EmptyKey();
-        if (price_ == 0) revert EmptyPrice();
-        _checkCID(tokenCID_, boxInfoCID_);
-
-        uint256 deadline;
-
-        unchecked {
-            // On mainnet, the deadline is 365 days, but on testnet, the deadline is 15 days
-            deadline = block.timestamp + 15 days; // NOTE 365----15
-        }
-
-        uint256 boxId = _setBoxData(
-            boxInfoCID_,
-            price_,
-            Status.Storing,
-            deadline,
-            key_
-        );
-
-        emit PriceChanged(boxId, price_);
-        emit DeadlineChanged(boxId, deadline);
-        // Log the price and deadline, do not record status, because status is Storing status
-
-        return boxId;
+        return _create(tokenCID_, boxInfoCID_, key_, price_);
     }
 
     function createAndPublish(
         string calldata tokenCID_,
         string calldata boxInfoCID_
     ) external returns (uint256) {
-        _checkCID(tokenCID_, boxInfoCID_);
-
-        uint256 boxId = _setBoxData(boxInfoCID_, 0, Status.Published, 0, "");
-
-        emit BoxStatusChanged(boxId, Status.Published);
-        return boxId;
+        return _createAndPublish(tokenCID_, boxInfoCID_);
     }
 
     //==================================================================================================
@@ -127,6 +108,9 @@ contract TruthBox is TruthBox02 {
     // ==========================================================================================================
     //                                                delay function
     // ==========================================================================================================
+    function extendDeadline(uint256 boxId_, uint256 time_) external {
+        _extendDeadline(boxId_, time_);
+    }
 
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
@@ -144,8 +128,7 @@ contract TruthBox is TruthBox02 {
      * If the minter wants to publish, it must be Storing status.
      */
     function publishByMinter(uint256 boxId_) external {
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _secretData[boxId_]._minter) revert InvalidCaller();
+        _checkMinter(boxId_);
         _checkStatus(boxId_, Status.Storing);
         _setStatus(boxId_, Status.Published);
     }
@@ -155,10 +138,69 @@ contract TruthBox is TruthBox02 {
      * If the buyer wants to publish, it must be Delaying status.
      */
     function publishByBuyer(uint256 boxId_) external {
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+        _checkBuyer(boxId_);
         _checkStatus(boxId_, Status.Delaying);
-
         _setStatus(boxId_, Status.Published);
+    }
+
+    // ==========================================================================================================
+    //                                                getter Functions
+    // ==========================================================================================================
+
+    function getStatus(uint256 boxId_) external view returns (Status) {
+        return _getStatus(boxId_);
+    }
+
+    function getPrice(uint256 boxId_) external view returns (uint256) {
+        return _basicData[boxId_]._price;
+    }
+
+    function getDeadline(uint256 boxId_) external view returns (uint256) {
+        return _basicData[boxId_]._deadline;
+    }
+
+    // ==========================================================================================================
+
+    /**
+     * @dev Get public data of a box
+     * @param boxId_ The ID of the box
+     * @return status The status of the box
+     * @return price The price of the box
+     * @return deadline The deadline of the box
+     * Everyone can call this function
+     */
+    function getBasicData(
+        uint256 boxId_
+    ) external view returns (Status, uint256, uint256) {
+        Status status = _getStatus(boxId_);
+        return (
+            status,
+            _basicData[boxId_]._price,
+            _basicData[boxId_]._deadline
+        );
+    }
+
+    function getSecretData(
+        uint256 boxId_,
+        bytes memory siweToken_
+    ) external view returns (bytes memory) {
+        return _getSecretData(boxId_, siweToken_);
+    }
+
+    // ==========================================================================================================
+
+    function minterOf(
+        uint256 boxId_
+    ) external view onlyProjectContract returns (address) {
+        return _minterOf(boxId_);
+    }
+
+    // ==========================================================================================================
+    function addToBlacklist(uint256 boxId_) external {
+        _addToBlacklist(boxId_);
+    }
+
+    function isInBlacklist(uint256 boxId_) public view returns (bool) {
+        return _basicData[boxId_]._status == Status.Blacklisted;
     }
 }

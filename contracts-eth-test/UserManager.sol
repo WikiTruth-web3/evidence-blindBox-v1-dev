@@ -15,7 +15,7 @@
 
 pragma solidity ^0.8.24;
 
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 import {
     IAddressManager
 } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
@@ -31,9 +31,6 @@ import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
  */
 
 contract UserManager is ModifierV2, IUserManager {
-    error Blacklisted();
-    error NotBlacklisted();
-
     // =====================================================================================
 
     mapping(address => uint256) internal _userIds;
@@ -63,7 +60,7 @@ contract UserManager is ModifierV2, IUserManager {
     function getUserId(
         address user_
     ) external onlyProjectContract returns (uint256) {
-        if (_blacklist[user_]) revert Blacklisted();
+        if (_blacklist[user_]) revert InBlacklist();
         // Get user ID
         uint256 userId = _userIds[user_];
         if (userId == 0) {
@@ -82,7 +79,7 @@ contract UserManager is ModifierV2, IUserManager {
      */
     function myUserId() public view returns (uint256) {
         address sender = msg.sender;
-        if (_blacklist[sender]) revert Blacklisted();
+        if (_blacklist[sender]) revert InBlacklist();
         return _userIds[sender];
     }
 
@@ -90,13 +87,13 @@ contract UserManager is ModifierV2, IUserManager {
 
     //
     function addBlacklist(address user_) external onlyAdminDAO {
-        if (_blacklist[user_]) revert Blacklisted();
+        if (_blacklist[user_]) revert InBlacklist();
         _blacklist[user_] = true;
         emit Blacklist(user_, true);
     }
 
     function removeBlacklist(address user_) external onlyAdminDAO {
-        if (!_blacklist[user_]) revert NotBlacklisted();
+        if (!_blacklist[user_]) revert NotInBlacklist();
         _blacklist[user_] = false;
         emit Blacklist(user_, false);
     }

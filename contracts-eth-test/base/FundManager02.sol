@@ -17,21 +17,16 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 // import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {
     FundManagerEvents,
     FundsType,
     RewardType
-} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
+} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
+import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
 
-import {ISwapRouter} from "@uniswap-v3/interfaces/ISwapRouter.sol";
-import {IQuoter} from "@uniswap-v3/interfaces/IQuoter.sol";
+import {I_Swap} from "../dex/interfaceSwap.sol";
 
 import {FundManager01} from "./FundManager01.sol";
 
@@ -41,15 +36,15 @@ import {FundManager01} from "./FundManager01.sol";
  * Inherits IFundManager interface to ensure consistency between interface and implementation
  */
 
-contract FundManager02 is
-    FundManager01,
-    FundManagerEvents,
-    ERC2771Context,
-    SiweContext
-{
+contract FundManager02 is FundManager01, FundManagerEvents {
     using SafeERC20 for IERC20;
 
     // ====================================================================================================================
+
+    error EmptyList();
+    // error InsufficientFundAmount();
+    error WithdrawError();
+    error ApprovalFailed();
 
     /// @dev Total reward amounts
     mapping(address token => uint256) internal _totalRewardAmounts;
@@ -87,7 +82,7 @@ contract FundManager02 is
         address minter_,
         uint256 amount_,
         address token_
-    ) internal {
+    ) private {
         // Get various rates and roles
         address completer = EXCHANGE.completerOf(boxId_);
         address seller = EXCHANGE.sellerOf(boxId_);
@@ -107,13 +102,11 @@ contract FundManager02 is
 
         address settlementToken = ADDR_MANAGER.settlementToken();
 
-        uint256 amountIn_token;
+        uint256 amountIn_token = (amount_ * totalRate) / 1000;
         uint256 amountOut_settlementToken;
 
         if (token_ != settlementToken) {
-            // Add extra fee rate to total rate
-            totalRate += _extraFeeRate;
-            // If token is not settlement token, it needs to be swapped
+            // totalRate += _extraFeeRate;
             (amountIn_token, amountOut_settlementToken) = _swap(
                 boxId_,
                 token_,
@@ -123,7 +116,6 @@ contract FundManager02 is
             );
         } else {
             // If token is settlement token, calculate allocation directly, and amountOut and amountIn are equal
-            amountIn_token = (amount_ * totalRate) / 1000;
             amountOut_settlementToken = amountIn_token;
         }
 
@@ -164,7 +156,7 @@ contract FundManager02 is
                 RewardType.Minter
             );
 
-            // Assign service fee to DAO fund manager
+            // Directly assign the service fee to the DAO fund manager contract
             IERC20(settlementToken).safeTransfer(
                 ADDR_MANAGER.daoFundManager(),
                 (amountOut_settlementToken - sellerRewards - completerRewards)
@@ -192,54 +184,40 @@ contract FundManager02 is
         address tokenOut_,
         uint256 amount_,
         uint8 totalRate_
-    ) internal returns (uint256, uint256) {
+    ) private returns (uint256, uint256) {
         address[] memory swapContracts = ADDR_MANAGER.swapContracts();
         if (swapContracts.length == 0) revert EmptyList();
-        // address swapContract = swapContracts[0];
-        // address quoter = swapContracts[1];
 
-        // check allowance and approve
+        // Authorize the maximum possible amount of tokens to SwapRouter
         if (
             IERC20(tokenIn_).allowance(address(this), swapContracts[0]) <
             amount_
         ) {
             _approveToken(tokenIn_, swapContracts[0]);
         }
+        /**
+         * @dev Calculate how much tokenOut can be swapped with amountIn
+         */
+        uint256 amountOut = I_Swap(swapContracts[0]).getSwapAmountOut(
+            tokenIn_,
+            tokenOut_,
+            amount_
+        );
+        // Reset the price of TruthBox
+        TRUTH_BOX.setPrice(boxId_, amountOut);
 
-        // step 1: calculate the amount of tokenOut that can be exchanged for tokenIn
-        // using quoter to calculate the amount of tokenOut that can be exchanged for tokenIn
-        uint256 totalAmountOut = IQuoter(swapContracts[1])
-            .quoteExactInputSingle(
-                tokenIn_,
-                tokenOut_,
-                3000, // 0.3% service fee
-                amount_, // using the exact amount of tokenIn
-                0 // no price limit
-            );
+        // Calculate the amount of funds used to allocate to other roles
+        // Include service fee, seller fee, completer fee
+        amountOut = (amountOut * totalRate_) / 1000;
 
-        // step 2: calculate the amount of tokenOut that can be exchanged for tokenIn
-        uint256 amountOut_ = (totalAmountOut * totalRate_) / 1000;
-
-        // step 3: execute the swap, using exactOutputSingle to exchange the exact amount of tokenOut
-        uint256 amountIn_ = ISwapRouter(swapContracts[0]).exactOutputSingle(
-            ISwapRouter.ExactOutputSingleParams({
-                tokenIn: tokenIn_,
-                tokenOut: tokenOut_,
-                fee: 3000, // 0.3% service fee
-                recipient: address(this),
-                deadline: block.timestamp + 300,
-                amountOut: amountOut_, // exact amount of tokenOut
-                amountInMaximum: amount_,
-                sqrtPriceLimitX96: 0
-            })
+        // Calculate the amount of funds used to swap
+        uint256 amountIn = I_Swap(swapContracts[0]).swapForExact(
+            tokenIn_,
+            tokenOut_,
+            amountOut
         );
 
-        // step 4: reset the price of TruthBox
-        // Because the delay fee must be in the settlementToken,
-        // so we need to reset the price of TruthBox
-        TRUTH_BOX.setPrice(boxId_, totalAmountOut);
-
-        return (amountIn_, amountOut_);
+        return (amountIn, amountOut);
     }
 
     // Fund Deposit Functions

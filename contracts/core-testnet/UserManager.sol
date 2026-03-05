@@ -15,7 +15,7 @@
 
 pragma solidity ^0.8.24;
 
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";

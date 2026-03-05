@@ -21,7 +21,7 @@ import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 
 import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 

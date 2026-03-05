@@ -18,24 +18,16 @@ pragma solidity ^0.8.24;
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-// import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-// import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-// import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
-// import {
-//     IAddressManager
-// } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
 import {Pausable} from "../utils/Pausable.sol";
+
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
- * @title FundManagerBase
+ * @title FundManager01
  * @dev Fund management contract that supports multiple tokens
- * v1.6 upgraded version of FundManager, extending existing FundManager to support multi-token transactions
  */
 
-contract FundManagerBase is ModifierV2, ReentrancyGuard, Pausable {
+contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     event BuyerRefundRateAdded(uint256 boxId, uint8 rate);
     event DaoFeeRateAdded(uint256 boxId, uint8 rate);
     // =====================================================================================
@@ -148,5 +140,4 @@ contract FundManagerBase is ModifierV2, ReentrancyGuard, Pausable {
     function slippageProtection() external view returns (uint8) {
         return _slippageProtection;
     }
-    // ====================================================================================================================
 }

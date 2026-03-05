@@ -15,11 +15,13 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
+import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
+import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+import {
+    IAddressManager
+} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
+import {ITruthBox} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
 
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
@@ -30,7 +32,7 @@ import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 contract SetAddress {
     IAddressManager internal ADDR_MANAGER;
-    address internal SIWE_AUTH;
+    // address internal SIWE_AUTH;
 
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
@@ -52,15 +54,15 @@ contract SetAddress {
     function _setAddress(CoreContracts enum_) internal virtual {
         IAddressManager addrMgr = ADDR_MANAGER;
 
-        address siweAuth = addrMgr.siweAuth();
+        // address siweAuth = addrMgr.siweAuth();
         address truthBox = addrMgr.truthBox();
         address exchange = addrMgr.exchange();
         address fundManager = addrMgr.fundManager();
         address userManager = addrMgr.userManager();
 
-        if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
-            SIWE_AUTH = siweAuth;
-        }
+        // if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
+        //     SIWE_AUTH = siweAuth;
+        // }
 
         if (
             truthBox != address(0) &&

@@ -103,6 +103,13 @@ interface IExchange {
     // =====================================================================================
     //                                          Refund Functions
     // =====================================================================================
+    /**
+     * @notice Set refund permit status
+     * @param boxId_ Box ID
+     * @param permission_ Refund permit status
+     * @dev Only callable by project contracts
+     */
+    function setRefundPermit(uint256 boxId_, bool permission_) external;
 
     /**
      * @notice Request a refund
@@ -220,14 +227,4 @@ interface IExchange {
     function isInReviewDeadline(uint256 boxId_) external view returns (bool);
 
     // =====================================================================================
-    //                                          Setter Functions (Project Contracts Only)
-    // =====================================================================================
-
-    /**
-     * @notice Set refund permit status
-     * @param boxId_ Box ID
-     * @param permission_ Refund permit status
-     * @dev Only callable by project contracts
-     */
-    function setRefundPermit(uint256 boxId_, bool permission_) external;
 }

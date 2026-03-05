@@ -24,6 +24,8 @@ import {ISiweAuth} from "./interfaces/ISiweAuth.sol";
  */
 
 contract SiweContext {
+    /// Invalid token error
+    error InvalidToken();
     // ISiweAuth internal SIWE_AUTH;
 
     // constructor(address siweAuth_) {
@@ -44,6 +46,7 @@ contract SiweContext {
         address sender = msg.sender;
         if (sender == address(0)) {
             sender = ISiweAuth(siweContract_).getMsgSender(siweToken_);
+            if (sender == address(0)) revert InvalidToken();
         }
         return sender;
     }
