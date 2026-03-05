@@ -6,7 +6,7 @@
  *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
  *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
  *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝   
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
  *
  *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
  *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
@@ -20,6 +20,9 @@ pragma solidity ^0.8.24;
  * @dev This interface defines the error codes for the SiweAuth contract.
  */
 interface SiweAuthError {
+    /// Not admin error
+    error NotAdmin();
+
     /// Invalid domain error
     error InvalidDomain();
     /// Domain already exists error
@@ -31,7 +34,7 @@ interface SiweAuthError {
 
     /// Invalid address error
     error InvalidAddress();
-    
+
     /// Chain ID in the SIWE message does not match the actual chain ID
     error SiweAuth_ChainIdMismatch();
     /// Domain in the SIWE message does not match the domain of a dApp
@@ -45,5 +48,3 @@ interface SiweAuthError {
     /// Index out of bounds
     error IndexOutOfBounds();
 }
-
-

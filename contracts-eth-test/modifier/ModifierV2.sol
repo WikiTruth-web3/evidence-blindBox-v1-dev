@@ -18,10 +18,10 @@ pragma solidity ^0.8.24;
 import {
     IAddressManager
 } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-
+import {SetAddress} from "../utils/SetAddress.sol";
 import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 
-contract Modifier is ProxyUpgrade {
+contract ModifierV2 is ProxyUpgrade, SetAddress {
     IAddressManager internal ADDR_MANAGER;
     // address internal ADMIN;
 

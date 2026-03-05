@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
 import {ExchangeBase} from "./base/ExchangeBase.sol";
 import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 contract Exchange is Context, ExchangeBase, IExchange {
     error RefundPermitTrue();
@@ -44,7 +45,7 @@ contract Exchange is Context, ExchangeBase, IExchange {
     constructor(address addrManager_) ExchangeBase(addrManager_) {}
 
     function setAddress() external onlyManager {
-        _setAddress();
+        _setAddress(CoreContracts.Exchange);
     }
 
     // ========================================================================================================

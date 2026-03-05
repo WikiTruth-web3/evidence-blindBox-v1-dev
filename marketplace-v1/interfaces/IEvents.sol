@@ -60,6 +60,10 @@ interface IWikiTruthEvents {
         uint256 amount
     );
 
+    //-------------Pausable-------------------
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
+
     // ========== TruthBox ==========
     event BoxCreated(
         uint256 indexed boxId,

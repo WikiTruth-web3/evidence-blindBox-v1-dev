@@ -18,7 +18,7 @@ pragma solidity ^0.8.24;
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 
 import {ModifierV2} from "./modifier/ModifierV2.sol";
@@ -32,26 +32,41 @@ import {ModifierV2} from "./modifier/ModifierV2.sol";
  */
 
 contract UserManager is ModifierV2, IUserManager, SiweContext {
-    error Blacklisted();
-    error NotBlacklisted();
-
     mapping(address => uint256) internal _userIds;
     mapping(address => bool) internal _blacklist;
 
-    uint256 internal _currentUserId;
+    uint256 internal _nextUserId;
 
     // =======================================================================================================
     constructor(address addrManager_) ModifierV2(addrManager_) {
-        _currentUserId = 10000;
+        _nextUserId = 10000;
     }
 
     // =====================================================================================
 
     function setAddress() external onlyManager {
-        _setAddress("userManager");
+        _setAddress(CoreContracts.UserManager);
+    }
+
+    /**
+     * @notice Initialize the next user id
+     * If deploy on mainnet, please delete this function
+     */
+    function initUserId() external onlyAdmin {
+        if (0 == _nextUserId) {
+            _nextUserId = 10000;
+        }
     }
 
     // =====================================================================================
+
+    function _checkInBlacklist(address user_) internal view {
+        if (_blacklist[user_]) revert InBlacklist();
+    }
+
+    function _checkNotInBlacklist(address user_) internal view {
+        if (!_blacklist[user_]) revert NotInBlacklist();
+    }
 
     /**
      * @dev Get user id
@@ -61,15 +76,15 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
     function getUserId(
         address user_
     ) external onlyProjectContract returns (uint256) {
-        if (_blacklist[user_]) revert Blacklisted();
+        _checkInBlacklist(user_);
         // Get user ID
         uint256 userId = _userIds[user_];
         if (userId == 0) {
-            uint256 id = _currentUserId;
+            uint256 id = _nextUserId;
 
             _userIds[user_] = id;
             unchecked {
-                _currentUserId++;
+                _nextUserId++;
             }
             return id; // Return new allocated ID
         }
@@ -84,9 +99,9 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
         address sender = msg.sender;
         if (sender == address(0)) {
             // Use SiweContext get sender
-            sender = _msgSenderSiwe(SIWE_AUTH, token_);
+            sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
         }
-        if (_blacklist[sender]) revert Blacklisted();
+        _checkInBlacklist(sender);
         return _userIds[sender];
     }
 
@@ -94,13 +109,13 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
 
     //
     function addBlacklist(address user_) external onlyAdminDAO {
-        if (_blacklist[user_]) revert Blacklisted();
+        _checkInBlacklist(user_);
         _blacklist[user_] = true;
         emit Blacklist(user_, true);
     }
 
     function removeBlacklist(address user_) external onlyAdminDAO {
-        if (!_blacklist[user_]) revert NotBlacklisted();
+        _checkNotInBlacklist(user_);
         _blacklist[user_] = false;
         emit Blacklist(user_, false);
     }

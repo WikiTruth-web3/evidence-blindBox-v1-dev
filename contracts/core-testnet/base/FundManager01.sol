@@ -23,14 +23,11 @@ import {Pausable} from "../utils/Pausable.sol";
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
- * @title FundManagerBase
+ * @title FundManager01
  * @dev Fund management contract that supports multiple tokens
- * v1.6 upgraded version of FundManager, extending existing FundManager to support multi-token transactions
  */
 
-contract FundManagerBase is ModifierV2, ReentrancyGuard, Pausable {
-    error EnforcedPause();
-
+contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     event BuyerRefundRateAdded(uint256 boxId, uint8 rate);
     event DaoFeeRateAdded(uint256 boxId, uint8 rate);
     // =====================================================================================

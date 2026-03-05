@@ -45,7 +45,7 @@ struct AuthToken {
  * @dev Based on the Oasis official SiweAuth contract, extended to support SIWE authentication with multiple domains
  *
  */
-contract MultiDomainSiweAuth is Error, SiweAuthError, A13e {
+contract MultiDomainSiweAuth is SiweAuthError, A13e {
     // =======================================================================================================
     // Event definition
     // =======================================================================================================

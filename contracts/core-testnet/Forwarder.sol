@@ -21,7 +21,7 @@ import {
 
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
+// import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
 import {Modifier} from "./modifier/Modifier.sol";
 
 import {Pausable} from "./utils/Pausable.sol";
@@ -32,7 +32,7 @@ import {Pausable} from "./utils/Pausable.sol";
  * Includes: relayer whitelist, target contract whitelist, gas limit and emergency pause function.
  * This contract is specifically used to handle meta-transactions, using EIP-712 signatures.
  */
-contract Forwarder is ERC2771Forwarder, Modifier, IForwarder, Pausable {
+contract Forwarder is ERC2771Forwarder, Modifier, Pausable {
     error RelayerIsBlacklisted();
     error NotWhitelistedTarget();
     error GasLimitExceeded();

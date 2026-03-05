@@ -19,44 +19,78 @@ import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
 
-import {ModifierV2} from "../modifier/ModifierV2.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+
 /**
- *  @notice TruthBoxBase
+ *  @notice SetAddress
  *
  */
 
-contract TruthBoxBase is ModifierV2 {
-    uint8 internal _incrementRate; // 2.0 * 100
+contract SetAddress {
+    IAddressManager internal ADDR_MANAGER;
+    address internal SIWE_AUTH;
 
-    uint256 internal _nextBoxId;
+    IUserManager internal USER_MANAGER;
+    IExchange internal EXCHANGE;
+    IFundManager internal FUND_MANAGER;
+    ITruthBox internal TRUTH_BOX;
 
     // ==================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
-        _incrementRate = 200;
+    constructor(address addrManager_) {
+        ADDR_MANAGER = IAddressManager(addrManager_);
     }
     // ==================================================================================================
 
-    // ==========================================================================================================
-    /**
-     * @dev Set the increment rate
-     * @param rate_ The increment rate
-     * Default: 200 (200%)
-     */
-    function setIncrementRate(uint8 rate_) external onlyDAO {
-        if (rate_ == 0 || rate_ > 200) revert InvalidRate();
-        _incrementRate = rate_;
+    function _setAddressManager(address addrManager_) internal {
+        ADDR_MANAGER = IAddressManager(addrManager_);
     }
-
-    // ==========================================================================================================
-    //                                      Getter Functions
     // ==========================================================================================================
 
-    function incrementRate() external view returns (uint8) {
-        return _incrementRate;
-    }
+    // TODO Add the address of the DAO fund manager
+    function _setAddress(CoreContracts enum_) internal virtual {
+        IAddressManager addrMgr = ADDR_MANAGER;
 
-    function nextBoxId() external view returns (uint256) {
-        return _nextBoxId;
+        address siweAuth = addrMgr.siweAuth();
+        address truthBox = addrMgr.truthBox();
+        address exchange = addrMgr.exchange();
+        address fundManager = addrMgr.fundManager();
+        address userManager = addrMgr.userManager();
+
+        if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
+            SIWE_AUTH = siweAuth;
+        }
+
+        if (
+            truthBox != address(0) &&
+            truthBox != address(TRUTH_BOX) &&
+            enum_ != CoreContracts.TruthBox
+        ) {
+            TRUTH_BOX = ITruthBox(truthBox);
+        }
+
+        if (
+            exchange != address(0) &&
+            exchange != address(EXCHANGE) &&
+            enum_ != CoreContracts.Exchange
+        ) {
+            EXCHANGE = IExchange(exchange);
+        }
+        if (
+            fundManager != address(0) &&
+            fundManager != address(FUND_MANAGER) &&
+            enum_ != CoreContracts.FundManager
+        ) {
+            FUND_MANAGER = IFundManager(fundManager);
+        }
+
+        if (
+            userManager != address(0) &&
+            userManager != address(USER_MANAGER) &&
+            enum_ != CoreContracts.UserManager
+        ) {
+            USER_MANAGER = IUserManager(userManager);
+        }
     }
 }

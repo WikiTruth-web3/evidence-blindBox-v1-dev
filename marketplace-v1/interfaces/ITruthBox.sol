@@ -26,16 +26,7 @@ enum Status {
     Blacklisted
 }
 
-/**
- * @title ITruthBox
- * @notice TruthBox contract interface, defining all externally exposed functions and events
- * @dev This interface serves as the top-level constraint for the TruthBox contract, ensuring consistency between interface and implementation
- */
-interface ITruthBox {
-    // =====================================================================================
-    //                                                  Events
-    // =====================================================================================
-
+interface TruthBoxEvents {
     event BoxCreated(
         uint256 indexed boxId,
         uint256 indexed userId,
@@ -49,7 +40,14 @@ interface ITruthBox {
         bytes privateKey,
         uint256 indexed userId
     );
+}
 
+/**
+ * @title ITruthBox
+ * @notice TruthBox contract interface, defining all externally exposed functions and events
+ * @dev This interface serves as the top-level constraint for the TruthBox contract, ensuring consistency between interface and implementation
+ */
+interface ITruthBox {
     // =====================================================================================
     //                                          Address Management
     // =====================================================================================
@@ -127,12 +125,15 @@ interface ITruthBox {
     ) external view returns (Status, uint256, uint256);
 
     /**
-     * @notice Get private data of a box (key)
+     * @notice Get secret data of a box (key)
      * @param boxId_ Box ID
      * @param siweToken_ SIWE token of the user
      * @return key Key of the box
      */
-    // function getPrivateData(uint256 boxId_, bytes memory siweToken_) external view returns(bytes memory);
+    function getSecretData(
+        uint256 boxId_,
+        bytes memory siweToken_
+    ) external view returns (bytes memory);
 
     /**
      * @notice Get the minter address of a box

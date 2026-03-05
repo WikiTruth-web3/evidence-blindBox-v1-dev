@@ -22,9 +22,14 @@ pragma solidity ^0.8.24;
 // import {Sapphire} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 
 import {TruthBoxBase} from "./base/TruthBoxBase.sol";
-import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {
+    ITruthBox,
+    Status,
+    TruthBoxEvents
+} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
-contract TruthBox is TruthBoxBase, ITruthBox {
+contract TruthBox is TruthBoxBase, ITruthBox, TruthBoxEvents {
     error InvalidToken();
     error EmptyKey();
     error DeadlineNotIn30days();
@@ -51,7 +56,7 @@ contract TruthBox is TruthBoxBase, ITruthBox {
     constructor(address addrManager_) TruthBoxBase(addrManager_) {}
 
     function setAddress() external onlyManager {
-        _setAddress();
+        _setAddress(CoreContracts.TruthBox);
     }
 
     // ==========================================================================================================

@@ -20,7 +20,8 @@ import {
     IAddressManager
 } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-import {Modifier} from "./modifier/Modifier.sol";
+import {ModifierV2} from "./modifier/ModifierV2.sol";
+import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 /**
  * @title UserManager
@@ -29,50 +30,27 @@ import {Modifier} from "./modifier/Modifier.sol";
  * At the same time, you can use the user ID to query user information, so as to realize the rapid lookup of the index protocol!
  */
 
-contract UserManager is Modifier, IUserManager {
+contract UserManager is ModifierV2, IUserManager {
     error Blacklisted();
     error NotBlacklisted();
 
     // =====================================================================================
 
-    address internal TRUTH_BOX;
-    address internal FUND_MANAGER;
-    address internal EXCHANGE;
-    // address internal SIWE_AUTH;
-
     mapping(address => uint256) internal _userIds;
     mapping(address => bool) internal _blacklist;
 
-    uint256 internal _currentUserId;
+    uint256 internal _nextUserId;
 
     // =======================================================================================================
-    constructor(address addrManager_) Modifier(addrManager_) {
+    constructor(address addrManager_) ModifierV2(addrManager_) {
         // ADDR_MANAGER = IAddressManager(addrManager_);
-        _currentUserId = 10000;
+        _nextUserId = 10000;
     }
 
     // =====================================================================================
 
     function setAddress() external onlyManager {
-        IAddressManager addrMgr = ADDR_MANAGER;
-
-        address truthBox = addrMgr.truthBox();
-        address exchange = addrMgr.exchange();
-        address fundManager = addrMgr.fundManager();
-        // address siweAuth = addrMgr.siweAuth();
-
-        if (truthBox != address(0) && truthBox != TRUTH_BOX) {
-            TRUTH_BOX = truthBox;
-        }
-        if (exchange != address(0) && exchange != EXCHANGE) {
-            EXCHANGE = exchange;
-        }
-        if (fundManager != address(0) && fundManager != FUND_MANAGER) {
-            FUND_MANAGER = fundManager;
-        }
-        // if (siweAuth != address(0) && siweAuth != SIWE_AUTH){
-        //     SIWE_AUTH = siweAuth;
-        // }
+        _setAddress(CoreContracts.UserManager);
     }
 
     // =====================================================================================
@@ -89,11 +67,11 @@ contract UserManager is Modifier, IUserManager {
         // Get user ID
         uint256 userId = _userIds[user_];
         if (userId == 0) {
-            _userIds[user_] = _currentUserId;
+            _userIds[user_] = _nextUserId;
             unchecked {
-                _currentUserId++;
+                _nextUserId++;
             }
-            return _currentUserId; // Return new allocated ID
+            return _nextUserId; // Return new allocated ID
         }
         return userId; // Return existing ID
     }

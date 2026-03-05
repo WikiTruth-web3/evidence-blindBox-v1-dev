@@ -27,11 +27,12 @@ import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
- *  @notice ExchangeBase
- *
+ *  @title Exchange01
+ *  @dev This contract is used to manage the exchange
+ *  @dev Inherits ModifierV2 to support modifiers
  */
 
-contract ExchangeBase is ModifierV2 {
+contract Exchange01 is ModifierV2 {
     uint256 internal _refundRequestPeriod;
     uint256 internal _refundReviewPeriod;
 

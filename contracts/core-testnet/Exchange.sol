@@ -16,13 +16,9 @@
 
 pragma solidity ^0.8.24;
 
-import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-
 import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {ExchangeBase} from "./base/ExchangeBase.sol";
+
+import {Exchange02} from "./base/Exchange02.sol";
 
 /**
  *  @notice Exchange contract
@@ -30,134 +26,13 @@ import {ExchangeBase} from "./base/ExchangeBase.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange is ExchangeBase, IExchange, ERC2771Context {
-    // error Paused();
-    // error InvalidPrice();
-
-    error RefundPermitTrue();
-
-    // =======================================================================================================
-
-    struct BoxExchengData {
-        address _acceptedToken; // If address(0), then it means support settlementToken
-        address _seller; // If address(0), then it means by minter sell
-        address _buyer;
-        address _completer;
-        uint256 _refundRequestDeadline;
-        uint256 _refundReviewDeadline;
-        bool _refundPermit;
-    }
-
-    mapping(uint256 boxId => BoxExchengData data) private _boxExchengData;
-
+contract Exchange is Exchange02 {
     // ========================================================================================================
 
     constructor(
         address addrManager_,
         address trustedForwarder_
-    ) ExchangeBase(addrManager_) ERC2771Context(trustedForwarder_) {}
-
-    // ==========================================================================================================
-    //                                          Override Functions
-    // ==========================================================================================================
-
-    /**
-     * @notice Set contract addresses
-     * @dev Get and set related contract addresses from AddressManager
-     */
-    function setAddress() external onlyManager {
-        _setAddress("exchange");
-    }
-
-    // ========================================================================================================
-    //                                           Checker functions
-    // ========================================================================================================
-
-    /**
-     * @notice Read box status
-     * @param boxId_ Box ID
-     * If the box status is Auctioning, and the deadline is over, then it is directly Paid.
-     */
-    function _checkStatus(uint256 boxId_, Status status_) internal view {
-        if (TRUTH_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
-    }
-
-    // Check the refund timestamp. Within the refund time,
-    // you can apply for a refund (set to refunding mode),
-    function isInRequestRefundDeadline(
-        uint256 boxId_
-    ) public view returns (bool) {
-        _checkStatus(boxId_, Status.Paid);
-
-        if (_boxExchengData[boxId_]._refundRequestDeadline < block.timestamp)
-            return false;
-        return true;
-    }
-
-    function isInReviewDeadline(uint256 boxId_) public view returns (bool) {
-        _checkStatus(boxId_, Status.Refunding);
-        if (_boxExchengData[boxId_]._refundReviewDeadline < block.timestamp)
-            return false;
-        return true;
-    }
-
-    // ========================================================================================================
-    //                                            Setter functions
-    //========================================================================================================
-
-    function _setBoxListedArgs(
-        uint256 boxId_,
-        address acceptedToken_,
-        uint256 price_,
-        Status status_,
-        uint256 seconds_
-    ) internal {
-        ITruthBox truthBox = TRUTH_BOX;
-        if (truthBox.getStatus(boxId_) != Status.Storing)
-            revert InvalidStatus();
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
-
-        uint256 userId = USER_MANAGER.getUserId(sender);
-        address token = ADDR_MANAGER.settlementToken();
-
-        if (sender != truthBox.minterOf(boxId_)) {
-            // others sell
-            if (truthBox.getDeadline(boxId_) >= block.timestamp)
-                revert DeadlineNotOver();
-            _boxExchengData[boxId_]._seller = sender;
-
-            // if the _seller is not the minter, they can't set the price
-            price_ = 0;
-        } else {
-            // NOTE minter sell
-            // if the acceptedToken_ is not settlement, set it as acceptedToken
-            if (acceptedToken_ != token) {
-                if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) return;
-
-                _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
-                token = acceptedToken_;
-            }
-        }
-        truthBox.setBasicData(
-            boxId_,
-            price_,
-            status_,
-            block.timestamp + seconds_
-        );
-
-        emit BoxListed(boxId_, userId, token);
-    }
-
-    function _setRefundRequestDeadline(
-        uint256 boxId_,
-        uint256 timestamp
-    ) private {
-        uint256 deadline = timestamp + _refundRequestPeriod;
-        _boxExchengData[boxId_]._refundRequestDeadline = deadline;
-
-        emit RequestDeadlineChanged(boxId_, deadline);
-    }
+    ) Exchange02(addrManager_, trustedForwarder_) {}
 
     // ========================================================================================================
     //                                          Listing related functions
@@ -222,13 +97,13 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
         _setRefundRequestDeadline(boxId_, block.timestamp);
 
         uint256 payAmount = truthBox.getPrice(boxId_);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount); // 转账
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount);
 
         emit BoxPurchased(boxId_, userId);
     }
 
     /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
+     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
      * @param boxId_ Box ID
      * Need to check: deadline、status、buyer.
      * Bid will modify: buyer、price、deadline.
@@ -250,33 +125,6 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
     }
 
     /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
-     * @param boxId_ Box ID
-     */
-    function _bid(uint256 boxId_) internal returns (uint256) {
-        ITruthBox truthBox = TRUTH_BOX;
-        (Status status, uint256 price, uint256 deadline) = truthBox
-            .getBasicData(boxId_);
-
-        // canBid?
-        if (deadline < block.timestamp) revert DeadlineIsOver();
-        if (status != Status.Auctioning) revert InvalidStatus();
-
-        // NOTE: 30 days----3 days
-        _setRefundRequestDeadline(boxId_, block.timestamp + 3 days);
-        uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
-
-        truthBox.setBasicData(
-            boxId_,
-            newPrice,
-            Status.Auctioning,
-            block.timestamp + 3 days
-        );
-
-        return price;
-    }
-
-    /**
      * @notice Calculate the pay amount
      * @param boxId_ Box ID
      * @param siweToken_ The siwe token of the user
@@ -287,20 +135,10 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
         bytes memory siweToken_
     ) public view returns (uint256) {
         // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, token_);
+        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
         uint256 price = TRUTH_BOX.getPrice(boxId_);
 
         return _calcPayMoney(boxId_, sender, price);
-    }
-
-    function _calcPayMoney(
-        uint256 boxId_,
-        address buyer_,
-        uint256 price_
-    ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.orderAmounts(boxId_, buyer_);
-        uint256 amount = price_ - balance;
-        return amount;
     }
 
     // ========================================================================================================
@@ -437,101 +275,4 @@ contract Exchange is ExchangeBase, IExchange, ERC2771Context {
         truthBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
-
-    // ========================================================================================================
-
-    function setRefundPermit(
-        uint256 boxId_,
-        bool permission_
-    ) external onlyProjectContract {
-        _boxExchengData[boxId_]._refundPermit = permission_;
-        emit RefundPermitChanged(boxId_, permission_);
-    }
-
-    // ========================================================================================================
-    //                                           Getter function
-    // ========================================================================================================
-
-    /**
-     * @notice Get buyer address
-     * @param boxId_ Box ID
-     * @return Buyer address
-     */
-    function buyerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _buyerOf(boxId_);
-    }
-
-    /* NOTE If the _seller is address(0),
-     * it means that the _seller is the minter
-     */
-    function sellerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _boxExchengData[boxId_]._seller;
-    }
-
-    /**
-     * @notice Get completer address
-     * @param boxId_ Box ID
-     * @return Completer address
-     */
-    function completerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _boxExchengData[boxId_]._completer;
-    }
-
-    function _buyerOf(uint256 boxId_) internal view returns (address) {
-        return _boxExchengData[boxId_]._buyer;
-    }
-
-    function _refundPermit(uint256 boxId_) internal view returns (bool) {
-        return _boxExchengData[boxId_]._refundPermit;
-    }
-
-    function refundPermit(uint256 boxId_) external view returns (bool) {
-        return _refundPermit(boxId_);
-    }
-
-    /**
-     * @notice Get supported token
-     */
-    function acceptedToken(uint256 boxId_) external view returns (address) {
-        address token = _boxExchengData[boxId_]._acceptedToken;
-        if (token == address(0)) return ADDR_MANAGER.settlementToken();
-        return token;
-    }
-
-    function refundReviewDeadline(
-        uint256 boxId_
-    ) external view returns (uint256) {
-        return _boxExchengData[boxId_]._refundReviewDeadline;
-    }
-
-    function refundRequestDeadline(
-        uint256 boxId_
-    ) external view returns (uint256) {
-        return _boxExchengData[boxId_]._refundRequestDeadline;
-    }
-
-    // ========================================================================================================
-
-    // ----------------------------------------------------------------
-    //                      Debugging Functions
-    // ----------------------------------------------------------------
-
-    // NOTE Debugging function. Production environment does not need this.
-    function buyerOf_debug(uint256 boxId_) external view returns (address) {
-        return _buyerOf(boxId_);
-    }
-    function sellerOf_debug(uint256 boxId_) external view returns (address) {
-        return _boxExchengData[boxId_]._seller;
-    }
-    function completerOf_debug(uint256 boxId_) external view returns (address) {
-        return _boxExchengData[boxId_]._completer;
-    }
-
-    // -------------------------------------------------------------------
 }

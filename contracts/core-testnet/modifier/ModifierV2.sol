@@ -21,12 +21,14 @@ import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 
 /**
- * @title Modifier
+ * @title ModifierV2
  * @dev This contract is used to manage modifiers
  * @dev Inherits ERC2771Context to support meta-transactions
+ * @dev Inherits ProxyUpgrade to support proxy upgrade
+ * @dev Inherits SetAddress to support set address
  */
 
-contract ModifierSetAddress is ProxyUpgrade, SetAddress {
+contract ModifierV2 is ProxyUpgrade, SetAddress {
     // address internal ADMIN;
 
     // =======================================================================================================

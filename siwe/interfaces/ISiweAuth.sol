@@ -15,6 +15,10 @@
 
 pragma solidity ^0.8.24;
 
+import {
+    SignatureRSV
+} from "@oasisprotocol/sapphire-contracts/contracts/auth/A13e.sol";
+
 interface ISiweAuth {
     /**
      * @notice Use SIWE message and signature to login
@@ -25,7 +29,7 @@ interface ISiweAuth {
     function login(
         string calldata siweMsg,
         SignatureRSV calldata sig
-    ) external view override returns (bytes memory authToken_);
+    ) external view returns (bytes memory authToken_);
 
     function getMsgSender(bytes memory token_) external view returns (address);
 
@@ -55,7 +59,7 @@ interface ISiweAuth {
      * @notice Return the domain associated with the dApp (return the main domain, keep backward compatibility)
      * @return The domain string
      */
-    function domain() public view returns (string memory);
+    function domain() external view returns (string memory);
 
     /**
      * @dev Get all supported domains

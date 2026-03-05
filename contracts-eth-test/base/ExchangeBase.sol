@@ -16,30 +16,23 @@
 
 pragma solidity ^0.8.24;
 
-// import "@openzeppelin/contracts/utils/Context.sol";
-
-import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+// import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
+// import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+// import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
+// import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+// import {
+//     IAddressManager
+// } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 import {Error} from "@marketplace-v1/interfaces/interfaceError.sol";
-import {
-    IAddressManager
-} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
 
-import {Modifier} from "../modifier/Modifier.sol";
+import {ModifierV2} from "../modifier/ModifierV2.sol";
 
 /**
  *  @notice ExchangeBase
  *
  */
 
-contract ExchangeBase is Modifier {
-    ITruthBox internal TRUTH_BOX;
-    IFundManager internal FUND_MANAGER;
-    IUserManager internal USER_MANAGER;
-    // ISiweAuth internal SIWE_AUTH;
-
+contract ExchangeBase is ModifierV2 {
     uint256 internal _refundRequestPeriod;
     uint256 internal _refundReviewPeriod;
 
@@ -47,7 +40,7 @@ contract ExchangeBase is Modifier {
 
     // ========================================================================================================
 
-    constructor(address addrManager_) Modifier(addrManager_) {
+    constructor(address addrManager_) ModifierV2(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
         _refundReviewPeriod = 15 days;
@@ -56,25 +49,6 @@ contract ExchangeBase is Modifier {
     // =====================================================================================
     //                                      Basic Parameter Settings
     // =====================================================================================
-
-    function _setAddress() internal virtual {
-        IAddressManager addrMgr = ADDR_MANAGER;
-
-        address truthBox = addrMgr.truthBox();
-        address fundM = addrMgr.fundManager();
-        address userManager = addrMgr.userManager();
-
-        if (truthBox != address(0) && truthBox != address(TRUTH_BOX)) {
-            TRUTH_BOX = ITruthBox(truthBox);
-        }
-        if (fundM != address(0) && fundM != address(FUND_MANAGER)) {
-            FUND_MANAGER = IFundManager(fundM);
-        }
-        if (userManager != address(0) && userManager != address(USER_MANAGER)) {
-            USER_MANAGER = IUserManager(userManager);
-        }
-    }
-
     // 7~15  || 1~7
     function setRefundRequestPeriod(uint256 period_) external onlyDAO {
         if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
