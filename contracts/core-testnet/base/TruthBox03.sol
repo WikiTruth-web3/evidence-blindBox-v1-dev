@@ -88,10 +88,10 @@ contract TruthBox03 is TruthBox02 {
             status == Status.Auctioning
         ) {
             // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
-            if (sender != _minterOf(boxId_)) revert InvalidCaller();
+            if (sender != _minterOf(boxId_)) revert NotMinter();
         } else if (status == Status.Delaying || status == Status.Paid) {
             // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
-            if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
+            if (sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
         // if it is Published,Refunding, then everyone can view, no need to check
@@ -112,6 +112,8 @@ contract TruthBox03 is TruthBox02 {
     }
 
     // ==================================================================================================
+    //                               Checker Functions
+    // ==================================================================================================
 
     function _checkStatus(uint256 boxId_, Status status_) internal view {
         if (_basicData[boxId_]._status != status_) revert InvalidStatus();
@@ -123,7 +125,7 @@ contract TruthBox03 is TruthBox02 {
     }
 
     // Check if the current time is within the 30 days of the deadline
-    function _isDeadlineIn30days(uint256 boxId_) internal view {
+    function _isInWindowPeriod(uint256 boxId_) internal view {
         uint256 deadline = _basicData[boxId_]._deadline;
         if (
             deadline < block.timestamp || deadline > block.timestamp + 3 days // NOTE 30 days----3 days
@@ -185,7 +187,7 @@ contract TruthBox03 is TruthBox02 {
     function _extendDeadline(uint256 boxId_, uint256 time_) internal {
         _checkMinter(boxId_);
         _checkStatus(boxId_, Status.Storing);
-        _isDeadlineIn30days(boxId_);
+        _isInWindowPeriod(boxId_);
         if (time_ > 15 days) revert InvalidPeriod(); // NOTE: 365----15
 
         _addDeadline(boxId_, time_);
@@ -207,7 +209,7 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
 
     function _addToBlacklist(uint256 boxId_) internal onlyDAO {
-        if (boxId_ >= _nextBoxId) revert InvalidBoxId();
+        _boxExists(boxId_);
 
         _checkIsBlacklisted(boxId_);
 
@@ -226,7 +228,7 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
     function _minterOf(uint256 boxId_) internal view returns (address) {
         address minter = _secretData[boxId_]._minter;
-        if (minter == address(0)) revert InvalidBoxId();
+        if (minter == address(0)) revert BoxNotExists();
         return minter;
     }
 }

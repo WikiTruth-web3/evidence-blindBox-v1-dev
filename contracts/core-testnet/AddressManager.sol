@@ -254,15 +254,15 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         if (oldToken != address(0)) {
             _tokenStatus[oldToken] = TokenEnum.UnExsited; // Important
         }
+        _removeTokenFromList(token_);
+        _tokenStatus[token_] = TokenEnum.Active;
 
-        if (_tokenStatus[token_] != TokenEnum.Active) {
-            _tokenStatus[token_] = TokenEnum.Active;
-        }
         settlementToken = token_;
     }
 
     function addToken(address token_) external onlyAdmin {
         if (token_ == address(0)) revert InvalidAddress();
+
         if (_tokenStatus[token_] == TokenEnum.Active) revert TokenIsActive();
 
         if (_tokenStatus[token_] == TokenEnum.UnExsited) {
@@ -274,7 +274,19 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function _removeToken(address token_) internal {
         if (_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
         if (token_ == settlementToken) revert IsSettlementToken();
+        // remove from _tokenList
+        _removeTokenFromList(token_);
         _tokenStatus[token_] = TokenEnum.Inactive;
+    }
+
+    function _removeTokenFromList(address token_) internal {
+        for (uint256 i = 0; i < _tokenList.length; i++) {
+            if (_tokenList[i] == token_) {
+                _tokenList[i] = _tokenList[_tokenList.length - 1];
+                _tokenList.pop();
+                break;
+            }
+        }
     }
 
     /**

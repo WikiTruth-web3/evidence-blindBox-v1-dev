@@ -35,10 +35,7 @@ contract FundManager is FundManager03, IFundManager {
     using SafeERC20 for IERC20;
     // ====================================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) FundManager03(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) FundManager03(addrManager_) {}
 
     /**
      * @notice Set contract addresses
@@ -146,21 +143,24 @@ contract FundManager is FundManager03, IFundManager {
      * so it needs to verify that msg.sender is the project contract!
      * Cannot be deleted!
      */
-    function orderAmounts(
-        uint256 boxId_,
-        address user_
-    ) external view onlyProjectContract returns (uint256) {
-        return _orderAmounts[boxId_][user_];
-    }
+    // function orderAmounts(
+    //     uint256 boxId_,
+    //     address user_
+    // ) external view onlyProjectContract returns (uint256) {
+    //     return _orderAmounts[boxId_][user_];
+    // }
 
     /**
      * @dev Get order amount
      * @param boxId_ TruthBox ID
-
+     * @param user_ User address
      * @return Order amount
      */
-    function orderAmounts(uint256 boxId_) external view returns (uint256) {
-        return _orderAmounts[boxId_][msg.sender];
+    function orderAmounts(
+        uint256 boxId_,
+        address user_
+    ) external view returns (uint256) {
+        return _orderAmounts[boxId_][user_];
     }
 
     /**
@@ -169,19 +169,22 @@ contract FundManager is FundManager03, IFundManager {
      * @return Minter reward amount
      */
     function minterRewardAmounts(
-        address token_
+        address token_,
+        address user_
     ) external view returns (uint256) {
-        return _minterRewardAmounts[msg.sender][token_];
+        return _minterRewardAmounts[user_][token_];
     }
 
     /**
      * @dev Get helper reward amount
      * @param token_ Token address
+     * @param user_ User address
      * @return Helper reward amount
      */
     function helperRewardAmounts(
-        address token_
+        address token_,
+        address user_
     ) external view returns (uint256) {
-        return _helperRewrdAmounts[msg.sender][token_];
+        return _helperRewrdAmounts[user_][token_];
     }
 }

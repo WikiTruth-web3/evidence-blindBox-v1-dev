@@ -28,10 +28,7 @@ import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 contract TruthBox is TruthBox03, ITruthBox {
     // ==================================================================================================
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) TruthBox03(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) TruthBox03(addrManager_) {}
 
     /**
      * @notice Set the contract address
@@ -115,7 +112,7 @@ contract TruthBox is TruthBox03, ITruthBox {
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
         _checkStatus(boxId_, Status.Delaying);
-        _isDeadlineIn30days(boxId_);
+        _isInWindowPeriod(boxId_);
         _delay(boxId_);
     }
 

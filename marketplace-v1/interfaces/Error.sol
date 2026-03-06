@@ -57,8 +57,8 @@ interface Error {
     /// @dev Thrown when a deadline is invalid
     error InvalidDeadline();
 
-    /// @dev Thrown when a contract caller is not authorized
-    error InvalidContractCaller();
+    /// @dev Thrown when a project contract caller is not authorized
+    error NotProjectCaller();
 
     /// @dev Thrown when seconds is invalid
     error InvalidSeconds();
@@ -69,9 +69,6 @@ interface Error {
 
     /// @dev Thrown when operation is performed in an invalid status
     error InvalidStatus();
-
-    /// @dev The box not exists
-    error InvalidBoxId();
 
     /// @dev Thrown when a token is in blacklist
     error InBlacklist();
@@ -97,9 +94,6 @@ interface Error {
 
     /// @dev Thrown when price is empty or zero
     error EmptyPrice();
-
-    /// @dev Thrown when token URI is empty
-    error EmptyTokenURI();
 
     /// @dev Thrown when box info CID is empty
     error EmptyBoxInfoCID();

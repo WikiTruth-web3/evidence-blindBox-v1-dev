@@ -9,7 +9,7 @@ const Status = {
     Auctioning: 2,
     Paid: 3,
     Refunding: 4,
-    InSecrecy: 5,
+    Delaying: 5,
     Published: 6,
     Blacklisted: 7
 };

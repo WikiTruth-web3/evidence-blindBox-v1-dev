@@ -79,7 +79,7 @@ contract ModifierV2 is ProxyUpgrade, SetAddress {
 
     modifier onlyProjectContract() {
         if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert InvalidCaller();
+            revert NotProjectCaller();
         }
         _;
     }

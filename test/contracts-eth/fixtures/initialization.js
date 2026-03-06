@@ -19,7 +19,9 @@ async function initializeContracts(contracts, connectors, signers) {
     exchange,
     fundManager,
     swapContract,
-    userId
+    userManager,
+    settlementToken,
+    wBTC,
   } = contracts;
 
   const {
@@ -30,24 +32,32 @@ async function initializeContracts(contracts, connectors, signers) {
 
   // 从传入的 signers 中获取需要的签名者
   const {
-    dao, governance, dao_fund_manager, siweAuth,quoter
+    dao, governance, dao_fund_manager, siweAuth, quoter, forwarder
   } = signers;
 
   const addressList = [
     dao.address,
     governance.address,
     dao_fund_manager.address,
-    userId.target, 
+    userManager.target, 
     siweAuth.address, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
     truthBox.target, 
     exchange.target, 
     fundManager.target, 
+    forwarder.address
+  ];
+
+  const swapContracts = [ 
     swapContract.target,
     quoter.address
   ];
   
   await addressManager.setAddressList(addressList);
+  await addressManager.setSwapContracts(swapContracts);
   await addressManager.setAllAddress();
+  // 在tokenConfig中设置
+  // await addressManager.setSettlementToken(settlementToken.target);
+  // await addressManager.addToken(wBTC.target);
 
   // 设置初始参数
   await truthBoxConnectors.dao.setIncrementRate(incrementRate);

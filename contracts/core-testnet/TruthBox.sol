@@ -115,7 +115,7 @@ contract TruthBox is TruthBox03, ITruthBox {
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
         _checkStatus(boxId_, Status.Delaying);
-        _isDeadlineIn30days(boxId_);
+        _isInWindowPeriod(boxId_);
         _delay(boxId_);
     }
 

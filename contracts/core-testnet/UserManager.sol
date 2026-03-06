@@ -80,13 +80,11 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
         // Get user ID
         uint256 userId = _userIds[user_];
         if (userId == 0) {
-            uint256 id = _nextUserId;
-
-            _userIds[user_] = id;
+            userId = _nextUserId;
+            _userIds[user_] = userId;
             unchecked {
                 _nextUserId++;
             }
-            return id; // Return new allocated ID
         }
         return userId;
     }

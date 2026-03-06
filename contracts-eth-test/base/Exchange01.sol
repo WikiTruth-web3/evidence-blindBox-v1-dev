@@ -55,7 +55,7 @@ contract Exchange01 is ModifierV2 {
         if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
         _refundRequestPeriod = period_;
     }
-    // 15~30  || 1~7
+    // 15~60  || 1~7
     function setRefundReviewPeriod(uint256 period_) external onlyDAO {
         if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
         _refundReviewPeriod = period_;

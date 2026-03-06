@@ -30,10 +30,7 @@ import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) Exchange03(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) Exchange03(addrManager_) {}
 
     // ==========================================================================================================
 
@@ -60,7 +57,7 @@ contract Exchange is Exchange03, IExchange {
             acceptedToken_,
             price_,
             Status.Selling,
-            15 days
+            365 days
         );
     }
 
@@ -75,10 +72,9 @@ contract Exchange is Exchange03, IExchange {
             acceptedToken_,
             price_,
             Status.Auctioning,
-            3 days
+            30 days
         );
     }
-
     // ========================================================================================================
     //                                          Buying related functions
     // ========================================================================================================
@@ -181,18 +177,14 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Buyer address
      */
-    function buyerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
+    function buyerOf(uint256 boxId_) external view returns (address) {
         return _buyerOf(boxId_);
     }
 
     /* NOTE If the _seller is address(0),
      * it means that the _seller is the minter
      */
-    function sellerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
+    function sellerOf(uint256 boxId_) external view returns (address) {
         return _sellerOf(boxId_);
     }
 
@@ -201,9 +193,7 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Completer address
      */
-    function completerOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
+    function completerOf(uint256 boxId_) external view returns (address) {
         return _completerOf(boxId_);
     }
 

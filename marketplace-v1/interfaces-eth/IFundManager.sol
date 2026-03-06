@@ -170,19 +170,23 @@ interface IFundManager {
     /**
      * @notice Get minter reward amount
      * @param token_ Token address
+     * @param user_ User address
      * @return Minter reward amount
      */
     function minterRewardAmounts(
-        address token_
+        address token_,
+        address user_
     ) external view returns (uint256);
 
     /**
      * @notice Get helper reward amount
      * @param token_ Token address
+     * @param user_ User address
      * @return Helper reward amount
      */
     function helperRewardAmounts(
-        address token_
+        address token_,
+        address user_
     ) external view returns (uint256);
 
     /**

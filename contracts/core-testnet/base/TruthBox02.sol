@@ -187,4 +187,8 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
     function _checkBuyer(uint256 boxId_) internal view {
         if (_msgSender() != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
     }
+
+    function _boxExists(uint256 boxId_) internal view {
+        if (boxId_ >= _nextBoxId) revert BoxNotExists();
+    }
 }

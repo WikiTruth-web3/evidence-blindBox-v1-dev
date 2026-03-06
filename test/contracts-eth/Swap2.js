@@ -13,7 +13,7 @@ const TimeHelpers = require("./helpers");
 describe("交易测试-多角色参与交易过程", function () {
 
   it("06-过期出售-seller-buyer-completer-提取资金", async function () {
-    const { admin, dao, minter, seller, buyer, officialToken, completer, truthBox, 
+    const { admin, dao, minter, seller, buyer, settlementToken, completer, truthBox, 
       exchange, fundManager ,bytes_mint, bytes_deliver, bytes32_1 , address_zero,
       fundManager_completer,fundManager_DAO,dao_fund_manager, fundManager_dao_fund_manager,
       exchange_seller,exchange_DAO,exchange_buyer,exchange_completer, fundManager_buyer,fundManager_minter,
@@ -39,11 +39,11 @@ describe("交易测试-多角色参与交易过程", function () {
     expect(await exchange.completerOf(2)).to.equal(completer.address);
 
     // ========================== 检查id=1的资金情况 ==========================
-    const incomeMinter = await fundManager.minterRewardAmounts(officialToken.target,minter.address);
+    const incomeMinter = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
     // const serviceFee = await fundManager.availableServiceFees();
 
-    const incomeCompleter = await fundManager.helperRewardAmounts(officialToken.target,completer.address);
-    const incomeSeller = await fundManager.helperRewardAmounts(officialToken.target,seller.address);
+    const incomeCompleter = await fundManager.helperRewardAmounts(settlementToken.target,completer.address);
+    const incomeSeller = await fundManager.helperRewardAmounts(settlementToken.target,seller.address);
     expect(incomeMinter).to.equal(1900);
     // expect(serviceFee).to.equal(100);
 
@@ -51,82 +51,82 @@ describe("交易测试-多角色参与交易过程", function () {
     expect(incomeSeller).to.equal(20);
     // NOTE 服务费 3%
     // 查看合约的余额，已支付60服务费
-    const balancefundManager = await officialToken.balanceOf(fundManager.target);
+    const balancefundManager = await settlementToken.balanceOf(fundManager.target);
     expect(balancefundManager).to.equal(1940);
 
     // ========================== 提取 ==========================
-    // const balanceBuyer = await officialToken.balanceOf(buyer.address);
-    await expect(fundManager_buyer.withdrawRefundAmounts(officialToken.target, [1])).to.be.reverted;
-    // const balanceBuyer02 = await officialToken.balanceOf(buyer.address);
+    // const balanceBuyer = await settlementToken.balanceOf(buyer.address);
+    await expect(fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1])).to.be.reverted;
+    // const balanceBuyer02 = await settlementToken.balanceOf(buyer.address);
     // expect(balanceBuyer02-balanceBuyer).to.equal(750);
 
     // ========================== 提取2 ==========================
-    const balanceMinter = await officialToken.balanceOf(minter.address);
-    await fundManager_minter.withdrawMinterRewards(officialToken.target);
-    const balanceMinter02 = await officialToken.balanceOf(minter.address);
+    const balanceMinter = await settlementToken.balanceOf(minter.address);
+    await fundManager_minter.withdrawMinterRewards(settlementToken.target);
+    const balanceMinter02 = await settlementToken.balanceOf(minter.address);
     expect(balanceMinter02-balanceMinter).to.equal(1900);
 
     // ========================== 提取3 ==========================
     const fundManagerSeller = fundManager.connect(seller);
-    const balanceSeller = await officialToken.balanceOf(seller.address);
+    const balanceSeller = await settlementToken.balanceOf(seller.address);
     console.log("Swap2-Seller提款前:", balanceSeller);
-    await fundManagerSeller.withdrawHelperRewards(officialToken.target);
-    const balanceSeller02 = await officialToken.balanceOf(seller.address);
+    await fundManagerSeller.withdrawHelperRewards(settlementToken.target);
+    const balanceSeller02 = await settlementToken.balanceOf(seller.address);
     console.log("Swap2-Seller提款后:", balanceSeller02);
 
     // ========================== 提取4 ==========================
-    const balanceCompleter = await officialToken.balanceOf(completer.address);
-    await fundManager_completer.withdrawHelperRewards(officialToken.target);
-    const balanceCompleter02 = await officialToken.balanceOf(completer.address);
+    const balanceCompleter = await settlementToken.balanceOf(completer.address);
+    await fundManager_completer.withdrawHelperRewards(settlementToken.target);
+    const balanceCompleter02 = await settlementToken.balanceOf(completer.address);
     expect(balanceCompleter02-balanceCompleter).to.equal(20);
 
     // ========================== 提取手续费 ==========================
     // await fundManager_DAO.withdrawServiceFee(dao_fund_manager.address);
-    const balanceDao_fund_manager1 = await officialToken.balanceOf(dao_fund_manager.address);
+    const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_fund_manager.address);
     // 两个box，一共60
     expect(balanceDao_fund_manager1).to.equal(60);
 
     // const serviceFee02 = await fundManager.availableServiceFees();
     // expect(serviceFee02).to.equal(0);
     // 查看合约的余额
-    const balancefundManager01 = await officialToken.balanceOf(fundManager.target);
+    const balancefundManager01 = await settlementToken.balanceOf(fundManager.target);
     // 资金已经分配完毕
     expect(balancefundManager01).to.equal(0); 
 
   });
 
   it("07-黑名单、公开的无法出售", async function () {
-    const { minter, truthBox, exchange_minter, officialToken ,truthBox_DAO,
+    const { minter, truthBox, exchange_minter, settlementToken ,truthBox_DAO,
       truthBox_minter, address_zero,
     } = await loadFixture(deployTruthBoxFixture);
     
-    await truthBox_DAO.addBoxToBlacklist(1);
-    await truthBox_DAO.addBoxToBlacklist(2);
+    await truthBox_DAO.addToBlacklist(1);
+    await truthBox_DAO.addToBlacklist(2);
     // 时间增加360天
     await time.increase(360 * 24 * 60 * 60);
-    // 出售3号和 4号，应该抛出异常
+    // 应该抛出异常
     await expect(exchange_minter.sell(1, address_zero, 2000)).to.be.reverted;
-    await expect(exchange_minter.auction(2, address_zero, 2000)).to.be.reverted;
+    await expect(exchange_minter.sell(2, address_zero, 2000)).to.be.reverted;
 
   });
 
   it("08-黑名单、公开的无法拍卖", async function () {
-    const { minter, truthBox, exchange, officialToken ,truthBox_DAO,
+    const { minter, truthBox, exchange, settlementToken ,truthBox_DAO,
       truthBox_minter,exchange_seller, address_zero,
     } = await loadFixture(deployTruthBoxFixture);
 
-    await truthBox_DAO.addBoxToBlacklist(1);
+    await truthBox_DAO.addToBlacklist(1);
     // 时间增加360天
     await time.increase(360 * 24 * 60 * 60);
-    // 出售3号和 4号，应该抛出异常
-    await expect(exchange_seller.sell(1, address_zero,  2000)).to.be.reverted;
+    // 应该抛出异常
+    await expect(exchange_seller.auction(1, address_zero,  2000)).to.be.reverted;
     await expect(exchange_seller.auction(2, address_zero, 2000)).to.be.reverted;
 
   });
 
   it("09-过期-seller-出售/拍卖", async function () {
     const { 
-      minter, buyer, officialToken, truthBox, exchange_seller, address_zero, seller,
+      minter, buyer, settlementToken, truthBox, exchange_seller, address_zero, seller,
       fundManager, bytes_mint,bytes32_1 , exchange_minter,exchange,other,
     } = await loadFixture(deployTruthBoxFixture);
 

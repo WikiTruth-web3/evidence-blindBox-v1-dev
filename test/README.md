@@ -6,7 +6,7 @@ WikiTruth 项目包含两个版本的合约和对应的测试套件:
 
 ```
 test/
-├── test-EVM/                   # EVM 版本测试 (JavaScript)
+├── contracts-eth/                   # eth 版本测试 (JavaScript)
 │   ├── *.js                   # 测试文件
 │   └── fixtures/              # 测试固件
 │
@@ -26,14 +26,16 @@ test/
 
 ## 🔑 两个版本的差异
 
-### EVM 版本 (test-EVM/)
+### eth 版本 (contracts-eth/)
+
 - **语言**: JavaScript
-- **网络**: 以太坊 EVM 兼容网络
-- **认证**: 不使用 SiweAuth (使用地址替代)
-- **加密**: 不使用 Sapphire 加密库
+- **网络**: 以太坊 eth 兼容网络
+- **认证**: msg.sender
+- **加密**: 无加密功能
 - **状态**: ✅ 已完成并通过所有测试
 
 ### Sapphire 版本 (test/sapphire/)
+
 - **语言**: TypeScript
 - **网络**: Oasis Sapphire 隐私网络
 - **认证**: ✅ 使用 SiweAuth 令牌认证
@@ -42,29 +44,29 @@ test/
 
 ## 🚀 快速开始
 
-### 运行 EVM 版本测试
+### 运行 eth 版本测试
 
 ```bash
-# 运行所有 EVM 测试
-npx hardhat test test/test-EVM/*.js
+# 运行所有 eth 测试
+npx hardhat test test/contracts-eth/*.js
 
 # 运行特定测试
-npx hardhat test test/test-EVM/TruthBox.js
-npx hardhat test test/test-EVM/Exchange.js
+npx hardhat test test/contracts-eth/TruthBox.js
+npx hardhat test test/contracts-eth/Exchange.js
 ```
 
 ## 📊 测试覆盖对比
 
-| 功能模块 | EVM 版本 | Sapphire 版本 |
-|---------|---------|--------------|
-| TruthBox 基本功能 | ✅ | ✅ |
-| Exchange 交易功能 | ✅ | ✅ |
-| FundManager 资金管理 | ✅ | ✅ |
-| TruthNFT NFT 功能 | ✅ | ✅ |
-| UserId 用户管理 | ✅ | ✅ |
-| SiweAuth 认证 | ❌ | ✅ |
-| Sapphire 加密 | ❌ | ✅ (隐式) |
-| 集成测试 | ✅ | ✅ |
+| 功能模块             | eth 版本 | Sapphire 版本 |
+| -------------------- | -------- | ------------- |
+| TruthBox 基本功能    | ✅       | ✅            |
+| Exchange 交易功能    | ✅       | ✅            |
+| FundManager 资金管理 | ✅       | ✅            |
+| TruthNFT NFT 功能    | ✅       | ✅            |
+| UserManager 用户管理 | ✅       | ✅            |
+| SiweAuth 认证        | ❌       | ✅            |
+| Sapphire 加密        | ❌       | ✅ (隐式)     |
+| 集成测试             | ✅       | ✅            |
 
 ## 🔧 Sapphire 版本的关键特性
 
@@ -74,17 +76,13 @@ Sapphire 版本的核心差异是使用了 SiweAuth 进行令牌认证:
 
 ```typescript
 // 在 fixture 初始化时生成 tokens
-const { siweTokens } = await generateSiweAuthTokens(accounts, contracts, connectors, chainId);
-
-// tokens 包含所有测试用户的认证令牌
-// {
-//   admin: "0x...",
-//   minter: "0x...",
-//   buyer: "0x...",
-//   ...
-// }
+const { siweTokens } = await generateSiweAuthTokens(
+  accounts,
+  contracts,
+  connectors,
+  chainId,
+);
 ```
-
 
 ### 3. TypeScript 类型安全
 
@@ -92,46 +90,58 @@ const { siweTokens } = await generateSiweAuthTokens(accounts, contracts, connect
 
 ```typescript
 export interface TestAccounts {
-    admin: Wallet;
-    minter: Wallet;
-    buyer: Wallet;
-    buyer2: Wallet;
-    seller: Wallet;
-    completer: Wallet;
+  admin: Wallet;
+  minter: Wallet;
+  buyer: Wallet;
+  buyer2: Wallet;
+  seller: Wallet;
+  completer: Wallet;
 }
 
 export interface DeployedContracts {
-    addressManager: Contract;
-    officialToken: Contract;
-    siweAuth: Contract;
-    // ...
+  addressManager: Contract;
+  settlementToken: Contract;
+  wBTC: Contract;
+  otherToken: Contract;
+  otherToken2: Contract;
+  truthBox: Contract;
+  swapContract: Contract;
+  fundManager: Contract;
+  exchange: Contract;
+  userManager: Contract;
 }
 ```
 
 ## 📝 编写新测试
 
-### EVM 版本
+### eth 版本
 
 ```javascript
-const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const {
+  loadFixture,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 const { deployTruthBoxFixture } = require("./Fixture.js");
 
 describe("我的测试", function () {
-    it("应该...", async function () {
-        const { admin, truthBox, exchange } = await loadFixture(deployTruthBoxFixture);
-        // 测试逻辑
-    });
+  it("应该...", async function () {
+    const { admin, truthBox, exchange } = await loadFixture(
+      deployTruthBoxFixture,
+    );
+    // 测试逻辑
+  });
 });
 ```
 
 ## 🌐 支持的网络
 
-### EVM 版本
+### eth 版本
+
 - Hardhat 本地网络 (默认)
-- 任何 EVM 兼容网络
+- 任何 eth 兼容网络
 
 ### Sapphire 版本
+
 - `sapphire_localnet` (chainId: 23293) - 本地测试网
 - `sapphire_testnet` (chainId: 23294) - Sapphire 测试网
 - `sapphire_mainnet` (chainId: 23295) - Sapphire 主网
@@ -141,31 +151,35 @@ describe("我的测试", function () {
 项目提供了丰富的工具函数 (位于 `test/utils/`):
 
 ### 账户管理
+
 ```typescript
-import { getAccount } from './utils/getAccount';
+import { getAccount } from "./utils/getAccount";
 
 const accounts = await getAccount(chainId);
 // { admin, minter, buyer, buyer2, seller, completer }
 ```
 
 ### SIWE 认证
+
 ```typescript
-import { siweMsg, erc191sign } from './utils/getSiweAuth';
+import { siweMsg, erc191sign } from "./utils/getSiweAuth";
 
 const message = await siweMsg({ domain, signer, chainId });
 const signature = await erc191sign(message, signer);
 ```
 
 ### 合约连接
+
 ```typescript
-import { connectContract } from './utils/connectContracts';
+import { connectContract } from "./utils/connectContracts";
 
 const connectedContract = await connectContract(contract, signer);
 ```
 
 ### 通用工具
+
 ```typescript
-import { sleep, waitForBlocks, getBalance } from './utils/common';
+import { sleep, waitForBlocks, getBalance } from "./utils/common";
 
 await sleep(1000); // 等待 1 秒
 await waitForBlocks(10); // 等待 10 个区块
@@ -177,13 +191,14 @@ const balance = await getBalance(address); // 获取余额
 ### 问题: 测试超时
 
 **解决方案**:
+
 ```typescript
 describe("我的测试", function () {
-    this.timeout(60000); // 增加超时到 60 秒
-    
-    it("应该...", async function () {
-        // 测试代码
-    });
+  this.timeout(60000); // 增加超时到 60 秒
+
+  it("应该...", async function () {
+    // 测试代码
+  });
 });
 ```
 
@@ -209,4 +224,3 @@ describe("我的测试", function () {
 ## 📄 许可证
 
 Apache-2.0
-

@@ -15,7 +15,7 @@ describe("交易测试-退款相关测试", function () {
   it("12-Sell-申请退款-在期-过期", async function () {
     const { 
       exchange_minter,exchange_buyer, address_zero,
-      officialToken,truthBox, 
+      settlementToken,truthBox, 
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
 
@@ -33,7 +33,7 @@ describe("交易测试-退款相关测试", function () {
     // 超过退款期 -- 状态直接完成
     await time.increase(20 * 24 * 60 * 60);
     await exchange_buyer.requestRefund(2);
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.InSecrecy);
+    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
     
     // ========================== 尝试再次申请退款 ==========================
     // 已经申请过退款，不能再次申请
@@ -45,7 +45,7 @@ describe("交易测试-退款相关测试", function () {
   it("12-Sell-审核退款-在期-过期", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_DAO,
-      officialToken,truthBox, address_zero,
+      settlementToken,truthBox, address_zero,
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
 
@@ -77,7 +77,7 @@ describe("交易测试-退款相关测试", function () {
     expect(await exchange.refundPermit(1)).to.equal(true); 
 
     await exchange_DAO.refuseRefund(2);
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.InSecrecy);
+    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
     expect(await exchange.refundPermit(2)).to.equal(false); 
 
     // 超过退款期 -- 状态直接完成
@@ -101,7 +101,7 @@ describe("交易测试-退款相关测试", function () {
   it("12-拍卖-申请退款-在期-过期", async function () {
     const { 
       exchange_minter,exchange_buyer, address_zero,
-      officialToken,truthBox, 
+      settlementToken,truthBox, 
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
 
@@ -121,7 +121,7 @@ describe("交易测试-退款相关测试", function () {
     // 超过退款期限
     await time.increase(40 * 24 * 60 * 60);
     await exchange_buyer.requestRefund(4);
-    expect(await truthBox.getStatus(4)).to.equal(TimeHelpers.Status.InSecrecy); // 完成状态
+    expect(await truthBox.getStatus(4)).to.equal(TimeHelpers.Status.Delaying); // 完成状态
     expect(await exchange.refundPermit(4)).to.equal(false); 
 
     // ========================== 尝试再次申请退款 ==========================
@@ -133,7 +133,7 @@ describe("交易测试-退款相关测试", function () {
   it("12-拍卖-审核退款-在期-过期", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_DAO,
-      officialToken,truthBox, address_zero,
+      settlementToken,truthBox, address_zero,
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
 
@@ -163,7 +163,7 @@ describe("交易测试-退款相关测试", function () {
     await exchange_DAO.refuseRefund(2);
     expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Published);
     expect(await exchange.refundPermit(1)).to.equal(true); 
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.InSecrecy);
+    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
     expect(await exchange.refundPermit(2)).to.equal(false); 
 
     // 超过退款期限
@@ -184,7 +184,7 @@ describe("交易测试-退款相关测试", function () {
   it("14-购买-取消退款-黑名单", async function () {
     const { 
       truthBox_minter, truthBox_other, exchange_minter,exchange_buyer,bytes32_buyer,
-      officialToken, address_zero, bytes32_zero,
+      settlementToken, address_zero, bytes32_zero,
       truthBox, truthBox_DAO,
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
@@ -200,9 +200,9 @@ describe("交易测试-退款相关测试", function () {
     await exchange_buyer.requestRefund(2);
     // ========================== 取消退款 ==========================
     await exchange_buyer.cancelRefund(1);
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.InSecrecy);
+    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
     // 黑名单 --- 
-    await truthBox_DAO.addBoxToBlacklist(2);
+    await truthBox_DAO.addToBlacklist(2);
     await expect(exchange_buyer.cancelRefund(2)).to.be.reverted;
     expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); // Refunding
     expect(await exchange.refundPermit(2)).to.equal(true);
@@ -217,7 +217,7 @@ describe("交易测试-退款相关测试", function () {
   it("14-竞拍-同意退款-黑名单", async function () {
     const { 
       truthBox_minter, truthBox_other, exchange_minter,exchange_buyer,bytes32_buyer,
-      officialToken, address_zero, exchange_DAO,
+      settlementToken, address_zero, exchange_DAO,
       truthBox, truthBox_DAO,
       fundManager, exchange
     } = await loadFixture(deployTruthBoxFixture);
@@ -240,7 +240,7 @@ describe("交易测试-退款相关测试", function () {
     expect(await exchange.refundPermit(1)).to.equal(true);
     expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Published);
     // 黑名单 --- 
-    await truthBox_DAO.addBoxToBlacklist(2);
+    await truthBox_DAO.addToBlacklist(2);
     await expect(exchange_buyer.agreeRefund(2)).to.be.reverted;
     expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); // Refunding
     expect(await exchange.refundPermit(2)).to.equal(true);

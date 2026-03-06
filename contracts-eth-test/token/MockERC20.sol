@@ -6,7 +6,7 @@
  *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
  *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
  *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝   
+ *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
  *
  *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
  *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
@@ -16,7 +16,7 @@
 pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TestToken is ERC20 {
+contract MockERC20 is ERC20 {
     error NotAdmin();
 
     // mapping(address => uint256 date) public mintDate;
@@ -25,7 +25,10 @@ contract TestToken is ERC20 {
 
     // name: Test WETH for WikiTruth
     // symbol: TWETH
-    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {
+    constructor(
+        string memory name_,
+        string memory symbol_
+    ) ERC20(name_, symbol_) {
         ADMIN = msg.sender;
     }
 
@@ -42,7 +45,4 @@ contract TestToken is ERC20 {
         address from = _msgSender();
         _burn(from, amount_);
     }
-
 }
-
-

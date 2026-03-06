@@ -18,21 +18,15 @@ pragma solidity ^0.8.24;
 import {
     IAddressManager
 } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-import {SetAddress} from "../utils/SetAddress.sol";
+import {SetAddress} from "../base/SetAddress.sol";
 import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 
 contract ModifierV2 is ProxyUpgrade, SetAddress {
-    IAddressManager internal ADDR_MANAGER;
     // address internal ADMIN;
 
     // =======================================================================================================
-    constructor(address addrManager_) {
-        ADDR_MANAGER = IAddressManager(addrManager_);
+    constructor(address addrManager_) SetAddress(addrManager_) {
         // ADMIN = msg.sender;
-    }
-
-    function setAddressManager(address addrManager_) external onlyAdmin {
-        ADDR_MANAGER = IAddressManager(addrManager_);
     }
 
     // function setAdmin(address admin_) external onlyAdmin {
@@ -70,7 +64,7 @@ contract ModifierV2 is ProxyUpgrade, SetAddress {
 
     modifier onlyProjectContract() {
         if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert InvalidCaller();
+            revert NotProjectCaller();
         }
         _;
     }

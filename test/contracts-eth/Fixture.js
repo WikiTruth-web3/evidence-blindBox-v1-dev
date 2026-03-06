@@ -67,9 +67,9 @@ async function deployTruthBoxFixture() {
     swapContract_buyer: connectors.swapContractConnectors.buyer,
     swapContract_other: connectors.swapContractConnectors.other,
     
-    userId_buyer: connectors.userIdConnectors.buyer,
-    userId_minter: connectors.userIdConnectors.minter,
-    userId_DAO: connectors.userIdConnectors.dao,
+    userManager_buyer: connectors.userManagerConnectors.buyer,
+    userManager_minter: connectors.userManagerConnectors.minter,
+    userManager_DAO: connectors.userManagerConnectors.dao,
     
     // 测试数据
     ...testData

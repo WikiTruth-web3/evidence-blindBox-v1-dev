@@ -16,13 +16,13 @@ async function deployContracts() {
   const addressManager = await AddressManager.deploy();
 
   // 部署代币合约
-  const OfficialToken = await ethers.getContractFactory("TestToken");
-  const officialToken = await OfficialToken.deploy("Truth Coin Test", "TCT");
+  const SettlementToken = await ethers.getContractFactory("MockERC20");
+  const settlementToken = await SettlementToken.deploy("Truth Coin Test", "TCT");
   
-  const TestToken = await ethers.getContractFactory("TestToken");
-  const testToken = await TestToken.deploy("Test WETH for WikiTruth", "WTETH");
-  const otherToken = await TestToken.deploy("Other WETH for WikiTruth", "OWETH");
-  const otherToken2 = await TestToken.deploy("Other WETH for WikiTruth", "OWETH");
+  const MockERC20 = await ethers.getContractFactory("MockERC20");
+  const wBTC = await MockERC20.deploy("wBTC", "wBTC");
+  const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH");
+  const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE");
 
   const TruthBox = await ethers.getContractFactory("TruthBox");
   const truthBox = await TruthBox.deploy(addressManager.target);
@@ -37,8 +37,8 @@ async function deployContracts() {
   const Exchange = await ethers.getContractFactory("Exchange");
   const exchange = await Exchange.deploy(addressManager.target);
 
-  const UserId = await ethers.getContractFactory("UserId");
-  const userId = await UserId.deploy(addressManager.target);
+  const UserManager = await ethers.getContractFactory("UserManager");
+  const userManager = await UserManager.deploy(addressManager.target);
 
   return {
     signers: {
@@ -50,15 +50,15 @@ async function deployContracts() {
     },
     contracts: {
       addressManager,
-      officialToken,
-      testToken,
-      otherToken,
-      otherToken2,
+      settlementToken,
+      wBTC,
+      wETH,
+      wROSE,
       truthBox,
       swapContract,
       fundManager,
       exchange,
-      userId
+      userManager
     }
   };
 }

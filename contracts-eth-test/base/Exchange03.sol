@@ -29,10 +29,7 @@ import {Exchange02} from "./Exchange02.sol";
 contract Exchange03 is Exchange02 {
     // ========================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) Exchange02(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) Exchange02(addrManager_) {}
 
     // ========================================================================================================
     //                                          Buying related functions
@@ -54,7 +51,7 @@ contract Exchange03 is Exchange02 {
 
         truthBox.setStatus(boxId_, Status.Paid);
 
-        address sender = _msgSender();
+        address sender = msg.sender;
 
         uint256 userId = USER_MANAGER.getUserId(sender);
         _boxExchengData[boxId_]._buyer = sender;
@@ -95,8 +92,8 @@ contract Exchange03 is Exchange02 {
         ITruthBox truthBox = TRUTH_BOX;
         // canRequestRefund?
         if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
+        // erc2771 - msg.sender is the real caller
+        if (msg.sender != _buyerOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         if (_isInRequestRefundDeadline(boxId_)) {
@@ -115,8 +112,8 @@ contract Exchange03 is Exchange02 {
      * @notice Cancel refund function, after canceling refund, the box status becomes Sold
      */
     function _cancelRefund(uint256 boxId_) internal {
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
+        // erc2771 - msg.sender is the real caller
+        if (msg.sender != _buyerOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // _checkStatus(boxId_, Status.Refunding);
@@ -144,9 +141,9 @@ contract Exchange03 is Exchange02 {
         if (_isInReviewDeadline(boxId_)) {
             // Check role: minter、DAO
             if (
-                // erc2771 - _msgSender() is the real caller
-                _msgSender() != truthBox.minterOf(boxId_) &&
-                msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use _msgSender()
+                // erc2771 - msg.sender is the real caller
+                msg.sender != truthBox.minterOf(boxId_) &&
+                msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use msg.sender
             ) {
                 revert InvalidCaller();
             }
@@ -171,7 +168,7 @@ contract Exchange03 is Exchange02 {
         // According to whether it is within the review deadline, determine.
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
-            if (msg.sender != ADDR_MANAGER.dao()) revert InvalidCaller();
+            if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
             truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
@@ -201,7 +198,7 @@ contract Exchange03 is Exchange02 {
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // erc2771
-        address sender = _msgSender();
+        address sender = msg.sender;
 
         if (sender != _buyerOf(boxId_)) {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();

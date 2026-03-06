@@ -76,7 +76,7 @@ contract Modifier is ProxyUpgrade {
 
     modifier onlyProjectContract() {
         if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert InvalidCaller();
+            revert NotProjectCaller();
         }
         _;
     }

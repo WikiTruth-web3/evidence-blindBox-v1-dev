@@ -54,44 +54,10 @@ describe("Exchange", function () {
   // 直接设置退款许可 --- 失败
   it("直接设置退款许可 --- 失败", async function () {
     const {exchange_minter, exchange} = await loadFixture(deployTruthBoxFixture);
-    await expect(exchange.setRefundPermit(3, true)).to.be.revertedWithCustomError(exchange,"InvalidCaller");
-    await expect(exchange.setRefundPermit(1, true)).to.be.revertedWithCustomError(exchange,"InvalidCaller");
+    await expect(exchange.setRefundPermit(3, true)).to.be.revertedWithCustomError(exchange,"NotProjectCaller");
+    await expect(exchange.setRefundPermit(1, true)).to.be.revertedWithCustomError(exchange,"NotProjectCaller");
     
   });
-
-  // it("验证大额交易-调整费率", async function () { 
-  //   const { 
-  //     truthBox, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
-  //     officialToken, exchange_DAO, truthBox_DAO, fundManager_DAO,buyer, truthBox_buyer,
-  //     bytes32_buyer, fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer
-  //   } = await loadFixture(deployTruthBoxFixture);
-
-  //   // 调整费率
-  //   await exchange_DAO.setBidIncrementRate(150);
-  //   await truthBox_DAO.setIncrementRate(150);
-
-  //   // 拍卖成交，
-  //   await exchange_minter.auction(1,  20000000000000000);
-  //   // await exchange_buyer2.bid(1);
-  //   await exchange_buyer.bid(1);
-
-  //   await time.increase(35*24*60*60);
-  //   await exchange_buyer.completeOrder(1);
-
-  //   // 验证价格是否为3000
-  //   expect (await truthBox.getPrice(1)).to.equal(3000);
-    
-  //   // 缴纳保密费
-  //   const balance_buyer_1 = await officialToken.balanceOf(buyer.address)
-  //   await truthBox_buyer.payConfiFee(1);
-  //   const balance_buyer_2 = await officialToken.balanceOf(buyer.address)
-
-  //   expect(balance_buyer_1-balance_buyer_2).to.equal(3000);
-  //   await truthBox_buyer.payConfiFee(1);
-  //   const balance_buyer_3 = await officialToken.balanceOf(buyer.address)
-  //   expect(balance_buyer_2-balance_buyer_3).to.equal(4500);
-
-  // });
 
 
 });

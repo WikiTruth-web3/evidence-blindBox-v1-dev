@@ -25,10 +25,7 @@ import {Status} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
 
 contract TruthBox03 is TruthBox02 {
     // ==================================================================================================
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) TruthBox02(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) TruthBox02(addrManager_) {}
 
     //==================================================================================================
     //                                      Get Info Functions
@@ -81,10 +78,10 @@ contract TruthBox03 is TruthBox02 {
             status == Status.Auctioning
         ) {
             // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
-            if (sender != _minterOf(boxId_)) revert InvalidCaller();
+            if (sender != _minterOf(boxId_)) revert NotMinter();
         } else if (status == Status.Delaying || status == Status.Paid) {
             // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
-            if (sender != EXCHANGE.buyerOf(boxId_)) revert InvalidCaller();
+            if (sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
         // if it is Published,Refunding, then everyone can view, no need to check
@@ -92,18 +89,12 @@ contract TruthBox03 is TruthBox02 {
         return _decrypt(boxId_);
     }
 
-    // ==========================================================================================================
-
     function _decrypt(uint256 boxId_) internal view returns (bytes memory) {
-        return
-            Sapphire.decrypt(
-                bytes32(0), // Do not use secretKey, in order to keep its interface pure and stable.
-                _secretData[boxId_]._nonce,
-                _secretData[boxId_]._encryptedData,
-                ""
-            );
+        return _secretData[boxId_]._encryptedData;
     }
 
+    // ==================================================================================================
+    //                               Checker Functions
     // ==================================================================================================
 
     function _checkStatus(uint256 boxId_, Status status_) internal view {
@@ -116,10 +107,10 @@ contract TruthBox03 is TruthBox02 {
     }
 
     // Check if the current time is within the 30 days of the deadline
-    function _isDeadlineIn30days(uint256 boxId_) internal view {
+    function _isInWindowPeriod(uint256 boxId_) internal view {
         uint256 deadline = _basicData[boxId_]._deadline;
         if (
-            deadline < block.timestamp || deadline > block.timestamp + 3 days // NOTE 30 days----3 days
+            deadline < block.timestamp || deadline > block.timestamp + 30 days // NOTE 30 days----3 days
         ) {
             revert NotInWindowPeriod();
         }
@@ -162,7 +153,7 @@ contract TruthBox03 is TruthBox02 {
         //     emit PrivateKeyPublished(boxId_, privateKey, userId);
         // }
         if (status_ == Status.Delaying) {
-            _setDeadline(boxId_, block.timestamp + 15 days); // NOTE 365----15
+            _setDeadline(boxId_, block.timestamp + 365 days); // NOTE 365----15
         }
         if (status_ != _basicData[boxId_]._status) {
             _basicData[boxId_]._status = status_;
@@ -178,8 +169,8 @@ contract TruthBox03 is TruthBox02 {
     function _extendDeadline(uint256 boxId_, uint256 time_) internal {
         _checkMinter(boxId_);
         _checkStatus(boxId_, Status.Storing);
-        _isDeadlineIn30days(boxId_);
-        if (time_ > 15 days) revert InvalidPeriod(); // NOTE: 365----15
+        _isInWindowPeriod(boxId_);
+        if (time_ > 365 days) revert InvalidPeriod(); // NOTE: 365----15
 
         _addDeadline(boxId_, time_);
     }
@@ -187,12 +178,12 @@ contract TruthBox03 is TruthBox02 {
     function _delay(uint256 boxId_) internal {
         uint256 amount = _basicData[boxId_]._price;
 
-        FUND_MANAGER.payDelayFee(boxId_, _msgSender(), amount); // erc2771
+        FUND_MANAGER.payDelayFee(boxId_, msg.sender, amount); // erc2771
 
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);
-        // NOTE: 365----15
-        _addDeadline(boxId_, 15 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
+        // NOTE: 365 days ----15 days
+        _addDeadline(boxId_, 365 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
     }
 
     // ==========================================================================================================
@@ -200,7 +191,7 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
 
     function _addToBlacklist(uint256 boxId_) internal onlyDAO {
-        if (boxId_ >= _nextBoxId) revert InvalidBoxId();
+        _boxExists(boxId_);
 
         _checkIsBlacklisted(boxId_);
 
@@ -219,7 +210,7 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
     function _minterOf(uint256 boxId_) internal view returns (address) {
         address minter = _secretData[boxId_]._minter;
-        if (minter == address(0)) revert InvalidBoxId();
+        if (minter == address(0)) revert BoxNotExists();
         return minter;
     }
 }

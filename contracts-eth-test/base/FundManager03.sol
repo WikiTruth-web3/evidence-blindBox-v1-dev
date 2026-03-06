@@ -33,10 +33,7 @@ contract FundManager03 is FundManager02 {
     using SafeERC20 for IERC20;
     // ====================================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) FundManager02(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_) FundManager02(addrManager_) {}
 
     // ====================================================================================================================
 
@@ -107,8 +104,8 @@ contract FundManager03 is FundManager02 {
     function _withdrawHelperRewards(
         address token_
     ) internal nonReentrant whenNotPaused {
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
+        // erc2771 - msg.sender is the real caller
+        address sender = msg.sender;
         uint256 amount = _helperRewrdAmounts[sender][token_];
         if (amount == 0) {
             revert AmountIsZero();
@@ -127,8 +124,8 @@ contract FundManager03 is FundManager02 {
     function _withdrawMinterRewards(
         address token_
     ) internal nonReentrant whenNotPaused {
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
+        // erc2771 - msg.sender is the real caller
+        address sender = msg.sender;
         uint256 amount = _minterRewardAmounts[sender][token_];
         if (amount == 0) {
             revert AmountIsZero();

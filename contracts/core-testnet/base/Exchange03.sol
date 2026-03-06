@@ -171,7 +171,7 @@ contract Exchange03 is Exchange02 {
         // According to whether it is within the review deadline, determine.
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
-            if (msg.sender != ADDR_MANAGER.dao()) revert InvalidCaller();
+            if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
             truthBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         } else {

@@ -54,6 +54,7 @@ interface IExchange {
      * @param boxId_ Box ID
      * @param acceptedToken_ Accepted token address (address(0) means official token)
      * @param price_ Sale price
+     *
      */
     function sell(
         uint256 boxId_,
@@ -65,7 +66,7 @@ interface IExchange {
      * @notice List a box for auction
      * @param boxId_ Box ID
      * @param acceptedToken_ Accepted token address (address(0) means official token)
-     * @param price_ Starting price
+     * @param price_ Sale price
      */
     function auction(
         uint256 boxId_,

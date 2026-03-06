@@ -15,14 +15,6 @@
 
 pragma solidity ^0.8.24;
 
-// import {
-//     Sapphire
-// } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
-// import {SiweContext} from "@siwe/SiweContext.sol";
-// import {
-//     ERC2771Context
-// } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-
 import {TruthBox01} from "./TruthBox01.sol";
 import {
     TruthBoxEvents,
@@ -53,10 +45,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     mapping(uint256 boxId => SecretData) internal _secretData;
 
     // ==================================================================================================
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) TruthBox01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    constructor(address addrManager_) TruthBox01(addrManager_) {}
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -80,25 +69,8 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     ) internal returns (uint256) {
         uint256 boxId = _nextBoxId;
 
-        bytes32 nonce;
-        bytes memory encryptedData;
-
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
-
-        if (key_.length != 0) {
-            // Generate encrypted nonce (critical fix: save nonce for decryption)
-            nonce = bytes32(
-                Sapphire.randomBytes(32, abi.encodePacked(boxId, sender))
-            );
-
-            encryptedData = Sapphire.encrypt(
-                bytes32(0), // Use default key, do not use automatically generated secretKey
-                nonce,
-                key_,
-                ""
-            );
-        }
+        // erc2771 - msg.sender is the real caller
+        address sender = msg.sender;
 
         _basicData[boxId] = BasicData({
             _price: price_,
@@ -108,8 +80,8 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
 
         _secretData[boxId] = SecretData({
             _minter: sender,
-            _nonce: nonce,
-            _encryptedData: encryptedData
+            _nonce: bytes32(0),
+            _encryptedData: key_
         });
 
         unchecked {
@@ -152,7 +124,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
 
         unchecked {
             // On mainnet, the deadline is 365 days, but on testnet, the deadline is 15 days
-            deadline = block.timestamp + 15 days; // NOTE 365----15
+            deadline = block.timestamp + 365 days; // NOTE 365 days----15 days
         }
 
         uint256 boxId = _setBoxData(
@@ -184,10 +156,14 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
 
     // ==========================================================================================================
     function _checkMinter(uint256 boxId_) internal view {
-        if (_msgSender() != _secretData[boxId_]._minter) revert NotMinter();
+        if (msg.sender != _secretData[boxId_]._minter) revert NotMinter();
     }
 
     function _checkBuyer(uint256 boxId_) internal view {
-        if (_msgSender() != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+        if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+    }
+
+    function _boxExists(uint256 boxId_) internal view {
+        if (boxId_ >= _nextBoxId) revert BoxNotExists();
     }
 }

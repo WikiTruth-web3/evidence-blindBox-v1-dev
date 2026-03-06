@@ -45,6 +45,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      */
     // address public admin;
 
+    //--------------------------core contracts------------------------------
     // DAO governance related contracts
     address public dao;
     address public governance;
@@ -58,6 +59,14 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     address public truthBox;
     address public fundManager;
     address public exchange;
+
+    // ERC2771 forwarder contract
+    address public forwarder;
+
+    //--------------------------------------------------------
+
+    // Uniswap V3 SwapRouter contract and quoter contract
+    address[] internal _swapContracts;
 
     /**
      * @dev Settlement token contract
@@ -80,8 +89,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     }
     mapping(address token => TokenEnum) internal _tokenStatus;
 
-    // Uniswap V3 SwapRouter contract and quoter contract
-    address[] internal _swapContracts;
+    //--------------------------other contracts------------------------------
 
     // Reserved contract addresses
     address[] internal _reservedList;
@@ -101,6 +109,17 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     //     if (msg.sender != admin) revert NotAdmin();
     //     _;
     // }
+
+    /**
+     * @dev Set admin
+     * The admin is managed by the ProxyUpgrade contract
+     * The function will be re-enabled in the production environment
+     */
+    // function setAdmin(address newAdmin_) external onlyAdmin {
+    //     if (newAdmin_ == address(0)) revert InvalidAddress();
+    //     admin = newAdmin_;
+    // }
+
     // =====================================================================================
 
     /**
@@ -114,7 +133,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         siweAuth, 
         truthBox, 
         exchange, 
-        fundManager
+        fundManager,
+        forwarder
         ]
      */
     function setAddressList(address[] memory list_) external onlyAdmin {
@@ -159,6 +179,12 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         if (list_[7] != address(0)) {
             if (_mappingBool(fundManager, list_[7])) {
                 fundManager = list_[7];
+            }
+        }
+        // ERC2771 forwarder contract
+        if (list_[8] != address(0)) {
+            if (_mappingBool(forwarder, list_[8])) {
+                forwarder = list_[8];
             }
         }
     }
@@ -238,15 +264,15 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         if (oldToken != address(0)) {
             _tokenStatus[oldToken] = TokenEnum.UnExsited; // Important
         }
+        _removeTokenFromList(token_);
+        _tokenStatus[token_] = TokenEnum.Active;
 
-        if (_tokenStatus[token_] != TokenEnum.Active) {
-            _tokenStatus[token_] = TokenEnum.Active;
-        }
         settlementToken = token_;
     }
 
     function addToken(address token_) external onlyAdmin {
         if (token_ == address(0)) revert InvalidAddress();
+
         if (_tokenStatus[token_] == TokenEnum.Active) revert TokenIsActive();
 
         if (_tokenStatus[token_] == TokenEnum.UnExsited) {
@@ -258,7 +284,19 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function _removeToken(address token_) internal {
         if (_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
         if (token_ == settlementToken) revert IsSettlementToken();
+        // remove from _tokenList
+        _removeTokenFromList(token_);
         _tokenStatus[token_] = TokenEnum.Inactive;
+    }
+
+    function _removeTokenFromList(address token_) internal {
+        for (uint256 i = 0; i < _tokenList.length; i++) {
+            if (_tokenList[i] == token_) {
+                _tokenList[i] = _tokenList[_tokenList.length - 1];
+                _tokenList.pop();
+                break;
+            }
+        }
     }
 
     /**

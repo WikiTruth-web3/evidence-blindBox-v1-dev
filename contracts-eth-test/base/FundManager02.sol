@@ -40,12 +40,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     using SafeERC20 for IERC20;
 
     // ====================================================================================================================
-
-    error EmptyList();
-    // error InsufficientFundAmount();
-    error WithdrawError();
-    error ApprovalFailed();
-
     /// @dev Total reward amounts
     mapping(address token => uint256) internal _totalRewardAmounts;
 
@@ -63,10 +57,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
     // ====================================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) FundManager01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    constructor(address addrManager_) FundManager01(addrManager_) {}
 
     // ====================================================================================================================
     // Reward Allocation Functions
@@ -82,7 +73,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         address minter_,
         uint256 amount_,
         address token_
-    ) private {
+    ) internal {
         // Get various rates and roles
         address completer = EXCHANGE.completerOf(boxId_);
         address seller = EXCHANGE.sellerOf(boxId_);
@@ -184,7 +175,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         address tokenOut_,
         uint256 amount_,
         uint8 totalRate_
-    ) private returns (uint256, uint256) {
+    ) internal returns (uint256, uint256) {
         address[] memory swapContracts = ADDR_MANAGER.swapContracts();
         if (swapContracts.length == 0) revert EmptyList();
 
@@ -243,8 +234,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         if (list_.length == 0) revert EmptyList();
         uint256 amount;
         IExchange exchange = EXCHANGE;
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
+        // erc2771 - msg.sender is the real caller
+        address sender = msg.sender;
 
         // Process refunds for each box
         for (uint256 i = 0; i < list_.length; i++) {

@@ -103,22 +103,26 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         address sender = _msgSender();
 
         uint256 userId = USER_MANAGER.getUserId(sender);
-        address token = ADDR_MANAGER.settlementToken();
+        address token;
 
         if (sender != truthBox.minterOf(boxId_)) {
             // others sell
-            if (truthBox.getDeadline(boxId_) >= block.timestamp)
+            if (truthBox.getDeadline(boxId_) >= block.timestamp) {
                 revert DeadlineNotOver();
+            }
             _boxExchengData[boxId_]._seller = sender;
 
             // if the _seller is not the minter, they can't set the price
             price_ = 0;
         } else {
             // NOTE minter sell
-            // if the acceptedToken_ is not settlement, set it as acceptedToken
-            if (acceptedToken_ != token) {
-                if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) return;
-
+            if (
+                acceptedToken_ != address(0) &&
+                acceptedToken_ != ADDR_MANAGER.settlementToken()
+            ) {
+                if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) {
+                    revert TokenNotSupported();
+                }
                 _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
                 token = acceptedToken_;
             }
