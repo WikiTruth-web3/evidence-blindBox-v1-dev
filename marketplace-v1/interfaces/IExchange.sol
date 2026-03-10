@@ -156,28 +156,28 @@ interface IExchange {
     // =====================================================================================
 
     /**
-     * @notice Get buyer address
+     * @notice Get buyer userId
      * @param boxId_ Box ID
-     * @return Buyer address
+     * @return buyerId Buyer userId
      * @dev Only callable by project contracts
      */
-    function buyerOf(uint256 boxId_) external view returns (address);
+    function buyerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
-     * @notice Get seller address
+     * @notice Get seller userId
      * @param boxId_ Box ID
-     * @return Seller address (address(0) means minter is the seller)
+     * @return sellerId Seller userId (0 means minter is the seller)
      * @dev Only callable by project contracts
      */
-    function sellerOf(uint256 boxId_) external view returns (address);
+    function sellerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
-     * @notice Get completer address
+     * @notice Get completer userId
      * @param boxId_ Box ID
-     * @return Completer address
+     * @return completerId Completer userId
      * @dev Only callable by project contracts
      */
-    function completerOf(uint256 boxId_) external view returns (address);
+    function completerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
      * @notice Get accepted token address

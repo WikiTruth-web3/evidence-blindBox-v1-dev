@@ -36,9 +36,9 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     struct BoxExchengData {
         address _acceptedToken; // If address(0), then it means support settlementToken
-        address _seller; // If address(0), then it means by minter sell
-        address _buyer;
-        address _completer;
+        uint256 _sellerId; // If address(0), then it means by minter sell
+        uint256 _buyerId;
+        uint256 _completerId;
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
@@ -103,14 +103,14 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         uint256 userId = USER_MANAGER.getUserId(sender);
         address token;
 
-        if (sender != truthBox.minterOf(boxId_)) {
+        if (userId != truthBox.minterIdOf(boxId_)) {
             // others sell
             if (truthBox.getDeadline(boxId_) >= block.timestamp) {
                 revert DeadlineNotOver();
             }
-            _boxExchengData[boxId_]._seller = sender;
+            _boxExchengData[boxId_]._sellerId = userId;
 
-            // if the _seller is not the minter, they can't set the price
+            // if the _sellerId is not the minter, they can't set the price
             price_ = 0;
         } else {
             // NOTE minter sell
@@ -184,25 +184,25 @@ contract Exchange02 is Exchange01, ExchangeEvents {
      */
     function _bid(uint256 boxId_) internal {
         address sender = msg.sender;
-        if (sender == _buyerOf(boxId_)) revert NotBuyer();
+        uint256 userId = USER_MANAGER.getUserId(sender);
+        if (userId == _buyerIdOf(boxId_)) revert NotBuyer();
 
         uint256 price = _bidPrice(boxId_);
 
-        uint256 payAmount = _calcPayMoney(boxId_, sender, price);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount); // need approve to FUND_MANAGER。
+        uint256 payAmount = _calcPayMoney(boxId_, userId, price);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId); // need approve to FUND_MANAGER。
 
-        _boxExchengData[boxId_]._buyer = sender;
+        _boxExchengData[boxId_]._buyerId = userId;
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BidPlaced(boxId_, userId);
     }
 
     function _calcPayMoney(
         uint256 boxId_,
-        address buyer_,
+        uint256 userId_,
         uint256 price_
     ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.orderAmounts(boxId_, buyer_);
+        uint256 balance = FUND_MANAGER.orderAmountsProject(boxId_, userId_);
         uint256 amount = price_ - balance;
         return amount;
     }
@@ -211,16 +211,16 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     //                                           Getter function
     // ========================================================================================================
 
-    function _buyerOf(uint256 boxId_) internal view returns (address) {
-        return _boxExchengData[boxId_]._buyer;
+    function _buyerIdOf(uint256 boxId_) internal view returns (uint256) {
+        return _boxExchengData[boxId_]._buyerId;
     }
 
-    function _sellerOf(uint256 boxId_) internal view returns (address) {
-        return _boxExchengData[boxId_]._seller;
+    function _sellerIdOf(uint256 boxId_) internal view returns (uint256) {
+        return _boxExchengData[boxId_]._sellerId;
     }
 
-    function _completerOf(uint256 boxId_) internal view returns (address) {
-        return _boxExchengData[boxId_]._completer;
+    function _completerIdOf(uint256 boxId_) internal view returns (uint256) {
+        return _boxExchengData[boxId_]._completerId;
     }
 
     function _refundPermit(uint256 boxId_) internal view returns (bool) {

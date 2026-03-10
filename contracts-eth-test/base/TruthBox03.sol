@@ -42,7 +42,7 @@ contract TruthBox03 is TruthBox02 {
         if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
             if (status == Status.Selling || status == Status.Auctioning) {
-                if (EXCHANGE.buyerOf(boxId_) == address(0)) {
+                if (EXCHANGE.buyerIdOf(boxId_) == 0) {
                     return Status.Published;
                 } else {
                     // If there is a buyer, then the status is Paid
@@ -69,7 +69,6 @@ contract TruthBox03 is TruthBox02 {
     function _getSecretData(
         uint256 boxId_
     ) internal view returns (bytes memory) {
-        address sender = msg.sender;
         Status status = _getStatus(boxId_);
 
         if (
@@ -77,11 +76,14 @@ contract TruthBox03 is TruthBox02 {
             status == Status.Selling ||
             status == Status.Auctioning
         ) {
-            // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
-            if (sender != _minterOf(boxId_)) revert NotMinter();
+            // Role verification is handled by calling the function.
+            // Since this is a view function, getUserId might not work if it needs to register.
+            // But we can use viewUserId.
+            uint256 userId = USER_MANAGER.viewUserId(msg.sender);
+            if (userId != _minterIdOf(boxId_)) revert NotMinter();
         } else if (status == Status.Delaying || status == Status.Paid) {
-            // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
-            if (sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+            uint256 userId = USER_MANAGER.viewUserId(msg.sender);
+            if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
         // if it is Published,Refunding, then everyone can view, no need to check
@@ -145,13 +147,7 @@ contract TruthBox03 is TruthBox02 {
     function _setStatus(uint256 boxId_, Status status_) internal {
         // If the incoming status is Storing status, then do not set
         if (status_ == Status.Storing) revert InvalidStatus();
-        // if (status_ == Status.Refunding) {
-        //     address buyer = EXCHANGE.buyerOf(boxId_);
-        //     uint256 userId = USER_MANAGER.getUserId(buyer);
 
-        //     bytes memory privateKey = _decrypt(boxId_);
-        //     emit PrivateKeyPublished(boxId_, privateKey, userId);
-        // }
         if (status_ == Status.Delaying) {
             _setDeadline(boxId_, block.timestamp + 365 days); // NOTE 365----15
         }
@@ -196,7 +192,7 @@ contract TruthBox03 is TruthBox02 {
         _checkIsBlacklisted(boxId_);
 
         // If the Box has a buyer, then set RefundPermit to true
-        if (EXCHANGE.buyerOf(boxId_) != address(0)) {
+        if (EXCHANGE.buyerIdOf(boxId_) != 0) {
             EXCHANGE.setRefundPermit(boxId_, true);
         }
 
@@ -208,9 +204,9 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
     //                                      Getter Functions
     // ==========================================================================================================
-    function _minterOf(uint256 boxId_) internal view returns (address) {
-        address minter = _secretData[boxId_]._minter;
-        if (minter == address(0)) revert BoxNotExists();
-        return minter;
+    function _minterIdOf(uint256 boxId_) internal view returns (uint256) {
+        uint256 minterId = _secretData[boxId_]._minterId;
+        if (minterId == 0) revert BoxNotExists();
+        return minterId;
     }
 }

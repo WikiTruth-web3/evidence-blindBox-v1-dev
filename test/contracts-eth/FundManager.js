@@ -46,14 +46,14 @@ describe("FundManager", function () {
     await fundManager.pause();
     expect(await fundManager.paused()).to.equal(true);
     // ===========================提款失败！ =========================
-    await expect(fundManager_minter.withdrawMinterRewards(settlementToken.target)).to.reverted;
+    await expect(fundManager_minter.withdrawRewards(settlementToken.target)).to.reverted;
 
     // 切换为false(即已恢复)
     await fundManager.unpause();
     expect(await fundManager.paused()).to.equal(false);
 
     // ===========================提款成功！ =========================
-    await fundManager_minter.withdrawMinterRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target);
 
   });
 
@@ -101,11 +101,11 @@ describe("FundManager", function () {
 
 
   it("查询-为空", async function () {
-    const {minter, fundManager, seller, wBTC} = await loadFixture(deployTruthBoxFixture);
+    const {minter, fundManager, seller, wBTC, userManager} = await loadFixture(deployTruthBoxFixture);
     // const orderAmount = await fundManager.orderAmount(1, minter.address);
     // 检查orderMoney是否为空
     expect(await fundManager.orderAmounts(1, minter.address)).to.equal(0);
-    expect(await fundManager.helperRewardAmounts(wBTC.target,seller.address)).to.equal(0);
+    await expect(fundManager.rewardAmounts(wBTC.target,seller.address)).to.be.revertedWithCustomError(userManager,"EmptyUserId")
 
   });
 
@@ -159,17 +159,17 @@ describe("FundManager", function () {
     await exchange_buyer.completeOrder(2);
     
     // 非铸造者（这里用买家和其他账户）尝试提取铸造者奖励，应该失败
-    await expect(fundManager_buyer.withdrawMinterRewards(settlementToken.target))
+    await expect(fundManager_buyer.withdrawRewards(settlementToken.target))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
       
-    await expect(fundManager_completer.withdrawMinterRewards(settlementToken.target))
+    await expect(fundManager_completer.withdrawRewards(settlementToken.target))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
       
     // 真正的铸造者应该可以成功提取奖励
-    await fundManager_minter.withdrawMinterRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target);
     
     // 再次尝试提取应该失败，因为金额已经被提取
-    await expect(fundManager_minter.withdrawMinterRewards(settlementToken.target))
+    await expect(fundManager_minter.withdrawRewards(settlementToken.target))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
   });
 
@@ -178,8 +178,9 @@ describe("FundManager", function () {
   it("buyer提取订单金额-失败", async function () {
     const { 
       truthBox_minter, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
-      wBTC, address_zero, settlementToken,
-      bytes32_buyer, fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer
+      wBTC, address_zero, settlementToken, 
+      userManager, userManager_buyer2,
+      fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer
     } = await loadFixture(deployTruthBoxFixture);
 
     // 准备测试环境：出售并竞拍，但未最终购买
@@ -188,9 +189,11 @@ describe("FundManager", function () {
     // 多个账户竞拍
     await exchange_buyer.bid(3);
     await exchange_buyer2.bid(3);
+
+    const buyerId_2 = await userManager_buyer2.myUserId();
     
     // 验证当前买家是其他账户（最后一个竞拍者）
-    expect(await exchange.buyerOf(3)).to.equal(buyer2.address);
+    expect(await exchange.buyerIdOf(3)).to.equal(buyerId_2);
     
     // 当前买家尝试提取订单金额，应该失败
     await expect(fundManager_buyer2.withdrawOrderAmounts(settlementToken.target, [3]))

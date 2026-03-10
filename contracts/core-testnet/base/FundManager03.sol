@@ -49,16 +49,15 @@ contract FundManager03 is FundManager02 {
     function _payOrderAmount(
         uint256 boxId_,
         address buyer_,
-        uint256 amount_
+        uint256 amount_,
+        uint256 userId_
     ) internal onlyProjectContract {
         address token = EXCHANGE.acceptedToken(boxId_);
 
         IERC20(token).safeTransferFrom(buyer_, address(this), amount_);
+        _orderAmounts[boxId_][userId_] += amount_;
 
-        _orderAmounts[boxId_][buyer_] += amount_;
-
-        uint256 userId = USER_MANAGER.getUserId(buyer_);
-        emit OrderAmountPaid(boxId_, userId, token, amount_);
+        emit OrderAmountPaid(boxId_, userId_, token, amount_);
     }
 
     /**
@@ -75,8 +74,8 @@ contract FundManager03 is FundManager02 {
         address settlementToken = ADDR_MANAGER.settlementToken();
         IERC20(settlementToken).transferFrom(sender_, address(this), amount_);
 
-        address minter = TRUTH_BOX.minterOf(boxId_);
-        _calculateAllocation(boxId_, minter, amount_, settlementToken);
+        uint256 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        _calculateAllocation(boxId_, minterId, amount_, settlementToken);
     }
 
     // ====================================================================================================================
@@ -87,16 +86,16 @@ contract FundManager03 is FundManager02 {
      * @param boxId_ TruthBox ID
      */
     function _allocationRewards(uint256 boxId_) internal onlyProjectContract {
-        address buyer = EXCHANGE.buyerOf(boxId_);
-        address minter = TRUTH_BOX.minterOf(boxId_);
+        uint256 buyerId = EXCHANGE.buyerIdOf(boxId_);
+        uint256 minterId = TRUTH_BOX.minterIdOf(boxId_);
         address token = EXCHANGE.acceptedToken(boxId_);
 
-        uint256 amount = _orderAmounts[boxId_][buyer];
+        uint256 amount = _orderAmounts[boxId_][buyerId];
         if (amount == 0) revert AmountIsZero();
 
         // Clear the original token order amount
-        _orderAmounts[boxId_][buyer] = 0;
-        _calculateAllocation(boxId_, minter, amount, token);
+        _orderAmounts[boxId_][buyerId] = 0;
+        _calculateAllocation(boxId_, minterId, amount, token);
     }
 
     // ====================================================================================================================
@@ -104,41 +103,19 @@ contract FundManager03 is FundManager02 {
      * @dev Withdraw other reward amounts (settlement token only)
      * @param token_ Token address
      */
-    function _withdrawHelperRewards(
+    function _withdrawRewards(
         address token_
     ) internal nonReentrant whenNotPaused {
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
-        uint256 amount = _helperRewrdAmounts[sender][token_];
+        uint256 userId = USER_MANAGER.viewUserId(sender);
+        uint256 amount = _rewardAmounts[userId][token_];
         if (amount == 0) {
             revert AmountIsZero();
         }
-        _helperRewrdAmounts[sender][token_] = 0;
+        _rewardAmounts[userId][token_] = 0;
         IERC20(token_).safeTransfer(sender, amount);
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
-        emit HelperRewrdsWithdraw(userId, token_, amount);
-    }
-
-    /**
-     * @dev Withdraw minter rewards
-     * @param token_ Token address
-     */
-    function _withdrawMinterRewards(
-        address token_
-    ) internal nonReentrant whenNotPaused {
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
-        uint256 amount = _minterRewardAmounts[sender][token_];
-        if (amount == 0) {
-            revert AmountIsZero();
-        }
-        // Zero out reward amount
-        _minterRewardAmounts[sender][token_] = 0;
-        // Execute safeTransfer
-        IERC20(token_).safeTransfer(sender, amount);
-
-        uint256 userId = USER_MANAGER.getUserId(sender);
-        emit MinterRewardsWithdraw(userId, token_, amount);
+        emit RewrdsWithdraw(userId, token_, amount);
     }
 }

@@ -8,14 +8,6 @@ const { deployTruthBoxFixture} = require("./Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 const { Status } = require("./helpers.js");
 
-/**
- * 测试合约：TruthBox.sol
- * 主要测试内容：
- * 1. 基本铸造功能
- * 2. 黑名单功能
- * 3. 延迟deadline
- * 4. 公开操作功能
- */
 
 describe("TruthBox合约测试", function () {
   // 基本铸造功能测试

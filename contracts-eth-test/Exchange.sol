@@ -108,8 +108,9 @@ contract Exchange is Exchange03, IExchange {
      */
     function calcPayMoney(uint256 boxId_) public view returns (uint256) {
         uint256 price = TRUTH_BOX.getPrice(boxId_);
+        uint256 userId = USER_MANAGER.viewUserId(msg.sender);
 
-        return _calcPayMoney(boxId_, msg.sender, price);
+        return _calcPayMoney(boxId_, userId, price);
     }
 
     // ========================================================================================================
@@ -177,15 +178,15 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Buyer address
      */
-    function buyerOf(uint256 boxId_) external view returns (address) {
-        return _buyerOf(boxId_);
+    function buyerIdOf(uint256 boxId_) external view returns (uint256) {
+        return _buyerIdOf(boxId_);
     }
 
     /* NOTE If the _seller is address(0),
      * it means that the _seller is the minter
      */
-    function sellerOf(uint256 boxId_) external view returns (address) {
-        return _sellerOf(boxId_);
+    function sellerIdOf(uint256 boxId_) external view returns (uint256) {
+        return _sellerIdOf(boxId_);
     }
 
     /**
@@ -193,8 +194,8 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Completer address
      */
-    function completerOf(uint256 boxId_) external view returns (address) {
-        return _completerOf(boxId_);
+    function completerIdOf(uint256 boxId_) external view returns (uint256) {
+        return _completerIdOf(boxId_);
     }
 
     // ===========================

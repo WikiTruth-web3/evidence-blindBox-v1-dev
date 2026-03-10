@@ -30,7 +30,8 @@ async function createConnectors(signers, contracts) {
     other: truthBox.connect(other),
     minter: truthBox.connect(minter),
     dao: truthBox.connect(dao),
-    buyer: truthBox.connect(buyer)
+    buyer: truthBox.connect(buyer),
+    buyer2: truthBox.connect(buyer2),
   };
 
   // Exchange 连接器
@@ -46,9 +47,13 @@ async function createConnectors(signers, contracts) {
 
   // UserManager 连接器
   const userManagerConnectors = {
-    buyer: userManager.connect(buyer),
+    dao: userManager.connect(dao),
     minter: userManager.connect(minter),
-    dao: userManager.connect(dao)
+    buyer: userManager.connect(buyer),
+    buyer2: userManager.connect(buyer2),
+    seller: userManager.connect(seller),
+    completer: userManager.connect(completer),
+    other: userManager.connect(other),
   };
 
   // FundManager 连接器
@@ -68,7 +73,9 @@ async function createConnectors(signers, contracts) {
       buyer2: settlementToken.connect(buyer2),
       other: settlementToken.connect(other),
       other2: settlementToken.connect(other2),
-      minter: settlementToken.connect(minter)
+      minter: settlementToken.connect(minter),
+      seller:settlementToken.connect(seller),
+      completer:settlementToken.connect(completer),
     },
     wBTC: {
       minter: wBTC.connect(minter),

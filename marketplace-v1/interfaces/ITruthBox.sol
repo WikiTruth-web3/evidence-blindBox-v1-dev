@@ -232,10 +232,10 @@ interface ITruthBox {
     // ================================================
 
     /**
-     * @notice Get the minter address of a box
+     * @notice Get the minter userId of a box
      * @param boxId_ Box ID
-     * @return minter Minter address of the box
+     * @return minterId Minter userId of the box
      * @dev Only callable by project contracts
      */
-    function minterOf(uint256 boxId_) external view returns (address);
+    function minterIdOf(uint256 boxId_) external view returns (uint256);
 }

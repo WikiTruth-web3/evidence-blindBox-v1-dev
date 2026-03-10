@@ -38,13 +38,7 @@ interface FundManagerEvents {
         RewardType rewardType
     );
 
-    event HelperRewrdsWithdraw(
-        uint256 indexed userId,
-        address indexed token,
-        uint256 amount
-    );
-
-    event MinterRewardsWithdraw(
+    event RewrdsWithdraw(
         uint256 indexed userId,
         address indexed token,
         uint256 amount
@@ -87,12 +81,14 @@ interface IFundManager {
      * @param boxId_ TruthBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
+     * @param userId_ Buyer id
      * @dev Only callable by project contracts
      */
     function payOrderAmount(
         uint256 boxId_,
         address buyer_,
-        uint256 amount_
+        uint256 amount_,
+        uint256 userId_
     ) external;
 
     /**
@@ -140,16 +136,10 @@ interface IFundManager {
     ) external;
 
     /**
-     * @notice Withdraw helper rewards (official token only)
+     * @notice Withdraw rewards
      * @param token_ Token address
      */
-    function withdrawHelperRewards(address token_) external;
-
-    /**
-     * @notice Withdraw minter rewards
-     * @param token_ Token address
-     */
-    function withdrawMinterRewards(address token_) external;
+    function withdrawRewards(address token_) external;
 
     // =====================================================================================
     //                                          Getter Functions
@@ -158,13 +148,13 @@ interface IFundManager {
     /**
      * @notice Get order amount (for project contracts)
      * @param boxId_ TruthBox ID
-     * @param user_ User address
+     * @param userId_ User ID
      * @return Order amount
      * @dev Only callable by project contracts
      */
-    function orderAmounts(
+    function orderAmountsProject(
         uint256 boxId_,
-        address user_
+        uint256 userId_
     ) external view returns (uint256);
 
     /**
@@ -179,23 +169,12 @@ interface IFundManager {
     ) external view returns (uint256);
 
     /**
-     * @notice Get minter reward amount
+     * @notice Get reward amount
      * @param token_ Token address
      * @param siweToken_ User SIWE token
-     * @return Minter reward amount
+     * @return reward amount
      */
-    function minterRewardAmounts(
-        address token_,
-        bytes memory siweToken_
-    ) external view returns (uint256);
-
-    /**
-     * @notice Get helper reward amount
-     * @param token_ Token address
-     * @param siweToken_ User SIWE token
-     * @return Helper reward amount
-     */
-    function helperRewardAmounts(
+    function rewardAmounts(
         address token_,
         bytes memory siweToken_
     ) external view returns (uint256);

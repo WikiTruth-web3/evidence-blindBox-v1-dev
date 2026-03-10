@@ -8,7 +8,7 @@ async function deployContracts() {
   const [
     admin, admin2, dao, governance, minter, 
     seller, buyer, buyer2, completer, other, 
-    other2, dao_fund_manager, siweAuth, quoter
+    other2, dao_fund_manager, siweAuth, quoter, forwarder
   ] = await ethers.getSigners();
 
   // 部署核心管理合约
@@ -46,7 +46,8 @@ async function deployContracts() {
       seller, buyer, buyer2, completer, other, 
       other2, dao_fund_manager, 
       siweAuth, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
-      quoter
+      quoter, 
+      forwarder
     },
     contracts: {
       addressManager,

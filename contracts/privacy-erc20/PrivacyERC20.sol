@@ -99,7 +99,7 @@ contract PrivacyERC20 is
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 EIP712_DOMAIN_TYPEHASH,
-                keccak256("Secret ERC20 Token"),
+                keccak256("Privacy ERC20 Token"),
                 keccak256("1"),
                 block.chainid,
                 address(this)
@@ -110,11 +110,11 @@ contract PrivacyERC20 is
     // ==================== ERC20 standard interface implementation ====================
 
     function name() public view virtual returns (string memory) {
-        return string(abi.encodePacked("Secret ", underlyingToken.name()));
+        return string(abi.encodePacked("Privacy ", underlyingToken.name()));
     }
 
     function symbol() public view virtual returns (string memory) {
-        return string(abi.encodePacked(underlyingToken.symbol(), ".S"));
+        return string(abi.encodePacked(underlyingToken.symbol(), ".P"));
     }
 
     function decimals() public view virtual returns (uint8) {

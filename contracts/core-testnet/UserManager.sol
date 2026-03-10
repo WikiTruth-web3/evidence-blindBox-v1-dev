@@ -20,6 +20,7 @@ import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
+import {IdentitySalt} from "./abstract/IdentitySalt.sol";
 
 import {ModifierV2} from "./modifier/ModifierV2.sol";
 
@@ -31,8 +32,10 @@ import {ModifierV2} from "./modifier/ModifierV2.sol";
  * Inherits IUserManager interface to ensure consistency between interface and implementation
  */
 
-contract UserManager is ModifierV2, IUserManager, SiweContext {
-    mapping(address => uint256) internal _userIds;
+contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
+    // Key is keccak256(abi.encodePacked(address, _identitySalt))
+    mapping(bytes32 => uint256) private _hashedUserIds;
+
     mapping(address => bool) internal _blacklist;
 
     uint256 internal _nextUserId;
@@ -48,10 +51,6 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
         _setAddress(CoreContracts.UserManager);
     }
 
-    /**
-     * @notice Initialize the next user id
-     * If deploy on mainnet, please delete this function
-     */
     function initUserId() external onlyAdmin {
         if (0 == _nextUserId) {
             _nextUserId = 10000;
@@ -68,23 +67,38 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
         if (!_blacklist[user_]) revert NotInBlacklist();
     }
 
-    /**
-     * @dev Get user id
-     * @param user_ The address of user
-     * Only callable by the contracts in the project (access)
-     */
     function getUserId(
         address user_
     ) external onlyProjectContract returns (uint256) {
         _checkInBlacklist(user_);
-        // Get user ID
-        uint256 userId = _userIds[user_];
+
+        // core encryption logic: generate combined hash
+        bytes32 identityKey = _getIdentityKey(user_);
+
+        // Get user ID from hashed mapping
+        uint256 userId = _hashedUserIds[identityKey];
         if (userId == 0) {
             userId = _nextUserId;
-            _userIds[user_] = userId;
+            _hashedUserIds[identityKey] = userId;
             unchecked {
                 _nextUserId++;
             }
+        }
+        return userId;
+    }
+
+    function viewUserId(
+        address user_
+    ) external view onlyProjectContract returns (uint256) {
+        _checkInBlacklist(user_);
+
+        // core encryption logic: generate combined hash
+        bytes32 identityKey = _getIdentityKey(user_);
+
+        // Get user ID from hashed mapping
+        uint256 userId = _hashedUserIds[identityKey];
+        if (userId == 0) {
+            revert EmptyUserId();
         }
         return userId;
     }
@@ -100,7 +114,9 @@ contract UserManager is ModifierV2, IUserManager, SiweContext {
             sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
         }
         _checkInBlacklist(sender);
-        return _userIds[sender];
+
+        bytes32 identityKey = _getIdentityKey(sender);
+        return _hashedUserIds[identityKey];
     }
 
     // =====================================================================================

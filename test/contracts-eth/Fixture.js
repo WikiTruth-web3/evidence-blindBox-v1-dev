@@ -11,10 +11,6 @@ const { createConnectors } = require("./fixtures/connectors");
 const { configureTokens } = require("./fixtures/tokenConfig");
 const { initializeContracts } = require("./fixtures/initialization");
 
-/**
- * 主要的测试前置部署函数
- * 整合所有模块化的配置
- */
 async function deployTruthBoxFixture() {
   // 1. 部署所有合约
   const { signers, contracts } = await deployContracts();
@@ -68,7 +64,11 @@ async function deployTruthBoxFixture() {
     swapContract_other: connectors.swapContractConnectors.other,
     
     userManager_buyer: connectors.userManagerConnectors.buyer,
+    userManager_buyer2: connectors.userManagerConnectors.buyer2,
     userManager_minter: connectors.userManagerConnectors.minter,
+    userManager_seller: connectors.userManagerConnectors.seller,
+    userManager_completer: connectors.userManagerConnectors.completer,
+    userManager_other: connectors.userManagerConnectors.other,
     userManager_DAO: connectors.userManagerConnectors.dao,
     
     // 测试数据

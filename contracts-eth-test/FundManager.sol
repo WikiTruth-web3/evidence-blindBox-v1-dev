@@ -52,13 +52,15 @@ contract FundManager is FundManager03, IFundManager {
      * @param boxId_ TruthBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
+     * @param userId_ Buyer id
      */
     function payOrderAmount(
         uint256 boxId_,
         address buyer_,
-        uint256 amount_
+        uint256 amount_,
+        uint256 userId_
     ) external {
-        _payOrderAmount(boxId_, buyer_, amount_);
+        _payOrderAmount(boxId_, buyer_, amount_, userId_);
     }
 
     /**
@@ -115,19 +117,11 @@ contract FundManager is FundManager03, IFundManager {
     //--------------------------------------------------
 
     /**
-     * @dev Withdraw other reward amounts (settlement token only)
+     * @dev Withdraw rewards
      * @param token_ Token address
      */
-    function withdrawHelperRewards(address token_) external {
-        _withdrawHelperRewards(token_);
-    }
-
-    /**
-     * @dev Withdraw minter rewards
-     * @param token_ Token address
-     */
-    function withdrawMinterRewards(address token_) external {
-        _withdrawMinterRewards(token_);
+    function withdrawRewards(address token_) external {
+        _withdrawRewards(token_);
     }
 
     // ====================================================================================================================
@@ -137,18 +131,15 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Get order amount
      * @param boxId_ TruthBox ID
-     * @param user_ User address
+     * @param userId_ User ID
      * @return Order amount
-     * This is the function for project contract to interact with,
-     * so it needs to verify that msg.sender is the project contract!
-     * Cannot be deleted!
      */
-    // function orderAmounts(
-    //     uint256 boxId_,
-    //     address user_
-    // ) external view onlyProjectContract returns (uint256) {
-    //     return _orderAmounts[boxId_][user_];
-    // }
+    function orderAmountsProject(
+        uint256 boxId_,
+        uint256 userId_
+    ) external view onlyProjectContract returns (uint256) {
+        return _orderAmounts[boxId_][userId_];
+    }
 
     /**
      * @dev Get order amount
@@ -160,31 +151,21 @@ contract FundManager is FundManager03, IFundManager {
         uint256 boxId_,
         address user_
     ) external view returns (uint256) {
-        return _orderAmounts[boxId_][user_];
+        uint256 userId = USER_MANAGER.viewUserId(user_);
+        return _orderAmounts[boxId_][userId];
     }
 
     /**
-     * @dev Get minter reward amount
-     * @param token_ Token address
-     * @return Minter reward amount
-     */
-    function minterRewardAmounts(
-        address token_,
-        address user_
-    ) external view returns (uint256) {
-        return _minterRewardAmounts[user_][token_];
-    }
-
-    /**
-     * @dev Get helper reward amount
+     * @dev Get reward amount
      * @param token_ Token address
      * @param user_ User address
-     * @return Helper reward amount
+     * @return user reward amount
      */
-    function helperRewardAmounts(
+    function rewardAmounts(
         address token_,
         address user_
     ) external view returns (uint256) {
-        return _helperRewrdAmounts[user_][token_];
+        uint256 userId = USER_MANAGER.viewUserId(user_);
+        return _rewardAmounts[userId][token_];
     }
 }

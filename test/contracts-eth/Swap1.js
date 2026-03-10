@@ -5,7 +5,6 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture } = require("./Fixture.js");
-const crypto = require('crypto'); // 引入crypto库 nodejs内置的加密库
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -16,11 +15,12 @@ describe("交易测试-常规交易测试", function () {
 
   it("01-minter出售-buyer购买-支付延迟费用- 检查时间-价格-状态", async function () {
     const { 
-      admin, dao, minter, buyer, settlementToken, 
-      truthBox, exchange, fundManager, 
+      admin, dao, minter, buyer, completer,
+      settlementToken, 
+      truthBox, exchange, fundManager, userManager_buyer,
       DAY, MONTH, YEAR,
-      exchange_minter,exchange_DAO, exchange_buyer, truthBox_buyer, 
-      address_zero, bytes_deliver,bytes32_1 ,dao_fund_manager
+      exchange_minter,exchange_completer, exchange_buyer, truthBox_buyer, 
+      address_zero, bytes_deliver,userManager_completer ,dao_fund_manager
     } = await loadFixture(deployTruthBoxFixture);
 
     // 时间增加360天
@@ -60,8 +60,8 @@ describe("交易测试-常规交易测试", function () {
     expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Selling);
 
     // 检查出售者应该为空
-    expect(await exchange.sellerOf(1)).to.equal(address_zero);
-    expect(await exchange.sellerOf(2)).to.equal(address_zero);
+    expect(await exchange.sellerIdOf(1)).to.equal(0);
+    expect(await exchange.sellerIdOf(2)).to.equal(0);
 
     // ========================== 购买1 ==========================
     await exchange_buyer.buy(1);
@@ -89,7 +89,8 @@ describe("交易测试-常规交易测试", function () {
     expect(deadline_04).to.equal(deadline_02);
 
     // 检查购买者是否是buyer
-    expect(await exchange.buyerOf(1)).to.equal(buyer.address);
+    const buyer_id = await userManager_buyer.myUserId();
+    expect(await exchange.buyerIdOf(1)).to.equal(buyer_id);
     // 检查订单金额是否是2000
     expect(await fundManager.orderAmounts(1, buyer.address)).to.equal(2000);
     
@@ -101,18 +102,19 @@ describe("交易测试-常规交易测试", function () {
     // 检查1号的
     const orderAmounts_1_buyer = await fundManager.orderAmounts(1, buyer.address);
     expect(orderAmounts_1_buyer).to.equal(0);
-    const incomeMinter = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
+    const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     // 费率为 3% ， 2000*3% = 60
     expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(60);
     expect(incomeMinter).to.equal(1940); // 2000-2000*3%*2
     // expect(blanceOf_daoFund).to.equal(100); // 2000*5%
 
     // ========================== 完成2 ==========================
-    await exchange.completeOrder(2);
-    // 检查completer是否是admin
-    expect(await exchange.completerOf(2)).to.equal(admin.address);
-    const incomeCompleterA = await fundManager.helperRewardAmounts( settlementToken.target,admin.address);
-    const incomeMinter02 = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
+    await exchange_completer.completeOrder(2);
+    // 检查completer
+    const completer_id = await userManager_completer.myUserId();
+    expect(await exchange.completerIdOf(2)).to.equal(completer_id);
+    const incomeCompleterA = await fundManager.rewardAmounts( settlementToken.target,completer.address);
+    const incomeMinter02 = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     console.log("Swap1-01-incomeCompleter02A:", incomeCompleterA);
     console.log("Swap1-01-incomeMinter02:", incomeMinter02);
 
@@ -132,14 +134,14 @@ describe("交易测试-常规交易测试", function () {
     // ============================ 一共成交5000，1号2000+2000，2号1000 ===================================
     expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(150);
 
-    expect(await fundManager.helperRewardAmounts( settlementToken.target,buyer.address)).to.equal(0);
+    expect(await fundManager.rewardAmounts( settlementToken.target,buyer.address)).to.equal(0);
 
   });
 
   it("02-minter拍卖-buyer竞拍-检查时间-价格-状态", async function () {
     const { admin, dao, minter, buyer, settlementToken, buyer2, truthBox, exchange, fundManager_buyer ,
-      bytes_deliver, bytes32_1,bytes_mint ,YEAR,MONTH, address_zero,
-      exchange_minter,exchange_DAO,exchange_buyer,exchange_buyer2,
+      bytes_deliver, userManager_buyer,bytes_mint ,YEAR,MONTH, address_zero, 
+      exchange_minter,exchange_DAO,exchange_buyer,exchange_buyer2,userManager_buyer2
     } = await loadFixture(deployTruthBoxFixture);
     
     await exchange_minter.auction(1, address_zero, 2000);
@@ -166,7 +168,8 @@ describe("交易测试-常规交易测试", function () {
 
     await exchange_buyer.bid(1);
     // 检查
-    expect(await exchange.buyerOf(1)).to.equal(buyer.address);
+    const buyerId = await userManager_buyer.myUserId();
+    expect(await exchange.buyerIdOf(1)).to.equal(buyerId);
     // 检查时间是否延后
     const deadline_02 = Number(await truthBox.getDeadline(1));
     // 获取当前区块时间：当前时间戳/1000+360天
@@ -181,7 +184,8 @@ describe("交易测试-常规交易测试", function () {
 
     await exchange_buyer2.bid(1);
     // 检查
-    expect(await exchange.buyerOf(1)).to.equal(buyer2.address);
+    const buyer2_id = await userManager_buyer2.myUserId();
+    expect(await exchange.buyerIdOf(1)).to.equal(buyer2_id);
     // 检查 时间是否延后
     const deadline_03 = Number(await truthBox.getDeadline(1));
     // 获取当前区块时间：当前时间戳/1000+360天
@@ -200,7 +204,8 @@ describe("交易测试-常规交易测试", function () {
     console.log("Swap1-buyer第二次竞拍需要支付的资金:", payMoney_buyer);
     await exchange_buyer.bid(1);
     // 检查
-    expect(await exchange.buyerOf(1)).to.equal(buyer.address);
+    const buyer_id =await userManager_buyer.myUserId();
+    expect(await exchange.buyerIdOf(1)).to.equal(buyer_id);
 
     // ========================== 竞拍4 ==========================
     // other第二次竞拍
@@ -217,7 +222,8 @@ describe("交易测试-常规交易测试", function () {
     expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Paid);
     const deadline_04 = Number(await truthBox.getDeadline(1));
     console.log("Swap1-deadline_04发货后:", timestampToDate(deadline_04));
-    expect(await exchange.buyerOf(1)).to.equal(buyer2.address);
+    // const buyer2_id = await userManager_buyer2.myUserId();
+    expect(await exchange.buyerIdOf(1)).to.equal(buyer2_id);
 
     // ========================== 提款 ============================
     // buyer竞拍失败，提取资金
@@ -256,7 +262,7 @@ describe("交易测试-常规交易测试", function () {
     expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
     // 检查各个账户的收入
     // minter收入 1000-1000*3% = 970
-    const incomeMinter = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
+    const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     expect(incomeMinter).to.equal(970);
     // 费率为 3% ， 1000*3% = 30
     expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(30);
@@ -271,16 +277,16 @@ describe("交易测试-常规交易测试", function () {
     
     // ========================== 提取 minter==========================
     const balanceMinter = await settlementToken.balanceOf(minter.address);
-    await fundManager_minter.withdrawMinterRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target);
     const balanceMinter02 = await settlementToken.balanceOf(minter.address);
     console.log("Swap1-03-Minter提款了:", balanceMinter02-balanceMinter);
     // 再次提款，应该抛出异常
-    await expect(fundManager_minter.withdrawMinterRewards(settlementToken.target)).to.be.reverted;
+    await expect(fundManager_minter.withdrawRewards(settlementToken.target)).to.be.reverted;
     // await expect(fundManager_minter.withdrawSeller()).to.be.reverted(exchange,"AmountIsZero");
 
     // // ========================== 提取 DAO 应该无法提款==========================
 
-    await expect(fundManager_DAO.withdrawHelperRewards(settlementToken.target)).to.be.reverted;
+    await expect(fundManager_DAO.withdrawRewards(settlementToken.target)).to.be.reverted;
 
     // ========================== 验证服务费 ==========================
     expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(30);

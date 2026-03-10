@@ -6,13 +6,6 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
-/**
- * 测试合约：UserManager.sol
- * 主要测试内容：
- * 1. 获取用户ID
- * 2. 加入黑名单
- * 3. 获取黑名单状态
- */
 
 describe("UserManager- 相关测试", function () {
   it("获取用户ID", async function () {

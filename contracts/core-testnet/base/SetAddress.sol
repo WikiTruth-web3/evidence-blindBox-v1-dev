@@ -46,7 +46,7 @@ contract SetAddress {
     function _setAddressManager(address addrManager_) internal {
         ADDR_MANAGER = IAddressManager(addrManager_);
     }
-    // ==========================================================================================================
+    // ==================================================================================================
 
     // TODO Add the address of the DAO fund manager
     function _setAddress(CoreContracts enum_) internal virtual {

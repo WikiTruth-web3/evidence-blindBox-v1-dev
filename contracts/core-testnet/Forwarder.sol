@@ -24,7 +24,7 @@ import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
 import {Modifier} from "./modifier/Modifier.sol";
 
-import {Pausable} from "./utils/Pausable.sol";
+import {Pausable} from "./abstract/Pausable.sol";
 
 /**
  * @title Forwarder
@@ -71,11 +71,6 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
     //                                     Modifiers
     // =====================================================================================
 
-    /**
-     * @dev Check relayer identity:
-     * 1. Must be in the whitelist
-     * 2. If associated with UserManager, cannot be in the blacklist
-     */
     modifier onlyValidRelayer() {
         if (
             address(USER_MANAGER) != address(0) &&
@@ -90,30 +85,18 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
     //                                  Management Functions
     // =====================================================================================
 
-    /**
-     * @notice Set target contract whitelist status
-     */
     function setTargetStatus(address target_, bool status_) external onlyAdmin {
         _targetWhitelist[target_] = status_;
     }
 
-    /**
-     * @notice Set gas limit per transaction
-     */
     function setMaxGasLimit(uint256 maxGasLimit_) external onlyAdmin {
         _maxGasLimit = maxGasLimit_;
     }
 
-    /**
-     * @notice pause status
-     */
     function pause() external onlyAdminDAO {
         _pause();
     }
 
-    /**
-     * @notice unpause status
-     */
     function unpause() external onlyAdminDAO {
         _unpause();
     }
@@ -122,9 +105,6 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
     //                                     Overrides
     // =====================================================================================
 
-    /**
-     * @dev Override single execution function to add custom checks
-     */
     function execute(
         ForwardRequestData calldata request
     ) public payable override whenNotPaused onlyValidRelayer {
@@ -132,9 +112,6 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
         super.execute(request);
     }
 
-    /**
-     * @dev Override batch execution function to add custom checks
-     */
     function executeBatch(
         ForwardRequestData[] calldata requests,
         address payable refundReceiver
@@ -149,10 +126,6 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
     //                                  Internal Helpers
     // =====================================================================================
 
-    /**
-     * @dev Core pre-execution check logic
-     * @param request Request data
-     */
     function _preExecuteCheck(
         ForwardRequestData calldata request
     ) internal view {

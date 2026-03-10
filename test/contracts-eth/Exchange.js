@@ -5,7 +5,6 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture} = require("./Fixture.js");
-const crypto = require('crypto'); // 引入crypto库 nodejs内置的加密库
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 
 // 测试直接调用Exchange合约中的相关函数

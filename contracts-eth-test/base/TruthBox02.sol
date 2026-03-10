@@ -36,7 +36,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     }
 
     struct SecretData {
-        address _minter;
+        uint256 _minterId;
         bytes _encryptedData; // sapphire encrypted data (private key)
         bytes32 _nonce; // sapphire encrypted nonce, decryption required
     }
@@ -71,6 +71,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
 
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
+        uint256 userId = USER_MANAGER.getUserId(sender);
 
         _basicData[boxId] = BasicData({
             _price: price_,
@@ -79,7 +80,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
         });
 
         _secretData[boxId] = SecretData({
-            _minter: sender,
+            _minterId: userId,
             _nonce: bytes32(0),
             _encryptedData: key_
         });
@@ -88,7 +89,6 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
             _nextBoxId++;
         }
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BoxCreated(boxId, userId, boxInfoCID_);
 
         return boxId;
@@ -155,12 +155,14 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     }
 
     // ==========================================================================================================
-    function _checkMinter(uint256 boxId_) internal view {
-        if (msg.sender != _secretData[boxId_]._minter) revert NotMinter();
+    function _checkMinter(uint256 boxId_) internal {
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
+        if (userId != _secretData[boxId_]._minterId) revert NotMinter();
     }
 
-    function _checkBuyer(uint256 boxId_) internal view {
-        if (msg.sender != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
+    function _checkBuyer(uint256 boxId_) internal {
+        uint256 userId = USER_MANAGER.getUserId(msg.sender);
+        if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
     }
 
     function _boxExists(uint256 boxId_) internal view {

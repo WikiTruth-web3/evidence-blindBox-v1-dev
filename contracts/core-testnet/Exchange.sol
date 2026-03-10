@@ -37,10 +37,6 @@ contract Exchange is Exchange03, IExchange {
 
     // ==========================================================================================================
 
-    /**
-     * @notice Set contract addresses
-     * @dev Get and set related contract addresses from AddressManager
-     */
     function setAddress() external onlyManager {
         _setAddress(CoreContracts.Exchange);
     }
@@ -83,43 +79,24 @@ contract Exchange is Exchange03, IExchange {
     //                                          Buying related functions
     // ========================================================================================================
 
-    /**
-     * @notice Buy function, the buyer needs to pay
-     * @param boxId_ Box ID
-     * Need to check: status、buyer.
-     * Buy will modify: buyer、status、refundRequestDeadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
     function buy(uint256 boxId_) external {
         _buy(boxId_);
     }
 
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
-     * @param boxId_ Box ID
-     * Need to check: deadline、status、buyer.
-     * Bid will modify: buyer、price、deadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
     function bid(uint256 boxId_) external {
         _bid(boxId_);
     }
 
-    /**
-     * @notice Calculate the pay amount
-     * @param boxId_ Box ID
-     * @param siweToken_ The siwe token of the user
-     * @return The pay amount
-     */
     function calcPayMoney(
         uint256 boxId_,
         bytes memory siweToken_
     ) public view returns (uint256) {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
+        uint256 userId = USER_MANAGER.viewUserId(sender);
         uint256 price = TRUTH_BOX.getPrice(boxId_);
 
-        return _calcPayMoney(boxId_, sender, price);
+        return _calcPayMoney(boxId_, userId, price);
     }
 
     // ========================================================================================================
@@ -129,36 +106,19 @@ contract Exchange is Exchange03, IExchange {
     function setRefundPermit(uint256 boxId_, bool permission_) external {
         _setRefundPermit(boxId_, permission_);
     }
-    /**
-     * @notice Request refund function, after requesting refund, the box status becomes Refunding
-     * Need to check: status、deadline.
-     * Request refund will modify: status、refundReviewDeadline.
-     * Request refund also needs to set the status of TRUTH_BOX to Published
-     */
+
     function requestRefund(uint256 boxId_) external {
         _requestRefund(boxId_);
     }
 
-    /**
-     * @notice Cancel refund function, after canceling refund, the box status becomes Sold
-     */
     function cancelRefund(uint256 boxId_) external {
         _cancelRefund(boxId_);
     }
 
-    /**
-     * @notice Agree refund function, after agreeing refund, the box status becomes Sold
-     * Need to check: status、deadline.
-     * Agree refund will modify: status、refundReviewDeadline.
-     * Agree refund also needs to set the status of TRUTH_BOX to Published
-     */
     function agreeRefund(uint256 boxId_) external {
         _agreeRefund(boxId_);
     }
 
-    /**
-     * @notice Refuse refund function, after refusing refund, the box status becomes Published!
-     */
     function refuseRefund(uint256 boxId_) external {
         _refuseRefund(boxId_);
     }
@@ -167,13 +127,6 @@ contract Exchange is Exchange03, IExchange {
     //                                           finalize related functions
     // ========================================================================================================
 
-    /**
-     * @notice Complete order function, after completing order, the box status becomes Sold
-     * Need to check: refundPermit.
-     * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of TRUTH_BOX to Delaying
-     * Complete order also needs to set refundRequestDeadline.
-     */
     function completeOrder(uint256 boxId_) external {
         _completeOrder(boxId_);
     }
@@ -182,35 +135,22 @@ contract Exchange is Exchange03, IExchange {
     //                                           Getter function
     // ========================================================================================================
 
-    /**
-     * @notice Get buyer address
-     * @param boxId_ Box ID
-     * @return Buyer address
-     */
-    function buyerOf(
+    function buyerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _buyerOf(boxId_);
+    ) external view onlyProjectContract returns (uint256) {
+        return _buyerIdOf(boxId_);
     }
 
-    /* NOTE If the _seller is address(0),
-     * it means that the _seller is the minter
-     */
-    function sellerOf(
+    function sellerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _sellerOf(boxId_);
+    ) external view onlyProjectContract returns (uint256) {
+        return _sellerIdOf(boxId_);
     }
 
-    /**
-     * @notice Get completer address
-     * @param boxId_ Box ID
-     * @return Completer address
-     */
-    function completerOf(
+    function completerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _completerOf(boxId_);
+    ) external view onlyProjectContract returns (uint256) {
+        return _completerIdOf(boxId_);
     }
 
     // ===========================

@@ -157,7 +157,7 @@ interface IExchange {
      * @return Buyer address
      * @dev Only callable by project contracts
      */
-    function buyerOf(uint256 boxId_) external view returns (address);
+    function buyerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
      * @notice Get seller address
@@ -165,7 +165,7 @@ interface IExchange {
      * @return Seller address (address(0) means minter is the seller)
      * @dev Only callable by project contracts
      */
-    function sellerOf(uint256 boxId_) external view returns (address);
+    function sellerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
      * @notice Get completer address
@@ -173,7 +173,7 @@ interface IExchange {
      * @return Completer address
      * @dev Only callable by project contracts
      */
-    function completerOf(uint256 boxId_) external view returns (address);
+    function completerIdOf(uint256 boxId_) external view returns (uint256);
 
     /**
      * @notice Get accepted token address

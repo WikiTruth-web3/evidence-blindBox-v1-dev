@@ -61,12 +61,6 @@ interface IAddressManager {
      */
     function exchange() external view returns (address);
 
-    // /**
-    //  * @notice Get TruthNFT contract address
-    //  * @return TruthNFT contract address
-    //  */
-    // function truthNFT() external view returns (address);
-
     /**
      * @notice Get FundManager contract address
      * @return FundManager contract address

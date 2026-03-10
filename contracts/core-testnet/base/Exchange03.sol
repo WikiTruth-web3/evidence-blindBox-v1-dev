@@ -57,13 +57,13 @@ contract Exchange03 is Exchange02 {
         address sender = _msgSender();
 
         uint256 userId = USER_MANAGER.getUserId(sender);
-        _boxExchengData[boxId_]._buyer = sender;
+        _boxExchengData[boxId_]._buyerId = userId;
 
         // Buy operation, should directly set the deadline for applying for refund
         _setRefundRequestDeadline(boxId_, block.timestamp);
 
         uint256 payAmount = truthBox.getPrice(boxId_);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BoxPurchased(boxId_, userId);
     }
@@ -95,8 +95,9 @@ contract Exchange03 is Exchange02 {
         ITruthBox truthBox = TRUTH_BOX;
         // canRequestRefund?
         if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
+
+        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         if (_isInRequestRefundDeadline(boxId_)) {
@@ -115,8 +116,8 @@ contract Exchange03 is Exchange02 {
      * @notice Cancel refund function, after canceling refund, the box status becomes Sold
      */
     function _cancelRefund(uint256 boxId_) internal {
-        // erc2771 - _msgSender() is the real caller
-        if (_msgSender() != _buyerOf(boxId_)) revert NotBuyer();
+        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // _checkStatus(boxId_, Status.Refunding);
@@ -143,9 +144,10 @@ contract Exchange03 is Exchange02 {
 
         if (_isInReviewDeadline(boxId_)) {
             // Check role: minter、DAO
+            uint256 userId = USER_MANAGER.viewUserId(_msgSender());
             if (
                 // erc2771 - _msgSender() is the real caller
-                _msgSender() != truthBox.minterOf(boxId_) &&
+                userId != truthBox.minterIdOf(boxId_) &&
                 msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use _msgSender()
             ) {
                 revert InvalidCaller();
@@ -202,12 +204,12 @@ contract Exchange03 is Exchange02 {
 
         // erc2771
         address sender = _msgSender();
+        uint256 userId = USER_MANAGER.getUserId(sender);
 
-        if (sender != _buyerOf(boxId_)) {
+        if (userId != _buyerIdOf(boxId_)) {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
-            if (sender != truthBox.minterOf(boxId_)) {
-                _boxExchengData[boxId_]._completer = sender;
-                uint256 userId = USER_MANAGER.getUserId(sender);
+            if (userId != truthBox.minterIdOf(boxId_)) {
+                _boxExchengData[boxId_]._completerId = userId;
                 emit CompleterAssigned(boxId_, userId);
             }
         }

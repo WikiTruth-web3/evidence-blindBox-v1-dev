@@ -22,7 +22,7 @@ import {SiweContext} from "@siwe/SiweContext.sol";
 import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-
+import {IdentitySalt} from "../abstract/IdentitySalt.sol";
 import {TruthBox01} from "./TruthBox01.sol";
 import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
 
@@ -41,7 +41,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
     }
 
     struct SecretData {
-        address _minter;
+        uint256 _minterId;
         bytes _encryptedData; // sapphire encrypted data (private key)
         bytes32 _nonce; // sapphire encrypted nonce, decryption required
     }
@@ -82,6 +82,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
 
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
+        uint256 userId = USER_MANAGER.getUserId(sender);
 
         if (key_.length != 0) {
             // Generate encrypted nonce (critical fix: save nonce for decryption)
@@ -104,7 +105,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
         });
 
         _secretData[boxId] = SecretData({
-            _minter: sender,
+            _minterId: userId,
             _nonce: nonce,
             _encryptedData: encryptedData
         });
@@ -113,7 +114,6 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
             _nextBoxId++;
         }
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
         emit BoxCreated(boxId, userId, boxInfoCID_);
 
         return boxId;
@@ -177,18 +177,5 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
 
         emit BoxStatusChanged(boxId, Status.Published);
         return boxId;
-    }
-
-    // ==========================================================================================================
-    function _checkMinter(uint256 boxId_) internal view {
-        if (_msgSender() != _secretData[boxId_]._minter) revert NotMinter();
-    }
-
-    function _checkBuyer(uint256 boxId_) internal view {
-        if (_msgSender() != EXCHANGE.buyerOf(boxId_)) revert NotBuyer();
-    }
-
-    function _boxExists(uint256 boxId_) internal view {
-        if (boxId_ >= _nextBoxId) revert BoxNotExists();
     }
 }

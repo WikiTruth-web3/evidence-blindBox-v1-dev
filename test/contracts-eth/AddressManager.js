@@ -6,14 +6,6 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
-/**
- * 测试合约：AddressManager.sol
- * 主要测试内容：
- * 1. 设置地址列表
- * 2. 修改官方代币
- * 3. 添加保留地址
- * 
- */
 
 describe("AddressManager- 相关测试", function () {
   it("设置地址列表", async function () {

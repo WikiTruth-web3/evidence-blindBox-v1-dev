@@ -6,14 +6,6 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
-/**
- * 测试合约：AddressManager.sol
- * 主要测试内容：
- * 1. 设置官方代币
- * 2. 检查官方代币
- * 3. 检查代币是否被支持
- * 4. 检查代币是否是官方代币
- */
 
 describe("AddressManager-Token- 相关测试", function () {
   it("移除官方代币--失败", async function () {

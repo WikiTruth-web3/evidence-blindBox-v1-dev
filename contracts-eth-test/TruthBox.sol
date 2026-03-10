@@ -185,10 +185,10 @@ contract TruthBox is TruthBox03, ITruthBox {
 
     // ==========================================================================================================
 
-    function minterOf(
+    function minterIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _minterOf(boxId_);
+    ) external view onlyProjectContract returns (uint256) {
+        return _minterIdOf(boxId_);
     }
 
     // ==========================================================================================================

@@ -5,7 +5,6 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture } = require("./Fixture.js");
-const crypto = require('crypto'); // 引入crypto库 nodejs内置的加密库
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -15,6 +14,7 @@ describe("交易测试-多角色参与交易过程", function () {
   it("06-过期出售-seller-buyer-completer-提取资金", async function () {
     const { admin, dao, minter, seller, buyer, settlementToken, completer, truthBox, 
       exchange, fundManager ,bytes_mint, bytes_deliver, bytes32_1 , address_zero,
+      userManager_completer,
       fundManager_completer,fundManager_DAO,dao_fund_manager, fundManager_dao_fund_manager,
       exchange_seller,exchange_DAO,exchange_buyer,exchange_completer, fundManager_buyer,fundManager_minter,
     } = await loadFixture(deployTruthBoxFixture);
@@ -35,15 +35,16 @@ describe("交易测试-多角色参与交易过程", function () {
     // completer确认 会增加额外费率
     await exchange_completer.completeOrder(1);
     await exchange_completer.completeOrder(2);
-    expect(await exchange.completerOf(1)).to.equal(completer.address);
-    expect(await exchange.completerOf(2)).to.equal(completer.address);
+    const completer_id = await userManager_completer.myUserId();
+    expect(await exchange.completerIdOf(1)).to.equal(completer_id);
+    expect(await exchange.completerIdOf(2)).to.equal(completer_id);
 
     // ========================== 检查id=1的资金情况 ==========================
-    const incomeMinter = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
+    const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     // const serviceFee = await fundManager.availableServiceFees();
 
-    const incomeCompleter = await fundManager.helperRewardAmounts(settlementToken.target,completer.address);
-    const incomeSeller = await fundManager.helperRewardAmounts(settlementToken.target,seller.address);
+    const incomeCompleter = await fundManager.rewardAmounts(settlementToken.target,completer.address);
+    const incomeSeller = await fundManager.rewardAmounts(settlementToken.target,seller.address);
     expect(incomeMinter).to.equal(1900);
     // expect(serviceFee).to.equal(100);
 
@@ -62,7 +63,7 @@ describe("交易测试-多角色参与交易过程", function () {
 
     // ========================== 提取2 ==========================
     const balanceMinter = await settlementToken.balanceOf(minter.address);
-    await fundManager_minter.withdrawMinterRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target);
     const balanceMinter02 = await settlementToken.balanceOf(minter.address);
     expect(balanceMinter02-balanceMinter).to.equal(1900);
 
@@ -70,13 +71,13 @@ describe("交易测试-多角色参与交易过程", function () {
     const fundManagerSeller = fundManager.connect(seller);
     const balanceSeller = await settlementToken.balanceOf(seller.address);
     console.log("Swap2-Seller提款前:", balanceSeller);
-    await fundManagerSeller.withdrawHelperRewards(settlementToken.target);
+    await fundManagerSeller.withdrawRewards(settlementToken.target);
     const balanceSeller02 = await settlementToken.balanceOf(seller.address);
     console.log("Swap2-Seller提款后:", balanceSeller02);
 
     // ========================== 提取4 ==========================
     const balanceCompleter = await settlementToken.balanceOf(completer.address);
-    await fundManager_completer.withdrawHelperRewards(settlementToken.target);
+    await fundManager_completer.withdrawRewards(settlementToken.target);
     const balanceCompleter02 = await settlementToken.balanceOf(completer.address);
     expect(balanceCompleter02-balanceCompleter).to.equal(20);
 
@@ -127,7 +128,7 @@ describe("交易测试-多角色参与交易过程", function () {
   it("09-过期-seller-出售/拍卖", async function () {
     const { 
       minter, buyer, settlementToken, truthBox, exchange_seller, address_zero, seller,
-      fundManager, bytes_mint,bytes32_1 , exchange_minter,exchange,other,
+      fundManager, bytes_mint,userManager_seller , exchange_minter,exchange,other,
     } = await loadFixture(deployTruthBoxFixture);
 
     await time.increase(380 * 24 * 60 * 60);
@@ -147,10 +148,11 @@ describe("交易测试-多角色参与交易过程", function () {
     expect(await truthBox.getStatus(3)).to.equal(TimeHelpers.Status.Selling);
     expect(await truthBox.getStatus(4)).to.equal(TimeHelpers.Status.Auctioning);
     // 检查 seller
-    expect(await exchange.sellerOf(1)).to.equal(address_zero);
-    expect(await exchange.sellerOf(2)).to.equal(address_zero);
-    expect(await exchange.sellerOf(3)).to.equal(seller.address);
-    expect(await exchange.sellerOf(4)).to.equal(seller.address);
+    expect(await exchange.sellerIdOf(1)).to.equal(0);
+    expect(await exchange.sellerIdOf(2)).to.equal(0);
+    const seller_id = await userManager_seller.myUserId();
+    expect(await exchange.sellerIdOf(3)).to.equal(seller_id);
+    expect(await exchange.sellerIdOf(4)).to.equal(seller_id);
 
   });
 

@@ -15,7 +15,7 @@
 
 pragma solidity ^0.8.24;
 
-interface IWikiTruthEvents {
+interface AllEvents_wikitruth {
     // ========== Exchange ==========
     event BoxListed(
         uint256 indexed boxId,
@@ -49,11 +49,7 @@ interface IWikiTruthEvents {
         uint256 amount,
         uint8 rewardType
     );
-    event HelperRewrdsWithdraw(
-        uint256 indexed userId,
-        address indexed token,
-        uint256 amount
-    );
+
     event RewardsWithdraw(
         uint256 indexed userId,
         address indexed token,
@@ -81,6 +77,10 @@ interface IWikiTruthEvents {
 
     // ========== UserManager ==========
     event Blacklist(address user, bool status);
+
+    //============ Forwarder ============
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
 
     // ====================
     enum Status {

@@ -50,26 +50,15 @@ contract FundManager is FundManager03, IFundManager {
 
     // ====================================================================================================================
 
-    /**
-     * @dev Pay order amount
-     * @param boxId_ TruthBox ID
-     * @param buyer_ Buyer address
-     * @param amount_ Amount to pay
-     */
     function payOrderAmount(
         uint256 boxId_,
         address buyer_,
-        uint256 amount_
+        uint256 amount_,
+        uint256 userId_
     ) external {
-        _payOrderAmount(boxId_, buyer_, amount_);
+        _payOrderAmount(boxId_, buyer_, amount_, userId_);
     }
 
-    /**
-     * @dev Pay delay fee
-     * @param boxId_ TruthBox ID
-     * @param sender_ Sender address
-     * @param amount_ Amount to pay
-     */
     function payDelayFee(
         uint256 boxId_,
         address sender_,
@@ -79,23 +68,14 @@ contract FundManager is FundManager03, IFundManager {
     }
 
     // ====================================================================================================================
-    // Reward Allocation Functions
 
-    /**
-     * @dev Allocate rewards
-     * @param boxId_ TruthBox ID
-     */
     function allocationRewards(uint256 boxId_) external {
         _allocationRewards(boxId_);
     }
 
     // ====================================================================================================================
     // Withdrawal Functions
-    /**
-     * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
-     * @param token_ Token address
-     * @param list_ List of TruthBox IDs
-     */
+
     function withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_
@@ -103,11 +83,6 @@ contract FundManager is FundManager03, IFundManager {
         _withdrawOrderAmounts(token_, list_, FundsType.Order);
     }
 
-    /**
-     * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
-     * @param token_ Token address
-     * @param list_ List of TruthBox IDs
-     */
     function withdrawRefundAmounts(
         address token_,
         uint256[] calldata list_
@@ -115,86 +90,38 @@ contract FundManager is FundManager03, IFundManager {
         _withdrawOrderAmounts(token_, list_, FundsType.Refund);
     }
 
-    //--------------------------------------------------
-
-    /**
-     * @dev Withdraw other reward amounts (settlement token only)
-     * @param token_ Token address
-     */
-    function withdrawHelperRewards(address token_) external {
-        _withdrawHelperRewards(token_);
-    }
-
-    /**
-     * @dev Withdraw minter rewards
-     * @param token_ Token address
-     */
-    function withdrawMinterRewards(address token_) external {
-        _withdrawMinterRewards(token_);
+    function withdrawRewards(address token_) external {
+        _withdrawRewards(token_);
     }
 
     // ====================================================================================================================
     //                    Query Functions
     // ====================================================================================================================
 
-    /**
-     * @dev Get order amount
-     * @param boxId_ TruthBox ID
-     * @param user_ User address
-     * @return Order amount
-     * This is the function for project contract to interact with,
-     * so it needs to verify that msg.sender is the project contract!
-     * Cannot be deleted!
-     */
-    function orderAmounts(
+    function orderAmountsProject(
         uint256 boxId_,
-        address user_
+        uint256 userId_
     ) external view onlyProjectContract returns (uint256) {
-        return _orderAmounts[boxId_][user_];
+        return _orderAmounts[boxId_][userId_];
     }
 
-    /**
-     * @dev Get order amount
-     * @param boxId_ TruthBox ID
-     * @param siweToken_ User siwe token
-     * @return Order amount
-     */
     function orderAmounts(
         uint256 boxId_,
         bytes memory siweToken_
     ) external view returns (uint256) {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        return _orderAmounts[boxId_][sender];
+        uint256 userId = USER_MANAGER.viewUserId(sender);
+        return _orderAmounts[boxId_][userId];
     }
 
-    /**
-     * @dev Get minter reward amount
-     * @param token_ Token address
-     * @param siweToken_ User siwe token
-     * @return Minter reward amount
-     */
-    function minterRewardAmounts(
+    function rewardAmounts(
         address token_,
         bytes memory siweToken_
     ) external view returns (uint256) {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        return _minterRewardAmounts[sender][token_];
-    }
-
-    /**
-     * @dev Get helper reward amount
-     * @param token_ Token address
-     * @param siweToken_ User siwe token
-     * @return Helper reward amount
-     */
-    function helperRewardAmounts(
-        address token_,
-        bytes memory siweToken_
-    ) external view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        return _helperRewrdAmounts[sender][token_];
+        uint256 userId = USER_MANAGER.viewUserId(sender);
+        return _rewardAmounts[userId][token_];
     }
 }

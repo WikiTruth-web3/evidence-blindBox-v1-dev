@@ -5,7 +5,6 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture } = require("./Fixture.js");
-const crypto = require('crypto'); // 引入crypto库 nodejs内置的加密库
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -48,7 +47,7 @@ describe("交易测试-多代币测试", function () {
     // 所以：原本按比例收取210的testToken，兑换后获得2092（被滑点和手续费扣除后的）的officialToken
     const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_fund_manager.address);
     console.log("Swap5-01-balanceDao_fund_manager1:", balanceDao_fund_manager1);
-    const incomeMinter = await fundManager.minterRewardAmounts(wBTC.target,minter.address);
+    const incomeMinter = await fundManager.rewardAmounts(wBTC.target,minter.address);
     console.log("Swap5-01-incomeMinter:", incomeMinter);
 
     // ========================== 提取 ==========================
@@ -56,7 +55,7 @@ describe("交易测试-多代币测试", function () {
     await fundManager_buyer2.withdrawOrderAmounts(wBTC.target, [2])
     expect(fundManager_buyer.withdrawOrderAmounts(wBTC.target, [2])).to.be.reverted;
 
-    await fundManager_minter.withdrawMinterRewards(wBTC.target)
+    await fundManager_minter.withdrawRewards(wBTC.target)
 
   });
 

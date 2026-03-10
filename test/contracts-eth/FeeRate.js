@@ -38,11 +38,11 @@ describe("FundManager_FeeRate", function () {
 
   it("检查费用是否正确", async function () {
     const { 
-      admin, dao, minter, buyer, settlementToken, 
+      admin, dao, minter, buyer, settlementToken, completer,
       truthBox, exchange, fundManager, 
       DAY, MONTH, YEAR,
-      exchange_minter,exchange_DAO, exchange_buyer, truthBox_buyer, 
-      address_zero, bytes_deliver,bytes32_1 ,dao_fund_manager
+      exchange_minter,exchange_DAO, exchange_buyer, truthBox_buyer, exchange_completer,
+      address_zero,dao_fund_manager,userManager_buyer, userManager_completer
     } = await loadFixture(deployTruthBoxFixture);
 
     // 时间增加360天
@@ -61,21 +61,23 @@ describe("FundManager_FeeRate", function () {
     await exchange_buyer.completeOrder(1);
 
     // 检查1号的订单金额
+
     const orderAmounts_1_buyer = await fundManager.orderAmounts(1, buyer.address);
     expect(orderAmounts_1_buyer).to.equal(0);
     // 检查1号的minter收入
-    const incomeMinter = await fundManager.minterRewardAmounts( settlementToken.target,minter.address);
+    const incomeMinter = await fundManager.rewardAmounts( settlementToken.target,minter.address);
     expect(incomeMinter).to.equal(1940); // 2000-2000*3%*2 = 1940
     // 检查1号的DAO收入（服务费）
     expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(60);
 
     // ========================== 完成2 ==========================
-    await exchange.completeOrder(2);
-    expect(await fundManager.helperRewardAmounts( settlementToken.target,buyer.address)).to.equal(0);
-    // 检查completer是否是admin
-    expect(await exchange.completerOf(2)).to.equal(admin.address);
-    const incomeCompleterA = await fundManager.helperRewardAmounts( settlementToken.target,admin.address);
-    const incomeMinter02 = await fundManager.minterRewardAmounts(settlementToken.target,minter.address);
+    await exchange_completer.completeOrder(2);
+    expect(await fundManager.rewardAmounts( settlementToken.target,buyer.address)).to.equal(0);
+    // 检查completer
+    const completerId =await userManager_completer.myUserId();
+    expect(await exchange.completerIdOf(2)).to.equal(completerId);
+    const incomeCompleterA = await fundManager.rewardAmounts( settlementToken.target,completer.address);
+    const incomeMinter02 = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     expect(incomeCompleterA).to.equal(10);
     expect(incomeMinter02).to.equal(2900);
 

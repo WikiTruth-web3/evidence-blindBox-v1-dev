@@ -44,16 +44,12 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     mapping(address token => uint256) internal _totalRewardAmounts;
 
     // Order amounts mapping (by token recorded by EXCHANGE contract, boxId and buyer address)
-    mapping(uint256 boxId => mapping(address buyer => uint256))
+    mapping(uint256 boxId => mapping(uint256 userId => uint256))
         internal _orderAmounts;
 
     // Minter reward amounts for each token (only two types: token recorded by EXCHANGE contract, and settlement token)
-    mapping(address minter => mapping(address token => uint256))
-        internal _minterRewardAmounts;
-
-    // User reward amounts (using settlement token)
-    mapping(address helper => mapping(address token => uint256))
-        internal _helperRewrdAmounts;
+    mapping(uint256 userId => mapping(address token => uint256))
+        internal _rewardAmounts;
 
     // ====================================================================================================================
 
@@ -65,27 +61,28 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     /**
      * @dev Internal method: Calculate allocation
      * @param boxId_ TruthBox ID
+     * @param minterId_ Minter userId
      * @param amount_ Amount
      * @param token_ Token address
      */
     function _calculateAllocation(
         uint256 boxId_,
-        address minter_,
+        uint256 minterId_,
         uint256 amount_,
         address token_
     ) internal {
         // Get various rates and roles
-        address completer = EXCHANGE.completerOf(boxId_);
-        address seller = EXCHANGE.sellerOf(boxId_);
+        uint256 completerId = EXCHANGE.completerIdOf(boxId_);
+        uint256 sellerId = EXCHANGE.sellerIdOf(boxId_);
         uint8 sellerRate;
         uint8 completerRate;
         // Calculate rewards
 
-        if (completer != address(0)) {
+        if (completerId != 0) {
             completerRate = _helperRewardRate;
         }
         // If there is a seller, it means the token is the original token
-        if (seller != address(0)) {
+        if (sellerId != 0) {
             sellerRate = _helperRewardRate;
         }
 
@@ -93,12 +90,12 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
         address settlementToken = ADDR_MANAGER.settlementToken();
 
-        uint256 amountIn_token = (amount_ * totalRate) / 1000;
-        uint256 amountOut_settlementToken;
+        uint256 amountIn = (amount_ * totalRate) / 1000; // accepted token
+        uint256 amountOut; // settlement token
 
         if (token_ != settlementToken) {
             // totalRate += _extraFeeRate;
-            (amountIn_token, amountOut_settlementToken) = _swap(
+            (amountIn, amountOut) = _swap(
                 boxId_,
                 token_,
                 settlementToken,
@@ -107,18 +104,16 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             );
         } else {
             // If token is settlement token, calculate allocation directly, and amountOut and amountIn are equal
-            amountOut_settlementToken = amountIn_token;
+            amountOut = amountIn;
         }
 
         unchecked {
             // Calculate allocation amounts
-            uint256 sellerRewards = (amountOut_settlementToken * sellerRate) /
-                totalRate;
-            uint256 completerRewards = (amountOut_settlementToken *
-                completerRate) / totalRate;
+            uint256 sellerRewards = (amountOut * sellerRate) / totalRate;
+            uint256 completerRewards = (amountOut * completerRate) / totalRate;
 
             if (completerRewards > 0) {
-                _helperRewrdAmounts[completer][
+                _rewardAmounts[completerId][
                     settlementToken
                 ] += completerRewards;
                 emit RewardsAdded(
@@ -130,7 +125,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             }
             // If there is a seller, it means the token is the original token
             if (sellerRewards > 0) {
-                _helperRewrdAmounts[seller][settlementToken] += sellerRewards;
+                _rewardAmounts[sellerId][settlementToken] += sellerRewards;
                 emit RewardsAdded(
                     boxId_,
                     settlementToken,
@@ -139,18 +134,18 @@ contract FundManager02 is FundManager01, FundManagerEvents {
                 );
             }
             // Update minter rewards (using original token)
-            _minterRewardAmounts[minter_][token_] += (amount_ - amountIn_token);
+            _rewardAmounts[minterId_][token_] += (amount_ - amountIn);
             emit RewardsAdded(
                 boxId_,
                 token_,
-                (amount_ - amountIn_token),
+                (amount_ - amountIn),
                 RewardType.Minter
             );
 
             // Directly assign the service fee to the DAO fund manager contract
             IERC20(settlementToken).safeTransfer(
                 ADDR_MANAGER.daoFundManager(),
-                (amountOut_settlementToken - sellerRewards - completerRewards)
+                (amountOut - sellerRewards - completerRewards)
             );
 
             // Record total reward amount
@@ -236,22 +231,23 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         IExchange exchange = EXCHANGE;
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
+        uint256 userId = USER_MANAGER.getUserId(sender);
 
         // Process refunds for each box
         for (uint256 i = 0; i < list_.length; i++) {
             uint256 boxId = list_[i];
-            uint256 orderAmount = _orderAmounts[boxId][sender];
-            address buyer = exchange.buyerOf(boxId);
+            uint256 orderAmount = _orderAmounts[boxId][userId];
+            uint256 buyerId = exchange.buyerIdOf(boxId);
             if (orderAmount == 0) {
                 revert AmountIsZero();
             }
 
             if (type_ == FundsType.Order) {
                 // Cannot be the current buyer
-                if (sender == buyer) revert InvalidCaller();
+                if (userId == buyerId) revert InvalidCaller();
             } else if (type_ == FundsType.Refund) {
                 // The caller must be the buyer and the refund must be permitted
-                if (sender != buyer || !exchange.refundPermit(boxId)) {
+                if (userId != buyerId || !exchange.refundPermit(boxId)) {
                     revert WithdrawError();
                 }
                 exchange.setRefundPermit(boxId, false);
@@ -264,13 +260,12 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             unchecked {
                 amount += orderAmount;
             }
-            _orderAmounts[boxId][sender] = 0;
+            _orderAmounts[boxId][userId] = 0;
         }
 
         // Execute refund
         IERC20(token_).safeTransfer(sender, amount);
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
         emit OrderAmountWithdraw(list_, token_, userId, amount, type_);
     }
     // ===================================================================================

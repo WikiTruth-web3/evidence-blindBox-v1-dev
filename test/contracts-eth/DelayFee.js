@@ -6,13 +6,6 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployTruthBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
-/**
- * 测试合约：TruthBox.sol
- * 主要测试内容：
- * 1. 设置延迟费用率
- * 2. 缴纳延迟费用
- * 3. 延长保密时间
- */
 
 describe("TruthBox-DelayFee- 相关测试", async function () {
 
@@ -68,7 +61,7 @@ describe("TruthBox-DelayFee- 相关测试", async function () {
     const balanceOf_buyer = await settlementToken.balanceOf(buyer.address);
     console.log("DelayFee--feeToken_buyer缴费之前余额:",balanceOf_buyer.toString());
     ///
-    const rewards_minter0 = await fundManager.minterRewardAmounts(settlementToken.target,minter.address)
+    const rewards_minter0 = await fundManager.rewardAmounts(settlementToken.target,minter.address)
     expect (rewards_minter0).to.equal(38800)
     // =================检查时间================
     const deadline01_0 = Number(await truthBox.getDeadline(1)); 
@@ -91,7 +84,7 @@ describe("TruthBox-DelayFee- 相关测试", async function () {
     console.log("DelayFee--feeToken_buyer缴费之后余额——1:",balanceOf_buyer1.toString());
     expect(Number(balanceOf_buyer)-Number(balanceOf_buyer1)).to.equal(40000)
     ///
-    const rewards_minter = await fundManager.minterRewardAmounts(settlementToken.target,minter.address)
+    const rewards_minter = await fundManager.rewardAmounts(settlementToken.target,minter.address)
     expect (rewards_minter).to.equal(77600)
 
     // =================查看价格是否变化===============
@@ -115,7 +108,7 @@ describe("TruthBox-DelayFee- 相关测试", async function () {
     // 验证刚才缴费是否有40000
     expect(Number(balanceOf_buyer1)-Number(balanceOf_buyer2)).to.equal(40000)
     ///
-    const rewards_minter2 = await fundManager.minterRewardAmounts(settlementToken.target,minter.address)
+    const rewards_minter2 = await fundManager.rewardAmounts(settlementToken.target,minter.address)
     expect (rewards_minter2).to.equal(116400)
 
     // =================缴费 3================
@@ -132,7 +125,7 @@ describe("TruthBox-DelayFee- 相关测试", async function () {
     // 验证刚才缴费是否有80000
     expect(Number(balanceOf_buyer2)-Number(balanceOf_buyer3)).to.equal(80000)
     // 检查minter的收入
-    const rewards_minter3 = await fundManager.minterRewardAmounts(settlementToken.target,minter.address)
+    const rewards_minter3 = await fundManager.rewardAmounts(settlementToken.target,minter.address)
     expect (rewards_minter3).to.equal(194000)
 
     const price_0_2 = await truthBox_minter.getPrice(0);

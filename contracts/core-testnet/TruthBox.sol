@@ -33,10 +33,6 @@ contract TruthBox is TruthBox03, ITruthBox {
         address trustedForwarder_
     ) TruthBox03(addrManager_, trustedForwarder_) {}
 
-    /**
-     * @notice Set the contract address
-     * @dev Get and set the related contract addresses from AddressManager
-     */
     function setAddress() external onlyManager {
         _setAddress(CoreContracts.TruthBox);
     }
@@ -45,14 +41,6 @@ contract TruthBox is TruthBox03, ITruthBox {
     //                                                 mint Functions
     // ==========================================================================================================
 
-    /**
-     * @dev Create a truth box
-     * @param tokenCID_ The CID of the token
-     * @param boxInfoCID_ The CID of the box info
-     * @param key_ The key of the box
-     * @param price_ The price of the box
-     * @return The ID of the box
-     */
     function create(
         string calldata tokenCID_,
         string calldata boxInfoCID_,
@@ -123,20 +111,12 @@ contract TruthBox is TruthBox03, ITruthBox {
     //                                                 public Functions
     // ==========================================================================================================
 
-    /**
-     * @dev Publish TruthBox, which minter can call,
-     * If the minter wants to publish, it must be Storing status.
-     */
     function publishByMinter(uint256 boxId_) external {
         _checkMinter(boxId_);
         _checkStatus(boxId_, Status.Storing);
         _setStatus(boxId_, Status.Published);
     }
 
-    /**
-     * @dev Publish TruthBox, which administrators can call,
-     * If the buyer wants to publish, it must be Delaying status.
-     */
     function publishByBuyer(uint256 boxId_) external {
         _checkBuyer(boxId_);
         _checkStatus(boxId_, Status.Delaying);
@@ -161,14 +141,6 @@ contract TruthBox is TruthBox03, ITruthBox {
 
     // ==========================================================================================================
 
-    /**
-     * @dev Get public data of a box
-     * @param boxId_ The ID of the box
-     * @return status The status of the box
-     * @return price The price of the box
-     * @return deadline The deadline of the box
-     * Everyone can call this function
-     */
     function getBasicData(
         uint256 boxId_
     ) external view returns (Status, uint256, uint256) {
@@ -189,10 +161,10 @@ contract TruthBox is TruthBox03, ITruthBox {
 
     // ==========================================================================================================
 
-    function minterOf(
+    function minterIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (address) {
-        return _minterOf(boxId_);
+    ) external view onlyProjectContract returns (uint256) {
+        return _minterIdOf(boxId_);
     }
 
     // ==========================================================================================================

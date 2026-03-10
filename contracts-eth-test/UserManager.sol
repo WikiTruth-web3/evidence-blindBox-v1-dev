@@ -52,15 +52,23 @@ contract UserManager is ModifierV2, IUserManager {
 
     // =====================================================================================
 
+    function _checkInBlacklist(address user_) internal view {
+        if (_blacklist[user_]) revert InBlacklist();
+    }
+
+    function _checkNotInBlacklist(address user_) internal view {
+        if (!_blacklist[user_]) revert NotInBlacklist();
+    }
+
     /**
-     * @dev Get user id
+     * @dev get user id
      * @param user_ The address of user
      * Only callable by the contracts in the project (access)
      */
     function getUserId(
         address user_
     ) external onlyProjectContract returns (uint256) {
-        if (_blacklist[user_]) revert InBlacklist();
+        _checkInBlacklist(user_);
         // Get user ID
         uint256 userId = _userIds[user_];
         if (userId == 0) {
@@ -74,12 +82,31 @@ contract UserManager is ModifierV2, IUserManager {
     }
 
     /**
+     * @notice view user ID (View)
+     * @param user_ User address
+     * @return User ID
+     * @dev Only callable by project contracts
+     */
+    function viewUserId(
+        address user_
+    ) external view onlyProjectContract returns (uint256) {
+        _checkInBlacklist(user_);
+
+        // Get user ID from hashed mapping
+        uint256 userId = _userIds[user_];
+        if (userId == 0) {
+            revert EmptyUserId();
+        }
+        return userId;
+    }
+
+    /**
      * @dev Get my user id
      * NOTE In sapphire, you need to comment, use the myUserId(bytes memory token_) function above
      */
     function myUserId() public view returns (uint256) {
         address sender = msg.sender;
-        if (_blacklist[sender]) revert InBlacklist();
+        _checkInBlacklist(sender);
         return _userIds[sender];
     }
 
@@ -87,13 +114,13 @@ contract UserManager is ModifierV2, IUserManager {
 
     //
     function addBlacklist(address user_) external onlyAdminDAO {
-        if (_blacklist[user_]) revert InBlacklist();
+        _checkInBlacklist(user_);
         _blacklist[user_] = true;
         emit Blacklist(user_, true);
     }
 
     function removeBlacklist(address user_) external onlyAdminDAO {
-        if (!_blacklist[user_]) revert NotInBlacklist();
+        _checkNotInBlacklist(user_);
         _blacklist[user_] = false;
         emit Blacklist(user_, false);
     }

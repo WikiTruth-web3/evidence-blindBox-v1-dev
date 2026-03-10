@@ -50,6 +50,14 @@ interface IUserManager {
     function getUserId(address user_) external returns (uint256);
 
     /**
+     * @notice view user ID (View)
+     * @param user_ User address
+     * @return User ID
+     * @dev Only callable by project contracts
+     */
+    function viewUserId(address user_) external view returns (uint256);
+
+    /**
      * @notice Get my user ID
      * @param siweToken_ SIWE token
      * @return User ID

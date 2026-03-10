@@ -18,7 +18,7 @@ pragma solidity ^0.8.24;
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {Pausable} from "../utils/Pausable.sol";
+import {Pausable} from "../abstract/Pausable.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 

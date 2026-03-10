@@ -104,6 +104,9 @@ interface Error {
     /// @dev Thrown when key is empty
     error EmptyKey();
 
+    /// @dev Thrown when user id is empty
+    error EmptyUserId();
+
     /// @dev Thrown when withdraw failed
     error WithdrawError();
 
