@@ -18,7 +18,7 @@ pragma solidity ^0.8.24;
 interface FundManagerEvents {
     event OrderAmountPaid(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         address indexed token,
         uint256 amount
     );
@@ -26,7 +26,7 @@ interface FundManagerEvents {
     event OrderAmountWithdraw(
         uint256[] list,
         address indexed token,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         uint256 amount,
         FundsType fundsType
     );
@@ -38,8 +38,8 @@ interface FundManagerEvents {
         RewardType rewardType
     );
 
-    event RewrdsWithdraw(
-        uint256 indexed userId,
+    event RewardsWithdraw(
+        bytes32 indexed userId,
         address indexed token,
         uint256 amount
     );
@@ -88,7 +88,7 @@ interface IFundManager {
         uint256 boxId_,
         address buyer_,
         uint256 amount_,
-        uint256 userId_
+        bytes32 userId_
     ) external;
 
     /**
@@ -151,9 +151,9 @@ interface IFundManager {
      * @param userId_ User ID
      * @return Order amount
      */
-    function orderAmountsProject(
+    function restrictedGetOrderAmounts(
         uint256 boxId_,
-        uint256 userId_
+        bytes32 userId_
     ) external view returns (uint256);
 
     /**

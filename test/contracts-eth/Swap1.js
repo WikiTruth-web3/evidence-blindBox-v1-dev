@@ -18,9 +18,9 @@ describe("交易测试-常规交易测试", function () {
       admin, dao, minter, buyer, completer,
       settlementToken, 
       truthBox, exchange, fundManager, userManager_buyer,
-      DAY, MONTH, YEAR,
+      DAY, MONTH, YEAR,bytes32_zero,
       exchange_minter,exchange_completer, exchange_buyer, truthBox_buyer, 
-      address_zero, bytes_deliver,userManager_completer ,dao_fund_manager
+      address_zero, userManager_completer ,dao_fund_manager
     } = await loadFixture(deployTruthBoxFixture);
 
     // 时间增加360天
@@ -60,8 +60,8 @@ describe("交易测试-常规交易测试", function () {
     expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Selling);
 
     // 检查出售者应该为空
-    expect(await exchange.sellerIdOf(1)).to.equal(0);
-    expect(await exchange.sellerIdOf(2)).to.equal(0);
+    expect(await exchange.sellerIdOf(1)).to.equal(bytes32_zero);
+    expect(await exchange.sellerIdOf(2)).to.equal(bytes32_zero);
 
     // ========================== 购买1 ==========================
     await exchange_buyer.buy(1);

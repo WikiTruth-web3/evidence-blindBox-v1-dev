@@ -33,28 +33,20 @@ import {ModifierV2} from "./modifier/ModifierV2.sol";
  */
 
 contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
-    // Key is keccak256(abi.encodePacked(address, _identitySalt))
-    mapping(bytes32 => uint256) private _hashedUserIds;
-
     mapping(address => bool) internal _blacklist;
 
-    uint256 internal _nextUserId;
-
     // =======================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
-        _nextUserId = 10000;
-    }
+    constructor(
+        address addrManager_
+    )
+        ModifierV2(addrManager_)
+        IdentitySalt("WikiTruth Identity Master Secret")
+    {}
 
     // =====================================================================================
 
     function setAddress() external onlyManager {
         _setAddress(CoreContracts.UserManager);
-    }
-
-    function initUserId() external onlyAdmin {
-        if (0 == _nextUserId) {
-            _nextUserId = 10000;
-        }
     }
 
     // =====================================================================================
@@ -69,45 +61,14 @@ contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
 
     function getUserId(
         address user_
-    ) external onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         _checkInBlacklist(user_);
 
         // core encryption logic: generate combined hash
-        bytes32 identityKey = _getIdentityKey(user_);
-
-        // Get user ID from hashed mapping
-        uint256 userId = _hashedUserIds[identityKey];
-        if (userId == 0) {
-            userId = _nextUserId;
-            _hashedUserIds[identityKey] = userId;
-            unchecked {
-                _nextUserId++;
-            }
-        }
-        return userId;
+        return _getUserId(user_);
     }
 
-    function viewUserId(
-        address user_
-    ) external view onlyProjectContract returns (uint256) {
-        _checkInBlacklist(user_);
-
-        // core encryption logic: generate combined hash
-        bytes32 identityKey = _getIdentityKey(user_);
-
-        // Get user ID from hashed mapping
-        uint256 userId = _hashedUserIds[identityKey];
-        if (userId == 0) {
-            revert EmptyUserId();
-        }
-        return userId;
-    }
-
-    /**
-     * @dev Get my user id
-     * @param siweToken_ SIWE token
-     */
-    function myUserId(bytes memory siweToken_) public view returns (uint256) {
+    function myUserId(bytes memory siweToken_) public view returns (bytes32) {
         address sender = msg.sender;
         if (sender == address(0)) {
             // Use SiweContext get sender
@@ -115,8 +76,7 @@ contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
         }
         _checkInBlacklist(sender);
 
-        bytes32 identityKey = _getIdentityKey(sender);
-        return _hashedUserIds[identityKey];
+        return _getUserId(sender);
     }
 
     // =====================================================================================

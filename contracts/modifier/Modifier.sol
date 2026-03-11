@@ -15,38 +15,65 @@
 
 pragma solidity ^0.8.24;
 
-import {
-    Sapphire
-} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
+import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 
 /**
- * @title IdentitySalt
- * @notice Abstract base class: provides privacy hashing capability for child contracts
+ * @title Modifier
+ * @dev This contract is used to manage modifiers
  */
 
-abstract contract IdentitySalt {
-    // Secret salt to decouple addresses from User IDs
-    bytes32 private _identitySalt;
+contract Modifier is Error {
+    IAddressManager internal ADDR_MANAGER;
+    address internal ADMIN;
 
     // =======================================================================================================
-    constructor() {
-        // Initialize the cryptographically secure random salt
-        if (_identitySalt == bytes32(0)) {
-            _identitySalt = bytes32(
-                Sapphire.randomBytes(32, "WikiTruth Identity")
-            );
-        }
+    constructor(address addrManager_) {
+        ADMIN = msg.sender;
+        ADDR_MANAGER = IAddressManager(addrManager_);
     }
+
+    function setAddressManager(address addrManager_) external onlyAdmin {
+        ADDR_MANAGER = IAddressManager(addrManager_);
+    }
+
+    function setAdmin(address admin_) external onlyAdmin {
+        ADMIN = admin_;
+    }
+
+    // function admin() external view returns (address) {
+    //     return ADMIN;
+    // }
 
     // =====================================================================================
 
-    /**
-     * @dev Core logic: convert address to irreversible privacy hash
-     */
-    function _getIdentityKey(address user_) internal view returns (bytes32) {
-        if (user_ == address(0)) return bytes32(0);
-        // If the salt is not initialized, it may cause an error or return an unsafe result. It is recommended to add a security check
-        require(_identitySalt != bytes32(0), "IdentitySalt: Not initialized");
-        return keccak256(abi.encodePacked(user_, _identitySalt));
+    modifier onlyAdmin() {
+        if (msg.sender != ADMIN) revert NotAdmin();
+        _;
+    }
+
+    modifier onlyDAO() {
+        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
+        _;
+    }
+
+    modifier onlyAdminDAO() {
+        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != ADMIN)
+            revert NotAdminOrDAO();
+        _;
+    }
+
+    modifier onlyManager() {
+        if (msg.sender != address(ADDR_MANAGER) && msg.sender != ADMIN) {
+            revert InvalidCaller();
+        }
+        _;
+    }
+
+    modifier onlyProjectContract() {
+        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
+            revert NotProjectCaller();
+        }
+        _;
     }
 }

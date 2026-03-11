@@ -23,7 +23,7 @@ import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
 import {Error} from "@marketplace-v1/interfaces/Error.sol";
 
-import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
+// import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 
 /**
  * @title AddressManager
@@ -31,7 +31,7 @@ import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
  * @dev Inherits IAddressManager interface to ensure consistency between interface and implementation
  */
 
-contract AddressManager is ProxyUpgrade, IAddressManager {
+contract AddressManager is IAddressManager, Error {
     error TokenIsActive();
     error TokenIsNotActive();
     error InvalidAddress();
@@ -43,7 +43,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      * @dev The admin is managed by the ProxyUpgrade contract
      * The variable will be re-enabled in the production environment
      */
-    // address public admin;
+    address public admin;
 
     //--------------------------core contracts------------------------------
     // DAO governance related contracts
@@ -100,25 +100,20 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     // =======================================================================================================
     constructor() {
-        // admin = msg.sender;
+        admin = msg.sender;
     }
 
     // =====================================================================================
 
-    // modifier onlyAdmin() {
-    //     if (msg.sender != admin) revert NotAdmin();
-    //     _;
-    // }
+    modifier onlyAdmin() {
+        if (msg.sender != admin) revert NotAdmin();
+        _;
+    }
 
-    /**
-     * @dev Set admin
-     * The admin is managed by the ProxyUpgrade contract
-     * The function will be re-enabled in the production environment
-     */
-    // function setAdmin(address newAdmin_) external onlyAdmin {
-    //     if (newAdmin_ == address(0)) revert InvalidAddress();
-    //     admin = newAdmin_;
-    // }
+    function setAdmin(address newAdmin_) external onlyAdmin {
+        if (newAdmin_ == address(0)) revert InvalidAddress();
+        admin = newAdmin_;
+    }
 
     // =====================================================================================
 

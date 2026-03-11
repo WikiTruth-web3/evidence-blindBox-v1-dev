@@ -17,111 +17,109 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
-
 import {
-    IFundManager,
     FundsType,
     RewardType
 } from "@marketplace-v1/interfaces/IFundManager.sol";
-import {FundManager03} from "./base/FundManager03.sol";
+import {FundManager02} from "./FundManager02.sol";
+
 /**
- * @title FundManager
+ * @title FundManager03
  * @notice Fund management contract that supports multiple tokens
  * Inherits IFundManager interface to ensure consistency between interface and implementation
  */
 
-contract FundManager is FundManager03, IFundManager {
+contract FundManager03 is FundManager02 {
     using SafeERC20 for IERC20;
     // ====================================================================================================================
 
     constructor(
         address addrManager_,
         address trustedForwarder_
-    ) FundManager03(addrManager_, trustedForwarder_) {}
-
-    /**
-     * @notice Set contract addresses
-     * @dev Get and set related contract addresses from AddressManager
-     */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.FundManager);
-    }
+    ) FundManager02(addrManager_, trustedForwarder_) {}
 
     // ====================================================================================================================
 
-    function payOrderAmount(
+    /**
+     * @dev Pay order amount
+     * @param boxId_ TruthBox ID
+     * @param buyer_ Buyer address
+     * @param amount_ Amount to pay
+     */
+    function _payOrderAmount(
         uint256 boxId_,
         address buyer_,
         uint256 amount_,
-        uint256 userId_
-    ) external {
-        _payOrderAmount(boxId_, buyer_, amount_, userId_);
+        bytes32 userId_
+    ) internal {
+        address token = EXCHANGE.acceptedToken(boxId_);
+
+        IERC20(token).safeTransferFrom(buyer_, address(this), amount_);
+        _orderAmounts[boxId_][userId_] += amount_;
+
+        emit OrderAmountPaid(boxId_, userId_, token, amount_);
     }
 
-    function payDelayFee(
+    /**
+     * @dev Pay delay fee
+     * @param boxId_ TruthBox ID
+     * @param sender_ Sender address
+     * @param amount_ Amount to pay
+     */
+    function _payDelayFee(
         uint256 boxId_,
         address sender_,
         uint256 amount_
-    ) external {
-        _payDelayFee(boxId_, sender_, amount_);
+    ) internal {
+        address settlementToken = ADDR_MANAGER.settlementToken();
+        IERC20(settlementToken).safeTransferFrom(
+            sender_,
+            address(this),
+            amount_
+        );
+
+        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        _calculateAllocation(boxId_, minterId, amount_, settlementToken);
     }
 
     // ====================================================================================================================
+    // Reward Allocation Functions
 
-    function allocationRewards(uint256 boxId_) external {
-        _allocationRewards(boxId_);
+    /**
+     * @dev Allocate rewards
+     * @param boxId_ TruthBox ID
+     */
+    function _allocationRewards(uint256 boxId_) internal {
+        bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
+        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        address token = EXCHANGE.acceptedToken(boxId_);
+
+        uint256 amount = _orderAmounts[boxId_][buyerId];
+        if (amount == 0) revert AmountIsZero();
+
+        // Clear the original token order amount
+        _orderAmounts[boxId_][buyerId] = 0;
+        _calculateAllocation(boxId_, minterId, amount, token);
     }
 
     // ====================================================================================================================
-    // Withdrawal Functions
+    /**
+     * @dev Withdraw other reward amounts (settlement token only)
+     * @param token_ Token address
+     */
+    function _withdrawRewards(
+        address token_
+    ) internal nonReentrant whenNotPaused {
+        // erc2771 - _msgSender() is the real caller
+        address sender = _msgSender();
+        bytes32 userId = USER_MANAGER.getUserId(sender);
+        uint256 amount = _rewardAmounts[userId][token_];
+        if (amount == 0) {
+            revert AmountIsZero();
+        }
+        _rewardAmounts[userId][token_] = 0;
+        IERC20(token_).safeTransfer(sender, amount);
 
-    function withdrawOrderAmounts(
-        address token_,
-        uint256[] calldata list_
-    ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Order);
-    }
-
-    function withdrawRefundAmounts(
-        address token_,
-        uint256[] calldata list_
-    ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Refund);
-    }
-
-    function withdrawRewards(address token_) external {
-        _withdrawRewards(token_);
-    }
-
-    // ====================================================================================================================
-    //                    Query Functions
-    // ====================================================================================================================
-
-    function orderAmountsProject(
-        uint256 boxId_,
-        uint256 userId_
-    ) external view onlyProjectContract returns (uint256) {
-        return _orderAmounts[boxId_][userId_];
-    }
-
-    function orderAmounts(
-        uint256 boxId_,
-        bytes memory siweToken_
-    ) external view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        uint256 userId = USER_MANAGER.viewUserId(sender);
-        return _orderAmounts[boxId_][userId];
-    }
-
-    function rewardAmounts(
-        address token_,
-        bytes memory siweToken_
-    ) external view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        uint256 userId = USER_MANAGER.viewUserId(sender);
-        return _rewardAmounts[userId][token_];
+        emit RewrdsWithdraw(userId, token_, amount);
     }
 }

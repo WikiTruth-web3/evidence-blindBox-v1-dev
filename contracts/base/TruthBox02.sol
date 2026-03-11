@@ -23,6 +23,7 @@ import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {IdentitySalt} from "../abstract/IdentitySalt.sol";
+import {SecretKeyManager} from "../abstract/SecretKeyManager.sol";
 import {TruthBox01} from "./TruthBox01.sol";
 import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
 
@@ -33,7 +34,13 @@ import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
  *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
+contract TruthBox02 is
+    TruthBox01,
+    TruthBoxEvents,
+    ERC2771Context,
+    SiweContext,
+    SecretKeyManager
+{
     struct BasicData {
         Status _status;
         uint256 _price;
@@ -41,7 +48,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
     }
 
     struct SecretData {
-        uint256 _minterId;
+        bytes32 _minterId;
         bytes _encryptedData; // sapphire encrypted data (private key)
         bytes32 _nonce; // sapphire encrypted nonce, decryption required
     }
@@ -53,7 +60,11 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
     constructor(
         address addrManager_,
         address trustedForwarder_
-    ) TruthBox01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    )
+        TruthBox01(addrManager_)
+        ERC2771Context(trustedForwarder_)
+        SecretKeyManager("WikiTruth Data Encryption Root Secret")
+    {}
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -82,20 +93,19 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
 
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
 
         if (key_.length != 0) {
-            // Generate encrypted nonce (critical fix: save nonce for decryption)
+            // 1. Derive box-specific symmetric key
+            bytes32 secretKey = _deriveDataKey(bytes32(boxId));
+
+            // 2. Generate random nonce
             nonce = bytes32(
                 Sapphire.randomBytes(32, abi.encodePacked(boxId, sender))
             );
 
-            encryptedData = Sapphire.encrypt(
-                bytes32(0), // Use default key, do not use automatically generated secretKey
-                nonce,
-                key_,
-                ""
-            );
+            // 3. Encrypt data with the derived key
+            encryptedData = Sapphire.encrypt(secretKey, nonce, key_, "");
         }
 
         _basicData[boxId] = BasicData({
@@ -149,7 +159,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents, ERC2771Context, SiweContext {
 
         unchecked {
             // On mainnet, the deadline is 365 days, but on testnet, the deadline is 15 days
-            deadline = block.timestamp + 15 days; // NOTE 365----15
+            deadline = block.timestamp + 15 days; // NOTE mainnet 365 days----testnet 15 days
         }
 
         uint256 boxId = _setBoxData(

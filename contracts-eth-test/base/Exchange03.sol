@@ -53,7 +53,7 @@ contract Exchange03 is Exchange02 {
 
         address sender = msg.sender;
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         _boxExchengData[boxId_]._buyerId = userId;
 
         // Buy operation, should directly set the deadline for applying for refund
@@ -69,10 +69,7 @@ contract Exchange03 is Exchange02 {
     //                                           finalize related functions
     // ========================================================================================================
 
-    function _setRefundPermit(
-        uint256 boxId_,
-        bool permission_
-    ) internal onlyProjectContract {
+    function _setRefundPermit(uint256 boxId_, bool permission_) internal {
         _boxExchengData[boxId_]._refundPermit = permission_;
         emit RefundPermitChanged(boxId_, permission_);
     }
@@ -93,7 +90,7 @@ contract Exchange03 is Exchange02 {
         // canRequestRefund?
         if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
         // erc2771 - msg.sender is the real caller
-        uint256 userId = USER_MANAGER.getUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
@@ -114,7 +111,7 @@ contract Exchange03 is Exchange02 {
      */
     function _cancelRefund(uint256 boxId_) internal {
         // erc2771 - msg.sender is the real caller
-        uint256 userId = USER_MANAGER.getUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
@@ -142,7 +139,7 @@ contract Exchange03 is Exchange02 {
 
         if (_isInReviewDeadline(boxId_)) {
             // Check role: minter、DAO
-            uint256 userId = USER_MANAGER.getUserId(msg.sender);
+            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (
                 // erc2771 - msg.sender is the real caller
                 userId != truthBox.minterIdOf(boxId_) &&
@@ -202,7 +199,7 @@ contract Exchange03 is Exchange02 {
 
         // erc2771
         address sender = msg.sender;
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
 
         if (userId != _buyerIdOf(boxId_)) {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();

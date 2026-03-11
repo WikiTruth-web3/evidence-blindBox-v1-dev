@@ -42,7 +42,7 @@ contract TruthBox03 is TruthBox02 {
         if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
             if (status == Status.Selling || status == Status.Auctioning) {
-                if (EXCHANGE.buyerIdOf(boxId_) == 0) {
+                if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
                     return Status.Published;
                 } else {
                     // If there is a buyer, then the status is Paid
@@ -78,11 +78,11 @@ contract TruthBox03 is TruthBox02 {
         ) {
             // Role verification is handled by calling the function.
             // Since this is a view function, getUserId might not work if it needs to register.
-            // But we can use viewUserId.
-            uint256 userId = USER_MANAGER.viewUserId(msg.sender);
+            // But we can use getUserId.
+            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (userId != _minterIdOf(boxId_)) revert NotMinter();
         } else if (status == Status.Delaying || status == Status.Paid) {
-            uint256 userId = USER_MANAGER.viewUserId(msg.sender);
+            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
@@ -186,13 +186,13 @@ contract TruthBox03 is TruthBox02 {
     //                                               Blacklist Functions
     // ==========================================================================================================
 
-    function _addToBlacklist(uint256 boxId_) internal onlyDAO {
+    function _addToBlacklist(uint256 boxId_) internal {
         _boxExists(boxId_);
 
         _checkIsBlacklisted(boxId_);
 
         // If the Box has a buyer, then set RefundPermit to true
-        if (EXCHANGE.buyerIdOf(boxId_) != 0) {
+        if (EXCHANGE.buyerIdOf(boxId_) != bytes32(0)) {
             EXCHANGE.setRefundPermit(boxId_, true);
         }
 
@@ -204,9 +204,9 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
     //                                      Getter Functions
     // ==========================================================================================================
-    function _minterIdOf(uint256 boxId_) internal view returns (uint256) {
-        uint256 minterId = _secretData[boxId_]._minterId;
-        if (minterId == 0) revert BoxNotExists();
+    function _minterIdOf(uint256 boxId_) internal view returns (bytes32) {
+        bytes32 minterId = _secretData[boxId_]._minterId;
+        if (minterId == bytes32(0)) revert BoxNotExists();
         return minterId;
     }
 }

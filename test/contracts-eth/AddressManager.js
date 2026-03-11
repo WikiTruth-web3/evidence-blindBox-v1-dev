@@ -24,6 +24,7 @@ describe("AddressManager- 相关测试", function () {
       address_zero, // truthBox 原始值不变
       wBTC.target, // exchange
       wETH.target, // fundManager
+      quoter.address, // fundManager
     ]
 
     await addressManager.setAddressList(tokenList);

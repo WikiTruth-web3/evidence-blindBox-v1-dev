@@ -1,6 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { wikiTruth_contracts_address } from "../../scripts/utils/wikiTruth_contracts_address";
 
+// 1. deploy: npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
+
 export default buildModule("Deploy_20260213", (m) => {
   const addressManager_Proxy = wikiTruth_contracts_address.addressManager;
 
@@ -18,6 +20,3 @@ export default buildModule("Deploy_20260213", (m) => {
     // userId 
   };
 });
-
-// 1. 部署命令：npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
-// 2. 合约地址: 

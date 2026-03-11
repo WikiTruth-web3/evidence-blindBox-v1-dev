@@ -19,7 +19,7 @@ describe("UserManager- 相关测试", function () {
     const id_minter = await userManager_minter.myUserId();
 
     // 验证ID不为0（表示已分配）
-    expect(id_minter).to.equal(10000);
+    expect(id_minter).to.equal("0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65");
 
     // 加入黑名单
     await userManager.addBlacklist(buyer.address);

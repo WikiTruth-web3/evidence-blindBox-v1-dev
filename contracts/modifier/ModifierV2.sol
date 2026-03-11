@@ -15,58 +15,67 @@
 
 pragma solidity ^0.8.24;
 
-import "@marketplace-v1/library/StorageSlot.sol";
+import {SetAddress} from "../base/SetAddress.sol";
 
-contract Proxy {
-    bytes32 internal constant IMPLEMENTATION_SLOT =
-        0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {Error} from "@marketplace-v1/interfaces/Error.sol";
 
-    bytes32 internal constant ADMIN_SLOT =
-        0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+/**
+ * @title ModifierV2
+ * @dev This contract is used to manage modifiers
+ * @dev Inherits ERC2771Context to support meta-transactions
+ * @dev Inherits SetAddress to support set address
+ */
 
-    constructor(address implementation_) payable {
-        require(
-            implementation_.code.length > 0,
-            "ERC1967: invalid implementation"
-        );
-        StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value = implementation_;
-        StorageSlot.getAddressSlot(ADMIN_SLOT).value = msg.sender;
+contract ModifierV2 is Error, SetAddress {
+    address internal ADMIN;
+
+    // =======================================================================================================
+    constructor(address addrManager_) SetAddress(addrManager_) {
+        ADMIN = msg.sender;
     }
 
-    fallback() external payable virtual {
-        _fallback();
+    function setAddressManager(address addrManager_) external onlyAdmin {
+        _setAddressManager(addrManager_);
     }
 
-    function _fallback() internal virtual {
-        address _beacon = StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value;
-        require(_beacon != address(0), "Proxy: implementation not set");
+    function setAdmin(address admin_) external onlyAdmin {
+        ADMIN = admin_;
+    }
 
-        assembly {
-            let ptr := mload(0x40)
-            // let beacon := sload(_beacon.slot)
-            calldatacopy(ptr, 0, calldatasize())
-            let result := delegatecall(
-                gas(),
-                _beacon,
-                ptr,
-                calldatasize(),
-                0,
-                0
-            )
-            let size := returndatasize()
-            returndatacopy(ptr, 0, size)
+    // function admin() external view returns (address) {
+    //     return ADMIN;
+    // }
 
-            switch result
-            case 0 {
-                revert(ptr, size)
-            }
-            default {
-                return(ptr, size)
-            }
+    // =====================================================================================
+
+    modifier onlyAdmin() {
+        if (msg.sender != ADMIN) revert NotAdmin();
+        _;
+    }
+
+    modifier onlyDAO() {
+        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
+        _;
+    }
+
+    modifier onlyAdminDAO() {
+        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != ADMIN)
+            revert NotAdminOrDAO();
+        _;
+    }
+
+    modifier onlyManager() {
+        if (msg.sender != address(ADDR_MANAGER) && msg.sender != ADMIN) {
+            revert InvalidCaller();
         }
+        _;
     }
 
-    receive() external payable virtual {
-        _fallback();
+    modifier onlyProjectContract() {
+        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
+            revert NotProjectCaller();
+        }
+        _;
     }
 }

@@ -33,16 +33,10 @@ import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 contract UserManager is ModifierV2, IUserManager {
     // =====================================================================================
 
-    mapping(address => uint256) internal _userIds;
     mapping(address => bool) internal _blacklist;
 
-    uint256 internal _nextUserId;
-
     // =======================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
-        // ADDR_MANAGER = IAddressManager(addrManager_);
-        _nextUserId = 10000;
-    }
+    constructor(address addrManager_) ModifierV2(addrManager_) {}
 
     // =====================================================================================
 
@@ -67,47 +61,19 @@ contract UserManager is ModifierV2, IUserManager {
      */
     function getUserId(
         address user_
-    ) external onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         _checkInBlacklist(user_);
-        // Get user ID
-        uint256 userId = _userIds[user_];
-        if (userId == 0) {
-            userId = _nextUserId;
-            _userIds[user_] = userId;
-            unchecked {
-                _nextUserId++;
-            }
-        }
-        return userId; // Return existing ID
-    }
-
-    /**
-     * @notice view user ID (View)
-     * @param user_ User address
-     * @return User ID
-     * @dev Only callable by project contracts
-     */
-    function viewUserId(
-        address user_
-    ) external view onlyProjectContract returns (uint256) {
-        _checkInBlacklist(user_);
-
-        // Get user ID from hashed mapping
-        uint256 userId = _userIds[user_];
-        if (userId == 0) {
-            revert EmptyUserId();
-        }
-        return userId;
+        return bytes32(uint256(uint160(user_)));
     }
 
     /**
      * @dev Get my user id
      * NOTE In sapphire, you need to comment, use the myUserId(bytes memory token_) function above
      */
-    function myUserId() public view returns (uint256) {
+    function myUserId() public view returns (bytes32) {
         address sender = msg.sender;
         _checkInBlacklist(sender);
-        return _userIds[sender];
+        return bytes32(uint256(uint160(sender)));
     }
 
     // =====================================================================================

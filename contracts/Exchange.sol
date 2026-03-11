@@ -50,7 +50,7 @@ contract Exchange is Exchange03, IExchange {
         address acceptedToken_,
         uint256 price_
     ) external {
-        // NOTE: 365----15
+        // NOTE: mainnet 365 days---- testnet 15 days
         _setBoxListedArgs(
             boxId_,
             acceptedToken_,
@@ -65,7 +65,7 @@ contract Exchange is Exchange03, IExchange {
         address acceptedToken_,
         uint256 price_
     ) external {
-        // NOTE: 30 days----3 days
+        // NOTE: mainnet 30 days---- testnet 3 days
         _setBoxListedArgs(
             boxId_,
             acceptedToken_,
@@ -93,7 +93,7 @@ contract Exchange is Exchange03, IExchange {
     ) public view returns (uint256) {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        uint256 userId = USER_MANAGER.viewUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         uint256 price = TRUTH_BOX.getPrice(boxId_);
 
         return _calcPayMoney(boxId_, userId, price);
@@ -103,7 +103,10 @@ contract Exchange is Exchange03, IExchange {
     //                                           Refund function
     // ========================================================================================================
 
-    function setRefundPermit(uint256 boxId_, bool permission_) external {
+    function setRefundPermit(
+        uint256 boxId_,
+        bool permission_
+    ) external onlyProjectContract {
         _setRefundPermit(boxId_, permission_);
     }
 
@@ -137,19 +140,19 @@ contract Exchange is Exchange03, IExchange {
 
     function buyerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         return _buyerIdOf(boxId_);
     }
 
     function sellerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         return _sellerIdOf(boxId_);
     }
 
     function completerIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         return _completerIdOf(boxId_);
     }
 

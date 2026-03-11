@@ -19,12 +19,12 @@ interface AllEvents_wikitruth {
     // ========== Exchange ==========
     event BoxListed(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         address acceptedToken
     );
-    event BoxPurchased(uint256 indexed boxId, uint256 indexed userId);
-    event BidPlaced(uint256 indexed boxId, uint256 indexed userId);
-    event CompleterAssigned(uint256 indexed boxId, uint256 indexed userId);
+    event BoxPurchased(uint256 indexed boxId, bytes32 indexed userId);
+    event BidPlaced(uint256 indexed boxId, bytes32 indexed userId);
+    event CompleterAssigned(uint256 indexed boxId, bytes32 indexed userId);
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
@@ -32,14 +32,14 @@ interface AllEvents_wikitruth {
     // ========== FundManager ==========
     event OrderAmountPaid(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         address indexed token,
         uint256 amount
     );
     event OrderAmountWithdraw(
         uint256[] list,
         address indexed token,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         uint256 amount,
         uint8 fundsType
     );
@@ -51,7 +51,7 @@ interface AllEvents_wikitruth {
     );
 
     event RewardsWithdraw(
-        uint256 indexed userId,
+        bytes32 indexed userId,
         address indexed token,
         uint256 amount
     );
@@ -63,7 +63,7 @@ interface AllEvents_wikitruth {
     // ========== TruthBox ==========
     event BoxCreated(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         string boxInfoCID
     );
     event BoxStatusChanged(uint256 indexed boxId, uint8 status);
@@ -72,7 +72,7 @@ interface AllEvents_wikitruth {
     event PrivateKeyPublished(
         uint256 indexed boxId,
         bytes privateKey,
-        uint256 indexed userId
+        bytes32 indexed userId
     );
 
     // ========== UserManager ==========

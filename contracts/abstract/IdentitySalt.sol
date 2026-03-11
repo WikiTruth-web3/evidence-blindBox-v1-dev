@@ -15,72 +15,47 @@
 
 pragma solidity ^0.8.24;
 
-import {SetAddress} from "../base/SetAddress.sol";
-
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
+import {
+    Sapphire
+} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 
 /**
- * @title ModifierV2
- * @dev This contract is used to manage modifiers
- * @dev Inherits ERC2771Context to support meta-transactions
- * @dev Inherits ProxyUpgrade to support proxy upgrade
- * @dev Inherits SetAddress to support set address
+ * @title IdentitySalt
+ * @notice Abstract base class: provides privacy hashing capability for child contracts
  */
 
-contract ModifierV2 is ProxyUpgrade, SetAddress {
-    // address internal ADMIN;
+abstract contract IdentitySalt {
+    error EmptyIdentitySalt();
+    // Master secret for key derivation
+    bytes32 private _identitySalt;
 
     // =======================================================================================================
-    constructor(address addrManager_) SetAddress(addrManager_) {
-        // ADMIN = msg.sender;
+    constructor(bytes memory pers_) {
+        // Initialize the cryptographically secure master secret for identity derivation
+        if (_identitySalt == bytes32(0)) {
+            _identitySalt = bytes32(Sapphire.randomBytes(32, pers_));
+        }
     }
-
-    function setAddressManager(address addrManager_) external onlyAdmin {
-        _setAddressManager(addrManager_);
-    }
-
-    // function setAdmin(address admin_) external onlyAdmin {
-    //     ADMIN = admin_;
-    // }
-
-    // function admin() external view returns (address) {
-    //     return ADMIN;
-    // }
 
     // =====================================================================================
 
     /**
-     * @dev The admin is managed by the ProxyUpgrade contract
-     * The modifier will be re-enabled in the production environment
+     * @dev Core logic: convert address to irreversible privacy hash using Sapphire KDF
      */
-    // modifier onlyAdmin() {
-    //     if (msg.sender != ADMIN) revert NotAdmin();
-    //     _;
-    // }
+    function _getUserId(address user_) internal view returns (bytes32) {
+        if (user_ == address(0)) return bytes32(0);
 
-    modifier onlyDAO() {
-        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
-        _;
-    }
+        if (_identitySalt == bytes32(0)) revert EmptyIdentitySalt();
 
-    modifier onlyAdminDAO() {
-        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != admin())
-            revert NotAdminOrDAO();
-        _;
-    }
+        // Convert address to bytes32 to use as salt/context for derivation
+        bytes32 contextSalt = bytes32(uint256(uint160(user_)));
 
-    modifier onlyManager() {
-        if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {
-            revert InvalidCaller();
-        }
-        _;
-    }
-
-    modifier onlyProjectContract() {
-        if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
-            revert NotProjectCaller();
-        }
-        _;
+        // Use Sapphire's native HKDF-based symmetric key derivation
+        // This is more secure than simple keccak256 hashing
+        return
+            Sapphire.deriveSymmetricKey(
+                Sapphire.Curve25519PublicKey.wrap(contextSalt),
+                Sapphire.Curve25519SecretKey.wrap(_identitySalt)
+            );
     }
 }

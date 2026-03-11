@@ -42,12 +42,12 @@ contract Exchange01 is ModifierV2 {
     //                                      Basic Parameter Settings
     // =====================================================================================
 
-    // 7~15  || 1~7
+    // mainnet==testnet 7~15
     function setRefundRequestPeriod(uint256 period_) external onlyDAO {
         if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
         _refundRequestPeriod = period_;
     }
-    // 15~30  || 1~7
+    // mainnet==testnet 15~60
     function setRefundReviewPeriod(uint256 period_) external onlyDAO {
         if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
         _refundReviewPeriod = period_;

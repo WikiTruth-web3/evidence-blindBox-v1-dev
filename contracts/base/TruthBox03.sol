@@ -48,7 +48,7 @@ contract TruthBox03 is TruthBox02 {
         if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
             if (status == Status.Selling || status == Status.Auctioning) {
-                if (EXCHANGE.buyerIdOf(boxId_) == 0) {
+                if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
                     return Status.Published;
                 } else {
                     // If there is a buyer, then the status is Paid
@@ -80,7 +80,7 @@ contract TruthBox03 is TruthBox02 {
     ) internal view returns (bytes memory) {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        uint256 userId = USER_MANAGER.viewUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         Status status = _getStatus(boxId_);
 
         if (
@@ -103,9 +103,12 @@ contract TruthBox03 is TruthBox02 {
     // ==========================================================================================================
 
     function _decrypt(uint256 boxId_) internal view returns (bytes memory) {
+        // Use the same derivation logic as encryption
+        bytes32 secretKey = _deriveDataKey(bytes32(boxId_));
+
         return
             Sapphire.decrypt(
-                bytes32(0), // Do not use secretKey, in order to keep its interface pure and stable.
+                secretKey,
                 _secretData[boxId_]._nonce,
                 _secretData[boxId_]._encryptedData,
                 ""
@@ -166,7 +169,7 @@ contract TruthBox03 is TruthBox02 {
         if (status_ == Status.Storing) revert InvalidStatus();
 
         if (status_ == Status.Delaying) {
-            _setDeadline(boxId_, block.timestamp + 15 days); // NOTE 365----15
+            _setDeadline(boxId_, block.timestamp + 15 days); // NOTE mainnet 365 days ---- testnet 15 days
         }
         if (status_ != _basicData[boxId_]._status) {
             _basicData[boxId_]._status = status_;
@@ -183,7 +186,7 @@ contract TruthBox03 is TruthBox02 {
         _checkMinter(boxId_);
         _checkStatus(boxId_, Status.Storing);
         _isInWindowPeriod(boxId_);
-        if (time_ > 15 days) revert InvalidPeriod(); // NOTE: 365----15
+        if (time_ > 15 days) revert InvalidPeriod(); // NOTE: mainnet 365 days ---- testnet 15 days
 
         _addDeadline(boxId_, time_);
     }
@@ -203,13 +206,13 @@ contract TruthBox03 is TruthBox02 {
     //                                               Blacklist Functions
     // ==========================================================================================================
 
-    function _addToBlacklist(uint256 boxId_) internal onlyDAO {
+    function _addToBlacklist(uint256 boxId_) internal {
         _boxExists(boxId_);
 
         _checkIsBlacklisted(boxId_);
 
         // If the Box has a buyer, then set RefundPermit to true
-        if (EXCHANGE.buyerIdOf(boxId_) != 0) {
+        if (EXCHANGE.buyerIdOf(boxId_) != bytes32(0)) {
             EXCHANGE.setRefundPermit(boxId_, true);
         }
 
@@ -222,13 +225,13 @@ contract TruthBox03 is TruthBox02 {
     //                                      Getter Functions
     // ==========================================================================================================
     function _checkMinter(uint256 boxId_) internal view {
-        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _secretData[boxId_]._minterId) revert NotMinter();
     }
 
     function _checkBuyer(uint256 boxId_) internal view {
-        uint256 buyerId = EXCHANGE.buyerIdOf(boxId_);
-        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != buyerId) revert NotBuyer();
     }
 
@@ -236,9 +239,9 @@ contract TruthBox03 is TruthBox02 {
         if (boxId_ >= _nextBoxId) revert BoxNotExists();
     }
 
-    function _minterIdOf(uint256 boxId_) internal view returns (uint256) {
-        uint256 minterId = _secretData[boxId_]._minterId;
-        if (minterId == 0) revert BoxNotExists();
+    function _minterIdOf(uint256 boxId_) internal view returns (bytes32) {
+        bytes32 minterId = _secretData[boxId_]._minterId;
+        if (minterId == bytes32(0)) revert BoxNotExists();
         return minterId;
     }
 }

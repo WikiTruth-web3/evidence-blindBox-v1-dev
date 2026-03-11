@@ -47,22 +47,14 @@ interface IUserManager {
      * @return User ID
      * @dev Only callable by project contracts
      */
-    function getUserId(address user_) external returns (uint256);
-
-    /**
-     * @notice view user ID (View)
-     * @param user_ User address
-     * @return User ID
-     * @dev Only callable by project contracts
-     */
-    function viewUserId(address user_) external view returns (uint256);
+    function getUserId(address user_) external view returns (bytes32);
 
     /**
      * @notice Get my user ID
      * @param siweToken_ SIWE token
      * @return User ID
      */
-    function myUserId(bytes memory siweToken_) external view returns (uint256);
+    function myUserId(bytes memory siweToken_) external view returns (bytes32);
 
     // =====================================================================================
     //                                          Blacklist Functions

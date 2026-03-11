@@ -48,8 +48,8 @@ contract FundManager03 is FundManager02 {
         uint256 boxId_,
         address buyer_,
         uint256 amount_,
-        uint256 userId_
-    ) internal onlyProjectContract {
+        bytes32 userId_
+    ) internal {
         address token = EXCHANGE.acceptedToken(boxId_);
 
         IERC20(token).safeTransferFrom(buyer_, address(this), amount_);
@@ -69,11 +69,15 @@ contract FundManager03 is FundManager02 {
         uint256 boxId_,
         address sender_,
         uint256 amount_
-    ) internal onlyProjectContract {
+    ) internal {
         address settlementToken = ADDR_MANAGER.settlementToken();
-        IERC20(settlementToken).transferFrom(sender_, address(this), amount_);
+        IERC20(settlementToken).safeTransferFrom(
+            sender_,
+            address(this),
+            amount_
+        );
 
-        uint256 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
         _calculateAllocation(boxId_, minterId, amount_, settlementToken);
     }
 
@@ -84,9 +88,9 @@ contract FundManager03 is FundManager02 {
      * @dev Allocate rewards
      * @param boxId_ TruthBox ID
      */
-    function _allocationRewards(uint256 boxId_) internal onlyProjectContract {
-        uint256 buyerId = EXCHANGE.buyerIdOf(boxId_);
-        uint256 minterId = TRUTH_BOX.minterIdOf(boxId_);
+    function _allocationRewards(uint256 boxId_) internal {
+        bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
+        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
         address token = EXCHANGE.acceptedToken(boxId_);
 
         uint256 amount = _orderAmounts[boxId_][buyerId];
@@ -108,7 +112,7 @@ contract FundManager03 is FundManager02 {
     ) internal nonReentrant whenNotPaused {
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         uint256 amount = _rewardAmounts[userId][token_];
         if (amount == 0) {
             revert AmountIsZero();

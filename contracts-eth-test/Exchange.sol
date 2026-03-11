@@ -108,7 +108,7 @@ contract Exchange is Exchange03, IExchange {
      */
     function calcPayMoney(uint256 boxId_) public view returns (uint256) {
         uint256 price = TRUTH_BOX.getPrice(boxId_);
-        uint256 userId = USER_MANAGER.viewUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
 
         return _calcPayMoney(boxId_, userId, price);
     }
@@ -117,7 +117,10 @@ contract Exchange is Exchange03, IExchange {
     //                                           Refund function
     // ========================================================================================================
 
-    function setRefundPermit(uint256 boxId_, bool permission_) external {
+    function setRefundPermit(
+        uint256 boxId_,
+        bool permission_
+    ) external onlyProjectContract {
         _setRefundPermit(boxId_, permission_);
     }
     /**
@@ -178,14 +181,14 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Buyer address
      */
-    function buyerIdOf(uint256 boxId_) external view returns (uint256) {
+    function buyerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _buyerIdOf(boxId_);
     }
 
     /* NOTE If the _seller is address(0),
      * it means that the _seller is the minter
      */
-    function sellerIdOf(uint256 boxId_) external view returns (uint256) {
+    function sellerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _sellerIdOf(boxId_);
     }
 
@@ -194,7 +197,7 @@ contract Exchange is Exchange03, IExchange {
      * @param boxId_ Box ID
      * @return Completer address
      */
-    function completerIdOf(uint256 boxId_) external view returns (uint256) {
+    function completerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _completerIdOf(boxId_);
     }
 

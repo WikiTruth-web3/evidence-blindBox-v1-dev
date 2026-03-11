@@ -13,6 +13,7 @@
     "@oasisprotocol/sapphire-paratime": "^2.2.0",
     "dotenv": "^17.2.1",
     "hardhat": "^2.26.1",
+    "hardhat-abi-exporter": "^2.11.0",
     "hardhat-switch-network": "^1.2.0"
   },
   "dependencies": {

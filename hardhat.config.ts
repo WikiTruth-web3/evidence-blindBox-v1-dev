@@ -7,7 +7,7 @@ import "@oasisprotocol/sapphire-hardhat";
 import "dotenv/config"
 import "./tasks"
 import "@nomicfoundation/hardhat-foundry";
-
+import "hardhat-abi-exporter";
 import { hardhat_accounts } from "./test_account";
 
 
@@ -93,7 +93,16 @@ const config: HardhatUserConfig = {
     //   ]
     // }
   },
-  // 
+  // 2. 添加 abiExporter 配置
+  abiExporter: {
+    path: './abi',        // 导出 ABI 的目标目录
+    runOnCompile: true,   // 开启编译时自动导出
+    clear: true,          // 每次导出前清空目录
+    flat: true,           // 是否合并所有合约到一个目录下（不按合约路径层级存放）
+    only: [':TruthBox$', ':Exchange$', ':FundManager$', ':UserManager$', ':AddressManager$', ':Forwarder$', 'SiweAuthWikiTruth'], // 可选：只导出匹配名称的合约（支持正则）
+    spacing: 2,           // JSON 缩进格数
+    format: "json",       // 导出格式，支持 "json" 或 "minimal" (极简模式)
+  },
   paths: {
     sources: "./contracts",
     tests: "./test",

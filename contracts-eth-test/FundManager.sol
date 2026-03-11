@@ -58,8 +58,8 @@ contract FundManager is FundManager03, IFundManager {
         uint256 boxId_,
         address buyer_,
         uint256 amount_,
-        uint256 userId_
-    ) external {
+        bytes32 userId_
+    ) external onlyProjectContract {
         _payOrderAmount(boxId_, buyer_, amount_, userId_);
     }
 
@@ -73,7 +73,7 @@ contract FundManager is FundManager03, IFundManager {
         uint256 boxId_,
         address sender_,
         uint256 amount_
-    ) external {
+    ) external onlyProjectContract {
         _payDelayFee(boxId_, sender_, amount_);
     }
 
@@ -84,7 +84,7 @@ contract FundManager is FundManager03, IFundManager {
      * @dev Allocate rewards
      * @param boxId_ TruthBox ID
      */
-    function allocationRewards(uint256 boxId_) external {
+    function allocationRewards(uint256 boxId_) external onlyProjectContract {
         _allocationRewards(boxId_);
     }
 
@@ -134,9 +134,9 @@ contract FundManager is FundManager03, IFundManager {
      * @param userId_ User ID
      * @return Order amount
      */
-    function orderAmountsProject(
+    function restrictedGetOrderAmounts(
         uint256 boxId_,
-        uint256 userId_
+        bytes32 userId_
     ) external view onlyProjectContract returns (uint256) {
         return _orderAmounts[boxId_][userId_];
     }
@@ -151,7 +151,7 @@ contract FundManager is FundManager03, IFundManager {
         uint256 boxId_,
         address user_
     ) external view returns (uint256) {
-        uint256 userId = USER_MANAGER.viewUserId(user_);
+        bytes32 userId = USER_MANAGER.getUserId(user_);
         return _orderAmounts[boxId_][userId];
     }
 
@@ -165,7 +165,7 @@ contract FundManager is FundManager03, IFundManager {
         address token_,
         address user_
     ) external view returns (uint256) {
-        uint256 userId = USER_MANAGER.viewUserId(user_);
+        bytes32 userId = USER_MANAGER.getUserId(user_);
         return _rewardAmounts[userId][token_];
     }
 }

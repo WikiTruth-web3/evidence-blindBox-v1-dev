@@ -128,7 +128,7 @@ describe("交易测试-多角色参与交易过程", function () {
   it("09-过期-seller-出售/拍卖", async function () {
     const { 
       minter, buyer, settlementToken, truthBox, exchange_seller, address_zero, seller,
-      fundManager, bytes_mint,userManager_seller , exchange_minter,exchange,other,
+      fundManager, bytes_mint,userManager_seller , exchange_minter,exchange, bytes32_zero,
     } = await loadFixture(deployTruthBoxFixture);
 
     await time.increase(380 * 24 * 60 * 60);
@@ -148,8 +148,8 @@ describe("交易测试-多角色参与交易过程", function () {
     expect(await truthBox.getStatus(3)).to.equal(TimeHelpers.Status.Selling);
     expect(await truthBox.getStatus(4)).to.equal(TimeHelpers.Status.Auctioning);
     // 检查 seller
-    expect(await exchange.sellerIdOf(1)).to.equal(0);
-    expect(await exchange.sellerIdOf(2)).to.equal(0);
+    expect(await exchange.sellerIdOf(1)).to.equal(bytes32_zero);
+    expect(await exchange.sellerIdOf(2)).to.equal(bytes32_zero);
     const seller_id = await userManager_seller.myUserId();
     expect(await exchange.sellerIdOf(3)).to.equal(seller_id);
     expect(await exchange.sellerIdOf(4)).to.equal(seller_id);

@@ -163,12 +163,12 @@ contract TruthBox is TruthBox03, ITruthBox {
 
     function minterIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view onlyProjectContract returns (bytes32) {
         return _minterIdOf(boxId_);
     }
 
     // ==========================================================================================================
-    function addToBlacklist(uint256 boxId_) external {
+    function addToBlacklist(uint256 boxId_) external onlyDAO {
         _addToBlacklist(boxId_);
     }
 

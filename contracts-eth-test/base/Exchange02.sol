@@ -36,9 +36,9 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     struct BoxExchengData {
         address _acceptedToken; // If address(0), then it means support settlementToken
-        uint256 _sellerId; // If address(0), then it means by minter sell
-        uint256 _buyerId;
-        uint256 _completerId;
+        bytes32 _sellerId; // If address(0), then it means by minter sell
+        bytes32 _buyerId;
+        bytes32 _completerId;
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
@@ -100,7 +100,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         // address sender = _msgSender();
         address sender = msg.sender;
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         address token;
 
         if (userId != truthBox.minterIdOf(boxId_)) {
@@ -184,7 +184,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
      */
     function _bid(uint256 boxId_) internal {
         address sender = msg.sender;
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         if (userId == _buyerIdOf(boxId_)) revert NotBuyer();
 
         uint256 price = _bidPrice(boxId_);
@@ -199,10 +199,13 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     function _calcPayMoney(
         uint256 boxId_,
-        uint256 userId_,
+        bytes32 userId_,
         uint256 price_
     ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.orderAmountsProject(boxId_, userId_);
+        uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(
+            boxId_,
+            userId_
+        );
         uint256 amount = price_ - balance;
         return amount;
     }
@@ -211,15 +214,15 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     //                                           Getter function
     // ========================================================================================================
 
-    function _buyerIdOf(uint256 boxId_) internal view returns (uint256) {
+    function _buyerIdOf(uint256 boxId_) internal view returns (bytes32) {
         return _boxExchengData[boxId_]._buyerId;
     }
 
-    function _sellerIdOf(uint256 boxId_) internal view returns (uint256) {
+    function _sellerIdOf(uint256 boxId_) internal view returns (bytes32) {
         return _boxExchengData[boxId_]._sellerId;
     }
 
-    function _completerIdOf(uint256 boxId_) internal view returns (uint256) {
+    function _completerIdOf(uint256 boxId_) internal view returns (bytes32) {
         return _boxExchengData[boxId_]._completerId;
     }
 

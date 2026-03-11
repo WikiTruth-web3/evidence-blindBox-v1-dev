@@ -91,7 +91,7 @@ function generateTestData() {
     bytes32_2: '0x' + crypto.randomBytes(32).toString('hex'),
     bytes32_buyer: '0x' + crypto.randomBytes(32).toString('hex'),
     address_zero: '0x0000000000000000000000000000000000000000',
-    bytes32_zero: '0x'
+    bytes32_zero: '0x0000000000000000000000000000000000000000000000000000000000000000'
   };
 }
 

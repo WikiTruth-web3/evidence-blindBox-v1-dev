@@ -1,4 +1,16 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+/**
+ * 
+ * npx hardhat ignition deploy ignition/modules/01_DeployToken_Modular.ts --network sapphire-testnet
+ * 
+ * import { ERC20Module } from './01_DeployToken_Modular';
+ * npx hardhat ignition deploy ... --module-id ERC20Module
+ * 
+ * import { ERC20SecretModule } from './01_DeployToken_Modular';
+ * 
+ * # Remove deployments
+Remove-Item -Recurse -Force ignition\deployments\chain-23295
+ */
 
 // // ==================== 模块1：MockERC20 ====================
 // export const ERC20Module = buildModule("ERC20Module", (m) => {
@@ -51,20 +63,4 @@ export default buildModule("AllTokenContracts", (m) => {
   };
 });
 
-/**
- * 使用方式：
- * 
- * 1. 部署所有合约：
- * npx hardhat ignition deploy ignition/modules/01_DeployToken_Modular.ts --network sapphire-testnet
- * 
- * 2. 只部署 ERC20Module：
- * import { ERC20Module } from './01_DeployToken_Modular';
- * npx hardhat ignition deploy ... --module-id ERC20Module
- * 
- * 3. 在其他模块中导入使用：
- * import { ERC20SecretModule } from './01_DeployToken_Modular';
- * 
- * # 删除 chain-23295 的部署记录
-Remove-Item -Recurse -Force ignition\deployments\chain-23295
- */
 

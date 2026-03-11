@@ -55,11 +55,11 @@ contract FundManager02 is
     mapping(address token => uint256) internal _totalRewardAmounts;
 
     // Order amounts mapping (by token recorded by EXCHANGE contract, boxId and buyer userId)
-    mapping(uint256 boxId => mapping(uint256 userId => uint256))
+    mapping(uint256 boxId => mapping(bytes32 userId => uint256))
         internal _orderAmounts;
 
     // Minter reward amounts for each token (only two types: token recorded by EXCHANGE contract, and settlement token)
-    mapping(uint256 userId => mapping(address token => uint256))
+    mapping(bytes32 userId => mapping(address token => uint256))
         internal _rewardAmounts;
 
     // ====================================================================================================================
@@ -81,22 +81,22 @@ contract FundManager02 is
      */
     function _calculateAllocation(
         uint256 boxId_,
-        uint256 minterId_,
+        bytes32 minterId_,
         uint256 amount_,
         address token_
     ) internal {
         // Get various rates and roles
-        uint256 completerId = EXCHANGE.completerIdOf(boxId_);
-        uint256 sellerId = EXCHANGE.sellerIdOf(boxId_);
+        bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
+        bytes32 sellerId = EXCHANGE.sellerIdOf(boxId_);
         uint8 sellerRate;
         uint8 completerRate;
         // Calculate rewards
 
-        if (completerId != 0) {
+        if (completerId != bytes32(0)) {
             completerRate = _helperRewardRate;
         }
         // If there is a seller, it means the token is the original token
-        if (sellerId != 0) {
+        if (sellerId != bytes32(0)) {
             sellerRate = _helperRewardRate;
         }
 
@@ -263,13 +263,13 @@ contract FundManager02 is
         IExchange exchange = EXCHANGE;
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
-        uint256 userId = USER_MANAGER.viewUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
 
         // Process refunds for each box
         for (uint256 i = 0; i < list_.length; i++) {
             uint256 boxId = list_[i];
             uint256 orderAmount = _orderAmounts[boxId][userId];
-            uint256 buyerId = exchange.buyerIdOf(boxId);
+            bytes32 buyerId = exchange.buyerIdOf(boxId);
             if (orderAmount == 0) {
                 revert AmountIsZero();
             }

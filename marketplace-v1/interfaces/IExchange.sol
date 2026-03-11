@@ -18,12 +18,12 @@ pragma solidity ^0.8.24;
 interface ExchangeEvents {
     event BoxListed(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         address acceptedToken
     );
-    event BoxPurchased(uint256 indexed boxId, uint256 indexed userId);
-    event BidPlaced(uint256 indexed boxId, uint256 indexed userId);
-    event CompleterAssigned(uint256 indexed boxId, uint256 indexed userId);
+    event BoxPurchased(uint256 indexed boxId, bytes32 indexed userId);
+    event BidPlaced(uint256 indexed boxId, bytes32 indexed userId);
+    event CompleterAssigned(uint256 indexed boxId, bytes32 indexed userId);
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
@@ -161,7 +161,7 @@ interface IExchange {
      * @return buyerId Buyer userId
      * @dev Only callable by project contracts
      */
-    function buyerIdOf(uint256 boxId_) external view returns (uint256);
+    function buyerIdOf(uint256 boxId_) external view returns (bytes32);
 
     /**
      * @notice Get seller userId
@@ -169,7 +169,7 @@ interface IExchange {
      * @return sellerId Seller userId (0 means minter is the seller)
      * @dev Only callable by project contracts
      */
-    function sellerIdOf(uint256 boxId_) external view returns (uint256);
+    function sellerIdOf(uint256 boxId_) external view returns (bytes32);
 
     /**
      * @notice Get completer userId
@@ -177,7 +177,7 @@ interface IExchange {
      * @return completerId Completer userId
      * @dev Only callable by project contracts
      */
-    function completerIdOf(uint256 boxId_) external view returns (uint256);
+    function completerIdOf(uint256 boxId_) external view returns (bytes32);
 
     /**
      * @notice Get accepted token address

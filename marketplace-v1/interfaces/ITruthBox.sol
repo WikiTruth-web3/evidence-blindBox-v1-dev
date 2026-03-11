@@ -29,7 +29,7 @@ enum Status {
 interface TruthBoxEvents {
     event BoxCreated(
         uint256 indexed boxId,
-        uint256 indexed userId,
+        bytes32 indexed userId,
         string boxInfoCID
     );
     event BoxStatusChanged(uint256 indexed boxId, Status status);
@@ -38,7 +38,7 @@ interface TruthBoxEvents {
     event PrivateKeyPublished(
         uint256 boxId,
         bytes privateKey,
-        uint256 indexed userId
+        bytes32 indexed userId
     );
 }
 
@@ -237,5 +237,5 @@ interface ITruthBox {
      * @return minterId Minter userId of the box
      * @dev Only callable by project contracts
      */
-    function minterIdOf(uint256 boxId_) external view returns (uint256);
+    function minterIdOf(uint256 boxId_) external view returns (bytes32);
 }

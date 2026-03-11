@@ -56,7 +56,7 @@ contract Exchange03 is Exchange02 {
 
         address sender = _msgSender();
 
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
         _boxExchengData[boxId_]._buyerId = userId;
 
         // Buy operation, should directly set the deadline for applying for refund
@@ -72,10 +72,7 @@ contract Exchange03 is Exchange02 {
     //                                           finalize related functions
     // ========================================================================================================
 
-    function _setRefundPermit(
-        uint256 boxId_,
-        bool permission_
-    ) internal onlyProjectContract {
+    function _setRefundPermit(uint256 boxId_, bool permission_) internal {
         _boxExchengData[boxId_]._refundPermit = permission_;
         emit RefundPermitChanged(boxId_, permission_);
     }
@@ -96,7 +93,7 @@ contract Exchange03 is Exchange02 {
         // canRequestRefund?
         if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
 
-        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
@@ -116,7 +113,7 @@ contract Exchange03 is Exchange02 {
      * @notice Cancel refund function, after canceling refund, the box status becomes Sold
      */
     function _cancelRefund(uint256 boxId_) internal {
-        uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
@@ -144,7 +141,7 @@ contract Exchange03 is Exchange02 {
 
         if (_isInReviewDeadline(boxId_)) {
             // Check role: minter、DAO
-            uint256 userId = USER_MANAGER.viewUserId(_msgSender());
+            bytes32 userId = USER_MANAGER.getUserId(_msgSender());
             if (
                 // erc2771 - _msgSender() is the real caller
                 userId != truthBox.minterIdOf(boxId_) &&
@@ -194,6 +191,7 @@ contract Exchange03 is Exchange02 {
      * Complete order will modify: status、completer.
      * Complete order also needs to set the status of TRUTH_BOX to Delaying
      * Complete order also needs to set refundRequestDeadline.
+     * @notice Everybody can excute this function， and get helper rewards
      */
     function _completeOrder(uint256 boxId_) internal {
         // _checkStatus(boxId_, Status.Paid);
@@ -204,7 +202,7 @@ contract Exchange03 is Exchange02 {
 
         // erc2771
         address sender = _msgSender();
-        uint256 userId = USER_MANAGER.getUserId(sender);
+        bytes32 userId = USER_MANAGER.getUserId(sender);
 
         if (userId != _buyerIdOf(boxId_)) {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
