@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { wikiTruth_contracts_address } from "../../scripts/utils/wikiTruth_contracts_address";
+import { wikiTruth_contracts_address } from "../../scripts/utils/contracts_address";
 
 // 1. deploy: npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
 

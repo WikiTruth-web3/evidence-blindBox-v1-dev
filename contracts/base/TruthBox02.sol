@@ -59,11 +59,12 @@ contract TruthBox02 is
     // ==================================================================================================
     constructor(
         address addrManager_,
-        address trustedForwarder_
+        address trustedForwarder_,
+        bytes memory pers_
     )
         TruthBox01(addrManager_)
         ERC2771Context(trustedForwarder_)
-        SecretKeyManager("WikiTruth Data Encryption Root Secret")
+        SecretKeyManager(pers_)
     {}
 
     // ==========================================================================================================

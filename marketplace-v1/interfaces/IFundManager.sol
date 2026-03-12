@@ -38,7 +38,7 @@ interface FundManagerEvents {
         RewardType rewardType
     );
 
-    event RewrdsWithdraw(
+    event RewardsWithdraw(
         bytes32 indexed userId,
         address indexed token,
         uint256 amount

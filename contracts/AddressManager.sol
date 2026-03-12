@@ -38,6 +38,7 @@ contract AddressManager is IAddressManager, Error {
     error RemoveError();
     error InvalidIndex();
     error IsSettlementToken();
+    error AddressAlreadyExists();
 
     /**
      * @dev The admin is managed by the ProxyUpgrade contract
@@ -115,10 +116,11 @@ contract AddressManager is IAddressManager, Error {
         admin = newAdmin_;
     }
 
-    // =====================================================================================
+    // ======================================= init step function ==============================================
 
     /**
      * @dev Set addresses
+     * @notice (init step: 1)
      * @param list_ Address list
      * [
         dao, 
@@ -160,7 +162,7 @@ contract AddressManager is IAddressManager, Error {
                 siweAuth = list_[4];
             }
         }
-        // Trading contracts
+        // Core contracts
         if (list_[5] != address(0)) {
             if (_mappingBool(truthBox, list_[5])) {
                 truthBox = list_[5];
@@ -184,6 +186,15 @@ contract AddressManager is IAddressManager, Error {
         }
     }
 
+    /**
+     * @notice (init step: 2)
+     * @param list_ Address list
+     * testnet we use uniswap v3, so we need to set swapRouter and quoter
+     * [
+        swapRouter, 
+        quoter 
+        ]
+     */
     function setSwapContracts(address[] memory list_) external onlyAdmin {
         for (uint256 i = 0; i < list_.length; i++) {
             if (list_[i] != address(0)) {
@@ -218,29 +229,8 @@ contract AddressManager is IAddressManager, Error {
     }
 
     /**
-     * Set all contract addresses
-     */
-    function setAllAddress() external onlyAdmin {
-        IExchange(exchange).setAddress();
-        IFundManager(fundManager).setAddress();
-        ITruthBox(truthBox).setAddress();
-        IUserManager(userManager).setAddress();
-        IForwarder(forwarder).setAddress();
-    }
-
-    /**
-     * @dev Add reserved address
-     * The reserved address can only be added, cannot be deleted, to avoid unnecessary impact.
-     */
-    function addReservedAddress(address reservedAddress_) external onlyAdmin {
-        if (reservedAddress_ == address(0)) revert InvalidAddress();
-        _reservedList.push(reservedAddress_);
-    }
-
-    // =================================== Token management ==================================================
-
-    /**
      * @dev Set settlement token
+     * @notice (init step: 3)
      */
     function setSettlementToken(address token_) external onlyAdmin {
         address oldToken = settlementToken;
@@ -254,6 +244,40 @@ contract AddressManager is IAddressManager, Error {
 
         settlementToken = token_;
     }
+
+    /**
+     * @notice (init step: 4)
+     * Set all contract addresses
+     */
+    function setAllAddress() external onlyAdmin {
+        IExchange(exchange).setAddress();
+        IFundManager(fundManager).setAddress();
+        ITruthBox(truthBox).setAddress();
+        IUserManager(userManager).setAddress();
+        IForwarder(forwarder).setAddress();
+    }
+    // =====================================================================================
+
+    /**
+     * @dev Add reserved address
+     * The reserved address can only be added, cannot be deleted, to avoid unnecessary impact.
+     */
+    function addReservedAddress(address reservedAddress_) external onlyAdmin {
+        if (reservedAddress_ == address(0)) revert InvalidAddress();
+        if (_isProjectContract[reservedAddress_]) revert AddressAlreadyExists();
+        _reservedList.push(reservedAddress_);
+        _isProjectContract[reservedAddress_] = true;
+    }
+
+    function removeReservedAddress(uint256 index_) external onlyAdmin {
+        if (index_ >= _reservedList.length) revert InvalidIndex();
+        address reservedAddress = _reservedList[index_];
+        _reservedList[index_] = _reservedList[_reservedList.length - 1];
+        _reservedList.pop();
+        _isProjectContract[reservedAddress] = false;
+    }
+
+    // =================================== Other token management ==================================================
 
     function addToken(address token_) external onlyAdmin {
         if (token_ == address(0)) revert InvalidAddress();
@@ -318,10 +342,10 @@ contract AddressManager is IAddressManager, Error {
     /**
      * @dev Check if the token is official token
      */
-    function isSettlementToken(address token_) external view returns (bool) {
-        if (token_ == address(0)) revert InvalidAddress();
-        return token_ == settlementToken;
-    }
+    // function isSettlementToken(address token_) external view returns (bool) {
+    //     if (token_ == address(0)) revert InvalidAddress();
+    //     return token_ == settlementToken;
+    // }
 
     // ----------------------------------- Reserved address management --------------------------------------------------
 

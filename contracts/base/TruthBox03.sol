@@ -30,8 +30,9 @@ contract TruthBox03 is TruthBox02 {
     // ==================================================================================================
     constructor(
         address addrManager_,
-        address trustedForwarder_
-    ) TruthBox02(addrManager_, trustedForwarder_) {}
+        address trustedForwarder_,
+        bytes memory pers_
+    ) TruthBox02(addrManager_, trustedForwarder_, pers_) {}
 
     //==================================================================================================
     //                                      Get Info Functions

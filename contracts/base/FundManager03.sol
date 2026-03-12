@@ -120,6 +120,6 @@ contract FundManager03 is FundManager02 {
         _rewardAmounts[userId][token_] = 0;
         IERC20(token_).safeTransfer(sender, amount);
 
-        emit RewrdsWithdraw(userId, token_, amount);
+        emit RewardsWithdraw(userId, token_, amount);
     }
 }

@@ -36,29 +36,31 @@ interface AllEvents_wikitruth {
         address indexed token,
         uint256 amount
     );
+
     event OrderAmountWithdraw(
         uint256[] list,
         address indexed token,
         bytes32 indexed userId,
         uint256 amount,
-        uint8 fundsType
+        FundsType fundsType
     );
-    event RewardAmountAdded(
+
+    event RewardsAdded(
         uint256 indexed boxId,
         address indexed token,
         uint256 amount,
-        uint8 rewardType
+        RewardType rewardType
     );
 
-    event RewardsWithdraw(
+    event RewrdsWithdraw(
         bytes32 indexed userId,
         address indexed token,
         uint256 amount
     );
 
     //-------------Pausable-------------------
-    event Paused(address indexed account);
-    event Unpaused(address indexed account);
+    // event Paused(address indexed account);
+    // event Unpaused(address indexed account);
 
     // ========== TruthBox ==========
     event BoxCreated(
@@ -66,17 +68,17 @@ interface AllEvents_wikitruth {
         bytes32 indexed userId,
         string boxInfoCID
     );
-    event BoxStatusChanged(uint256 indexed boxId, uint8 status);
+    event BoxStatusChanged(uint256 indexed boxId, Status status);
     event PriceChanged(uint256 indexed boxId, uint256 price);
     event DeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event PrivateKeyPublished(
-        uint256 indexed boxId,
+        uint256 boxId,
         bytes privateKey,
         bytes32 indexed userId
     );
 
     // ========== UserManager ==========
-    event Blacklist(address user, bool status);
+    event Blacklisted(address user, bool status);
 
     //============ Forwarder ============
     event Paused(address indexed account);

@@ -37,10 +37,11 @@ contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
 
     // =======================================================================================================
     constructor(
-        address addrManager_
+        address addrManager_,
+        bytes memory pers_
     )
         ModifierV2(addrManager_)
-        IdentitySalt("WikiTruth Identity Master Secret")
+        IdentitySalt(pers_)
     {}
 
     // =====================================================================================
@@ -85,13 +86,13 @@ contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
     function addBlacklist(address user_) external onlyAdminDAO {
         _checkInBlacklist(user_);
         _blacklist[user_] = true;
-        emit Blacklist(user_, true);
+        emit Blacklisted(user_, true);
     }
 
     function removeBlacklist(address user_) external onlyAdminDAO {
         _checkNotInBlacklist(user_);
         _blacklist[user_] = false;
-        emit Blacklist(user_, false);
+        emit Blacklisted(user_, false);
     }
 
     function isBlacklisted(address user_) external view returns (bool) {

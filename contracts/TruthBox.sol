@@ -30,8 +30,9 @@ contract TruthBox is TruthBox03, ITruthBox {
     // ==================================================================================================
     constructor(
         address addrManager_,
-        address trustedForwarder_
-    ) TruthBox03(addrManager_, trustedForwarder_) {}
+        address trustedForwarder_,
+        bytes memory pers_
+    ) TruthBox03(addrManager_, trustedForwarder_, pers_) {}
 
     function setAddress() external onlyManager {
         _setAddress(CoreContracts.TruthBox);

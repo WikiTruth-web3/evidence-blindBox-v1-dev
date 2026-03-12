@@ -25,7 +25,7 @@ interface IUserManager {
     //                                                  Events
     // =====================================================================================
 
-    event Blacklist(address user, bool status);
+    event Blacklisted(address user, bool status);
 
     // =====================================================================================
     //                                          Address Management
@@ -55,7 +55,7 @@ interface IUserManager {
      */
     function myUserId() external view returns (bytes32);
     // =====================================================================================
-    //                                          Blacklist Functions
+    //                                          Blacklisted Functions
     // =====================================================================================
 
     /**

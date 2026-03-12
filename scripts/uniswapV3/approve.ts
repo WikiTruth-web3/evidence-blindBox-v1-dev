@@ -3,7 +3,7 @@ import {
     v3_core_testnet_address,
     v3_periphery_testnet_address,
 } from "../utils/v3_testnet_address";
-import { wikiTruth_contracts_address, wikiTruth_testnet_contracts } from "../utils/wikiTruth_contracts_address";
+import { wikiTruth_contracts_address, wikiTruth_testnet_contracts } from "../utils/contracts_address";
 const fs = require('fs');
 const path = require('path');
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
