@@ -100,12 +100,12 @@ async function createTestTruthBoxes(truthBoxMinter, testData) {
   const minter = signers[4]; // minter 是第5个签名者
 
   // 创建测试用的TruthBox项目
-  await truthBoxMinter.create( "00_tokenURI", "00_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("01_tokenURI", "01_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("02_tokenURI", "02_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create( "03_tokenURI", "03_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("04_tokenURI", "04_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.createAndPublish("05_tokenURI——public", "05_infoURI——public");
+  await truthBoxMinter.create("00_infoURI", testData.bytes_mint, 1000);
+  await truthBoxMinter.create("01_infoURI", testData.bytes_mint, 1000);
+  await truthBoxMinter.create("02_infoURI", testData.bytes_mint, 1000);
+  await truthBoxMinter.create("03_infoURI", testData.bytes_mint, 1000);
+  await truthBoxMinter.create("04_infoURI", testData.bytes_mint, 1000);
+  await truthBoxMinter.createAndPublish("05_infoURI——public");
 }
 
 module.exports = {

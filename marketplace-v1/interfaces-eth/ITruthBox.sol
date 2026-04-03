@@ -64,14 +64,12 @@ interface ITruthBox {
 
     /**
      * @notice Create a TruthBox
-     * @param tokenCID_ CID of the token
      * @param boxInfoCID_ CID of the box info
      * @param key_ Key of the box
      * @param price_ Price of the box
      * @return boxId The created Box ID
      */
     function create(
-        string calldata tokenCID_,
         string calldata boxInfoCID_,
         bytes calldata key_,
         uint256 price_
@@ -79,12 +77,10 @@ interface ITruthBox {
 
     /**
      * @notice Create and immediately publish a TruthBox
-     * @param tokenCID_ CID of the token
      * @param boxInfoCID_ CID of the box info
      * @return boxId The created Box ID
      */
     function createAndPublish(
-        string calldata tokenCID_,
         string calldata boxInfoCID_
     ) external returns (uint256);
 

@@ -95,30 +95,26 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     }
 
     function _checkCID(
-        string calldata tokenCID_,
         string calldata boxInfoCID_
     ) internal pure {
-        if (bytes(tokenCID_).length == 0) revert EmptyTokenCID();
         if (bytes(boxInfoCID_).length == 0) revert EmptyBoxInfoCID();
     }
 
     /**
      * @dev Create a truth box
-     * @param tokenCID_ The CID of the token
      * @param boxInfoCID_ The CID of the box info
      * @param key_ The key of the box
      * @param price_ The price of the box
      * @return The ID of the box
      */
     function _create(
-        string calldata tokenCID_,
         string calldata boxInfoCID_,
         bytes calldata key_,
         uint256 price_
     ) internal returns (uint256) {
         if (key_.length == 0) revert EmptyKey();
         if (price_ == 0) revert EmptyPrice();
-        _checkCID(tokenCID_, boxInfoCID_);
+        _checkCID(boxInfoCID_);
 
         uint256 deadline;
 
@@ -143,10 +139,9 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     }
 
     function _createAndPublish(
-        string calldata tokenCID_,
         string calldata boxInfoCID_
     ) internal returns (uint256) {
-        _checkCID(tokenCID_, boxInfoCID_);
+        _checkCID( boxInfoCID_);
 
         uint256 boxId = _setBoxData(boxInfoCID_, 0, Status.Published, 0, "");
 

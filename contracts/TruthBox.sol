@@ -43,19 +43,17 @@ contract TruthBox is TruthBox03, ITruthBox {
     // ==========================================================================================================
 
     function create(
-        string calldata tokenCID_,
         string calldata boxInfoCID_,
         bytes calldata key_,
         uint256 price_
     ) external returns (uint256) {
-        return _create(tokenCID_, boxInfoCID_, key_, price_);
+        return _create(boxInfoCID_, key_, price_);
     }
 
     function createAndPublish(
-        string calldata tokenCID_,
         string calldata boxInfoCID_
     ) external returns (uint256) {
-        return _createAndPublish(tokenCID_, boxInfoCID_);
+        return _createAndPublish(boxInfoCID_);
     }
 
     //==================================================================================================

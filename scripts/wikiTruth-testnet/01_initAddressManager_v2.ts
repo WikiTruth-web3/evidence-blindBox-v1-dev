@@ -45,39 +45,39 @@ async function main() {
             signer: adminSigner
         },
 
-        {
-            // address swapContract = swapContracts[0];
-            // address quoter = swapContracts[1];
-            taskName: "设置SwapContracts",
-            contractsName: "AddressManager",
-            functionName: "setSwapContracts",
-            params: [[
-                v3_periphery_testnet_address.swapRouter,
-                v3_periphery_testnet_address.quoter
-            ]],
-            signer: adminSigner
-        },
-        {
-            taskName: "设置结算代币",
-            contractsName: "AddressManager",
-            functionName: "setSettlementToken",
-            params: [token_contracts_address.settlementToken],
-            signer: adminSigner
-        },
-        {
-            taskName: "添加支持代币 (wROSE.P)",
-            contractsName: "AddressManager",
-            functionName: "addToken",
-            params: [token_contracts_address.wrosePrivacy],
-            signer: adminSigner
-        },
-        {
-            taskName: "设置所有合约地址",
-            contractsName: "AddressManager",
-            functionName: "setAllAddress",
-            params: [],
-            signer: adminSigner
-        }
+        // {
+        //     // address swapContract = swapContracts[0];
+        //     // address quoter = swapContracts[1];
+        //     taskName: "设置SwapContracts",
+        //     contractsName: "AddressManager",
+        //     functionName: "setSwapContracts",
+        //     params: [[
+        //         v3_periphery_testnet_address.swapRouter,
+        //         v3_periphery_testnet_address.quoter
+        //     ]],
+        //     signer: adminSigner
+        // },
+        // {
+        //     taskName: "设置结算代币",
+        //     contractsName: "AddressManager",
+        //     functionName: "setSettlementToken",
+        //     params: [token_contracts_address.settlementToken],
+        //     signer: adminSigner
+        // },
+        // {
+        //     taskName: "添加支持代币 (wROSE.P)",
+        //     contractsName: "AddressManager",
+        //     functionName: "addToken",
+        //     params: [token_contracts_address.wrosePrivacy],
+        //     signer: adminSigner
+        // },
+        // {
+        //     taskName: "设置所有合约地址",
+        //     contractsName: "AddressManager",
+        //     functionName: "setAllAddress",
+        //     params: [],
+        //     signer: adminSigner
+        // }
     ];
 
     // 2. 执行批量任务

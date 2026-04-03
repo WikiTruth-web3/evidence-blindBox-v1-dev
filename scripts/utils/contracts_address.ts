@@ -15,9 +15,9 @@ export const core_contracts_address = {
 }
 
 export const token_contracts_address ={
-    wrosePrivacy: deploymentToken.WROSEprivacy,
+    wrosePrivacy: deploymentToken.WROSE_Privacy,
     officialToken: deploymentToken.OfficialToken,
-    settlementToken: deploymentToken.OfficialToken_ERC20privacy,
+    settlementToken: deploymentToken.OfficialToken_Privacy,
 };
 
 export const core_contracts_testnet = [
@@ -67,7 +67,7 @@ export const core_contracts_testnet = [
         name: "WROSEprivacy",
         symbol: "wROSE.P",
         contract: "WROSEprivacy",
-        address: deploymentToken.WROSEprivacy,
+        address: deploymentToken.WROSE_Privacy,
         // implementation: '',
     },
     {
@@ -81,7 +81,7 @@ export const core_contracts_testnet = [
         name: "SettlementToken",
         symbol: "WTRC.P",
         contract: "ERC20privacy",
-        address: deploymentToken.OfficialToken_ERC20privacy,
+        address: deploymentToken.OfficialToken_Privacy,
         // implementation: '',
     },
 ]

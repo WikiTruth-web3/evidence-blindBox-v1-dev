@@ -11,6 +11,7 @@ remappings = [
     "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
     "@ignition/=ignition/",
     "@marketplace-v1/=marketplace-v1/",
+    "@deployments/=deployments/",
     "@siwe/=siwe/",
     "@uniswap-v3/=uniswap-v3/"
 ]

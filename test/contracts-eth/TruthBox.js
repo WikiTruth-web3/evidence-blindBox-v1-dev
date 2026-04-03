@@ -18,7 +18,7 @@ describe("TruthBox合约测试", function () {
         truthBox_minter, truthBox_other, dao} = await loadFixture(deployTruthBoxFixture);
       
       // 再铸造一个新代币 - 
-      await truthBox_minter.create("10_tokenURI", "10_infoURI", bytes_mint, 1000);
+      await truthBox_minter.create("10_infoURI", bytes_mint, 1000);
       
       // 获取并验证Box信息  TODO: 暂时不需要这个函数
       // const boxInfo_0 = await truthBox.getBoxInfoCID(0);
