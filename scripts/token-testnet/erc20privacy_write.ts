@@ -1,8 +1,9 @@
 import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import { token_contracts_address } from "../utils/contracts_address";
+import { token_contracts_address, core_contracts_address } from "../utils/contracts_address";
 import { TaskMap, IERC20privacy } from "../types/token-fuctions";
+
 import { buildEIP712Permit, PermitType } from "../utils/eip712-simple";
 
 /**
@@ -11,9 +12,10 @@ import { buildEIP712Permit, PermitType } from "../utils/eip712-simple";
  */
 
 const current_executes: (keyof IERC20privacy)[] = [
-    'wrap',
+    // 'wrap',
     // 'transferWithPermit',
     // 'unwrap',
+    'approveWithPermit'
 ];
 
 async function main() {
@@ -32,6 +34,9 @@ async function main() {
     }
     const targetTokenAddr = token_contracts_address.settlementToken;
     const testAmount = ethers.parseEther("10");
+    const spender_approve = core_contracts_address.fundManager;
+    const amount_approve = ethers.parseEther("20");
+
 
     console.log("🎫 正在生成 EIP712 TRANSFER Permit...");
     const transferPermit = await buildEIP712Permit(
@@ -40,17 +45,27 @@ async function main() {
         testAmount,
         PermitType.Transfer,
         targetTokenAddr,
-        "Privacy ERC20 Token"
+        "Secret ERC20 Token" // this is old contract, new contract is "Privacy ERC20 Token" 
     );
 
+    if (!transferPermit) {
+        console.error("EIP712 Permit 生成失败");
+        return;
+    }
+
     const approvePermit = await buildEIP712Permit(
-        adminSigner,
-        buyerSigner.address,
-        testAmount,
+        buyerSigner,
+        spender_approve,
+        amount_approve,
         PermitType.Approve,
         targetTokenAddr,
-        "Privacy ERC20 Token"
+        "Secret ERC20 Token" // this is old contract, new contract is "Privacy ERC20 Token" 
     );
+
+    if (!approvePermit) {
+        console.error("EIP712 Permit 生成失败");
+        return;
+    }
 
     const all_tasks: TaskMap<IERC20privacy> = {
         'wrap': {

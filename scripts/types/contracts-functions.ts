@@ -32,6 +32,7 @@ export enum FundsType {
 // =====================================================================================
 
 export interface IAddressManagerRead {
+    admin(): Promise<string>;
     dao(): Promise<string>;
     governance(): Promise<string>;
     daoFundManager(): Promise<string>;

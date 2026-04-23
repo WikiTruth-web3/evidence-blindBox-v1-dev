@@ -112,7 +112,7 @@ const validateAddress = (address: string, name: string): void => {
     if (!address || typeof address !== 'string') {
         throw new Error(`${name} 地址不能为空且必须是字符串`);
     }
-    
+
     if (!ethers.isAddress(address)) {
         throw new Error(`${name} 地址格式无效: ${address}`);
     }
@@ -125,7 +125,7 @@ const validateSigner = async (signer: Signer): Promise<string> => {
     if (!signer || typeof signer.getAddress !== 'function') {
         throw new Error('签名者无效');
     }
-    
+
     try {
         return await signer.getAddress();
     } catch (error) {
@@ -155,7 +155,7 @@ const createEIP712Domain = (
     domainVersion?: string
 ): EIP712Domain => {
     const networkConfig = getNetworkConfig(chainId);
-    
+
     return {
         name: domainName || networkConfig.defaultDomainName,
         version: domainVersion || networkConfig.defaultDomainVersion,
@@ -192,14 +192,14 @@ export const createEIP712Permit_PrivateToken = async function (
         // 参数验证
         const signerAddress = await validateSigner(signer);
         const spenderAddress = await getAddressString(spender);
-        
+
         validateAddress(contractAddress, '合约');
-        
+
         // 验证金额
         if (amount < 0) {
             throw new Error('金额不能为负数');
         }
-        
+
         // 验证许可类型
         if (!Object.values(PermitType).includes(mode)) {
             throw new Error(`无效的许可类型: ${mode}`);
@@ -207,13 +207,13 @@ export const createEIP712Permit_PrivateToken = async function (
 
         // 获取链ID
         const chainId = networkParam?.chainId || (await ethers.provider.getNetwork()).chainId;
-        
+
         // 创建域配置
         const domain = createEIP712Domain(contractAddress, Number(chainId), domainName, domainVersion);
-        
+
         // 设置截止时间
         const deadline = customDeadline || Math.floor(Date.now() / 1000) + 3600; // 默认1小时后过期
-        
+
         // EIP712类型定义
         const types = {
             EIP712Permit: [
@@ -224,7 +224,7 @@ export const createEIP712Permit_PrivateToken = async function (
                 { name: "deadline", type: "uint256" }
             ]
         };
-        
+
         // 签名值
         const value = {
             label: mode,
@@ -233,7 +233,7 @@ export const createEIP712Permit_PrivateToken = async function (
             amount: BigInt(amount),
             deadline: deadline
         };
-        
+
         console.log(`📝 签名参数:`, {
             owner: signerAddress,
             spender: spenderAddress,
@@ -241,11 +241,11 @@ export const createEIP712Permit_PrivateToken = async function (
             mode: PermitType[mode],
             deadline: new Date(deadline * 1000).toISOString()
         });
-        
+
         // 执行EIP712签名
         const signature = await signer.signTypedData(domain, types, value);
         const sig = ethers.Signature.from(signature);
-        
+
         const result: EIP712PermitResult = {
             label: mode,
             owner: signerAddress,
@@ -259,7 +259,7 @@ export const createEIP712Permit_PrivateToken = async function (
             },
             domain: domain
         };
-        
+
         console.log(`✅ EIP712许可签名生成成功`);
         return result;
 
@@ -269,30 +269,6 @@ export const createEIP712Permit_PrivateToken = async function (
     }
 };
 
-/**
- * 生成EIP712许可签名（简化版本，保持向后兼容）
- */
-export const createEIP712Permit_PrivateTokenSimple = async function (
-    signer: Signer,
-    spender: Signer | string,
-    amount: number,
-    mode: PermitType,
-    contractAddress: string,
-    domainName: string,
-    network?: any,
-    customDeadline?: number
-): Promise<EIP712PermitResult> {
-    return createEIP712Permit_PrivateToken({
-        signer,
-        spender,
-        amount,
-        mode,
-        contractAddress,
-        domainName,
-        network,
-        customDeadline
-    });
-};
 
 /**
  * 验证EIP712签名
@@ -319,38 +295,4 @@ export const verifyEIP712Signature = async function (
         return false;
     }
 };
-
-/**
- * 获取支持的链ID列表
- */
-export const getSupportedChainIds = (): number[] => {
-    return Object.keys(SUPPORTED_NETWORKS).map(id => parseInt(id));
-};
-
-/**
- * 检查链ID是否支持
- */
-export const isChainIdSupported = (chainId: number): boolean => {
-    return chainId in SUPPORTED_NETWORKS;
-};
-
-/**
- * 创建自定义EIP712域
- */
-export const createCustomEIP712Domain = (
-    name: string,
-    version: string,
-    chainId: number,
-    verifyingContract: string
-): EIP712Domain => {
-    validateAddress(verifyingContract, '合约');
-    
-    return {
-        name,
-        version,
-        chainId,
-        verifyingContract
-    };
-};
-
 

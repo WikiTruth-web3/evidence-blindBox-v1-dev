@@ -30,7 +30,7 @@ async function main() {
         return;
     }
     const wroseAddr = token_contracts_address.wrosePrivacy;
-    const testAmount = ethers.parseEther("0.1");
+    const testAmount = ethers.parseEther("1");
 
     console.log("🎫 正在生成 EIP712 TRANSFER Permit (wROSE)...");
     const transferPermit = await buildEIP712Permit(

@@ -4,14 +4,15 @@ import { ContractRunner } from "../utils/contract-runner";
 import { token_contracts_address } from "../utils/contracts_address";
 import { TaskMap, IERC20privacy } from "../types/token-fuctions";
 import { buildEIP712Permit, PermitType } from "../utils/eip712-simple";
-
+// import { createEIP712Permit_PrivateToken, PermitType } from "../../utils/getEIP712";
+import { core_contracts_address } from "../utils/contracts_address";
 /**
  * ERC20privacy (如 SettlementToken) 读取操作批处理脚本
  * 运行命令：npx hardhat run scripts/token-testnet/erc20privacy_read.ts --network sapphire-testnet
  */
 
 const current_executes: (keyof IERC20privacy)[] = [
-    'balanceOfWithPermit',
+    // 'balanceOfWithPermit',
     'allowanceWithPermit',
 ];
 
@@ -24,25 +25,37 @@ async function main() {
         return;
     }
 
-    const { adminSigner } = await getSigners_SapphireTestnet();
-    if (!adminSigner) {
+    const { adminSigner, buyerSigner } = await getSigners_SapphireTestnet();
+    if (!adminSigner || !buyerSigner) {
         console.error("未找到有效的签名者");
         return;
     }
     // TODO 
-    const targetTokenAddr = token_contracts_address.settlementToken;
+    const tokenContractAddr = token_contracts_address.settlementToken;
+    const targetContractAddr = token_contracts_address.settlementToken;
+    const spender_allowance = core_contracts_address.fundManager;
+
 
     console.log("🎫 正在生成 EIP712 VIEW Permit...");
-    const viewPermit = await buildEIP712Permit(
+    const viewPermit_allowance = await buildEIP712Permit(
+        buyerSigner,
+        spender_allowance, // For VIEW, spender shouldn't matter but we pass ZeroAddress
+        0, // For VIEW, amount is 0
+        PermitType.View,
+        targetContractAddr,
+        "Secret ERC20 Token",
+    );
+
+    const viewPermit_balance = await buildEIP712Permit(
         adminSigner,
         ethers.ZeroAddress, // For VIEW, spender shouldn't matter but we pass ZeroAddress
         0, // For VIEW, amount is 0
         PermitType.View,
-        targetTokenAddr,
-        "Privacy ERC20 Token"
+        targetContractAddr,
+        "Secret ERC20 Token",
     );
 
-    if (!viewPermit) {
+    if (!viewPermit_allowance || !viewPermit_balance) {
         console.error("EIP712 Permit 生成失败");
         return;
     }
@@ -51,26 +64,26 @@ async function main() {
         'balanceOfWithPermit': {
             taskName: "获取私有余额 (balanceOfWithPermit)",
             contractsName: "ERC20privacy",
-            contractAddress: targetTokenAddr,
+            contractAddress: tokenContractAddr,
             functionName: "balanceOfWithPermit",
-            params: [viewPermit],
-            signer: null
+            params: [viewPermit_balance],
+            signer: adminSigner
         },
         'allowanceWithPermit': {
             taskName: "获取私有授权额度 (allowanceWithPermit)",
             contractsName: "ERC20privacy",
-            contractAddress: targetTokenAddr,
+            contractAddress: tokenContractAddr,
             functionName: "allowanceWithPermit",
-            params: [viewPermit],
-            signer: null
+            params: [viewPermit_allowance],
+            signer: adminSigner
         },
         'underlyingToken': {
             taskName: "查询底层代币地址",
             contractsName: "ERC20privacy",
-            contractAddress: targetTokenAddr,
+            contractAddress: tokenContractAddr,
             functionName: "underlyingToken",
             params: [],
-            signer: null
+            signer: adminSigner
         }
     };
 

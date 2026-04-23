@@ -104,7 +104,8 @@ const config: HardhatUserConfig = {
     format: "json",       // 导出格式，支持 "json" 或 "minimal" (极简模式)
   },
   paths: {
-    sources: "./contracts",
+    sources: "./erc20-token-privacy", // need change the foundry.toml file
+    // sources: "./contracts", 
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"

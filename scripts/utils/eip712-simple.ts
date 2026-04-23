@@ -58,17 +58,17 @@ export async function signEIP712(
 ): Promise<EIP712SignatureResult> {
     // 获取签名者地址
     const owner = await signer.getAddress();
-    
+
     // 获取链ID
     const network = await ethers.provider.getNetwork();
     const chainId = Number(network.chainId);
 
-    const defaultDomainName = domainName || "Secret ERC20 Token";
+    const defaultDomainName = domainName || "Privacy ERC20 Token";
     const defaultDomainVersion = domainVersion || "1";
-    
+
     // 设置截止时间（默认1小时后）
     const finalDeadline = deadline || Math.floor(Date.now() / 1000) + 3600;
-    
+
     // 创建EIP712域
     const domain = {
         name: defaultDomainName,
@@ -76,7 +76,7 @@ export async function signEIP712(
         chainId: chainId,
         verifyingContract: contractAddress
     };
-    
+
     // EIP712类型定义
     const types = {
         EIP712Permit: [
@@ -87,7 +87,7 @@ export async function signEIP712(
             { name: "deadline", type: "uint256" }
         ]
     };
-    
+
     // 签名值
     const value = {
         label: permitType,
@@ -96,11 +96,11 @@ export async function signEIP712(
         amount: BigInt(amount),
         deadline: finalDeadline
     };
-    
+
     // 执行EIP712签名
     const signature = await signer.signTypedData(domain, types, value);
     const sig = ethers.Signature.from(signature);
-    
+
     return {
         signature: signature,
         r: sig.r,
@@ -114,7 +114,7 @@ export async function signEIP712(
 /**
  * 构建EIP712Permit
  */
-export async function buildEIP712Permit (
+export async function buildEIP712Permit(
     signer: Signer,
     spender: string,
     amount: bigint | number,
@@ -126,31 +126,31 @@ export async function buildEIP712Permit (
 ): Promise<any | null> {
 
     try {
-    const eip712Result = await signEIP712(
-        signer,
-        spender, // 在transfer中，spender就是接收者地址
-        amount,
-        permitType,
-        contractAddress,
-        domainName,
-        domainVersion,
-        deadline
-    );
+        const eip712Result = await signEIP712(
+            signer,
+            spender, // 在transfer中，spender就是接收者地址
+            amount,
+            permitType,
+            contractAddress,
+            domainName,
+            domainVersion,
+            deadline
+        );
 
-    // 构建EIP712Permit结构体
-    const permit = {
-        label: eip712Result.value.label, // PermitLabel.TRANSFER = 1
-        owner: eip712Result.value.owner,
-        spender: eip712Result.value.spender,
-        amount: eip712Result.value.amount,
-        deadline: eip712Result.value.deadline,
-        signature: {
-            r: eip712Result.r,
-            s: eip712Result.s,
-            v: eip712Result.v
-        }
-    };
-    return permit;
+        // 构建EIP712Permit结构体
+        const permit = {
+            label: eip712Result.value.label, // PermitLabel.TRANSFER = 1
+            owner: eip712Result.value.owner,
+            spender: eip712Result.value.spender,
+            amount: eip712Result.value.amount,
+            deadline: eip712Result.value.deadline,
+            signature: {
+                r: eip712Result.r,
+                s: eip712Result.s,
+                v: eip712Result.v
+            }
+        };
+        return permit;
     } catch (error) {
         console.error("构建EIP712Permit失败:", error);
         return null;
@@ -182,4 +182,3 @@ export async function verifyEIP712(
         return false;
     }
 }
-
