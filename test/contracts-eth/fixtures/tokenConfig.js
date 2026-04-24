@@ -44,8 +44,8 @@ async function configureTokens(signers, contracts, connectors) {
   await tokenConnectors.wBTC.other.approve(swapContract.target, 100000000);
 
   // 添加代币到地址管理器
-  await addressManager.setSettlementToken(settlementToken.target);
-  await addressManager.addToken(wBTC.target);
+  // await addressManager.setSettlementToken(settlementToken.target);
+  // await addressManager.addToken(wBTC.target);
 
   // 配置交换合约
   await swapContract.setToken(settlementToken.target, wBTC.target);

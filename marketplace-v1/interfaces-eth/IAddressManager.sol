@@ -21,6 +21,7 @@ pragma solidity ^0.8.24;
  * @dev This interface serves as the top-level constraint for the AddressManager contract, ensuring consistency between interface and implementation
  */
 interface IAddressManager {
+    
     // =====================================================================================
     //                                          Address Getters
     // =====================================================================================

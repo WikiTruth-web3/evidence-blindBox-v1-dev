@@ -14,6 +14,18 @@ const Status = {
     Blacklisted: 7
 };
 
+const FundsType = {
+    Order: 0,
+    Refund: 1,
+};
+
+const RewardType = {
+    Minter: 0,
+    Seller: 1,
+    Completer: 2,
+    Total: 3
+};
+
 const TimeHelpers = {
     // 验证时间差是否在预期范围内
     verifyTimeDifference(actualDiff, expectedDiff, allowedDelta = 10, message = "") {
@@ -76,5 +88,7 @@ const TimeHelpers = {
 
 module.exports = {
     Status,
+    FundsType,
+    RewardType,
     ...TimeHelpers
 };

@@ -3,24 +3,31 @@ import { core_contracts_address } from "../../scripts/utils/contracts_address";
 import { ethers } from "ethers";
 
 
-// 1. deploy: npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
-
-export default buildModule("Deploy_20260403", (m) => {
+// 1. npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
+// 2. npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet --deployment-id Deploy_20260424_v2_nonce286
+export default buildModule("Deploy_20260424_v2", (m) => {
   const addressManager = core_contracts_address.addressManager;
   const forwarder = core_contracts_address.forwarder;
   const pers = ethers.hexlify(ethers.randomBytes(32));
 
-  // const exchange = m.contract("Exchange", [addressManager_Proxy]);
-  const truthBox = m.contract("TruthBox", [addressManager,forwarder,pers]);
+  const addressManager_new = m.contract("AddressManager", []);
+  const exchange = m.contract("Exchange", [addressManager,forwarder]);
+  // const truthBox = m.contract("TruthBox", [addressManager,forwarder,pers]);
   // const truthNFT = m.contract("TruthNFT", [addressManager_Proxy]);
   // const fundManager = m.contract("FundManager", [addressManager_Proxy]);
   // const userId = m.contract("UserId", [addressManager_Proxy]);
   
   return { 
-    // exchange, 
-    truthBox,
+    addressManager_new,
+    exchange, 
+    // truthBox,
     // fundManager,
     // truthNFT, 
     // userId 
   };
 });
+
+/**
+ * Deploy_20260424_v2#AddressManager - 0x268863DAeaAdcB45aBb010402600Dea7C0a04744
+Deploy_20260424_v2#Exchange - 0x0499bd1974FF382A49D0008b413422518E71e06d
+ */

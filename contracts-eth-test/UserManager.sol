@@ -82,13 +82,13 @@ contract UserManager is ModifierV2, IUserManager {
     function addBlacklist(address user_) external onlyAdminDAO {
         _checkInBlacklist(user_);
         _blacklist[user_] = true;
-        emit Blacklist(user_, true);
+        emit Blacklisted(user_, true);
     }
 
     function removeBlacklist(address user_) external onlyAdminDAO {
         _checkNotInBlacklist(user_);
         _blacklist[user_] = false;
-        emit Blacklist(user_, false);
+        emit Blacklisted(user_, false);
     }
 
     function isBlacklisted(address user_) external view returns (bool) {

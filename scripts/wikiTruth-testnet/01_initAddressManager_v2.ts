@@ -27,50 +27,48 @@ async function main() {
 
     // 1. 编排任务清单
     const tasks: CallFunctionParams[] = [
-        // {
-        //     taskName: "设置地址列表",
-        //     contractsName: "AddressManager",
-        //     functionName: "setAddressList",
-        //     params: [[
-        //         adminAddress,           // dao 
-        //         ethers.ZeroAddress,     // governance
-        //         daoFundManagerAddress,  // daoFundManager 
-        //         core_contracts_address.userManager,
-        //         core_contracts_address.siweAuth,
-        //         core_contracts_address.truthBox,
-        //         core_contracts_address.exchange,
-        //         core_contracts_address.fundManager,
-        //         core_contracts_address.forwarder,
-        //     ]],
-        //     signer: adminSigner
-        // },
+        {
+            taskName: "设置地址列表",
+            contractsName: "AddressManager",
+            functionName: "setAddressList",
+            params: [[
+                adminAddress,           // dao 
+                ethers.ZeroAddress,     // governance
+                daoFundManagerAddress,  // daoFundManager 
+                core_contracts_address.userManager,
+                core_contracts_address.siweAuth,
+                core_contracts_address.truthBox,
+                core_contracts_address.exchange,
+                core_contracts_address.fundManager,
+                core_contracts_address.forwarder,
+            ]],
+            signer: adminSigner
+        },
 
-        // {
-        //     // address swapContract = swapContracts[0];
-        //     // address quoter = swapContracts[1];
-        //     taskName: "设置SwapContracts",
-        //     contractsName: "AddressManager",
-        //     functionName: "setSwapContracts",
-        //     params: [[
-        //         v3_periphery_testnet_address.swapRouter,
-        //         v3_periphery_testnet_address.quoter
-        //     ]],
-        //     signer: adminSigner
-        // },
-        // {
-        //     taskName: "设置结算代币",
-        //     contractsName: "AddressManager",
-        //     functionName: "setSettlementToken",
-        //     params: [token_contracts_address.settlementToken],
-        //     signer: adminSigner
-        // },
-        // {
-        //     taskName: "添加支持代币 (wROSE.P)",
-        //     contractsName: "AddressManager",
-        //     functionName: "addToken",
-        //     params: [token_contracts_address.wrosePrivacy],
-        //     signer: adminSigner
-        // },
+        {
+            taskName: "设置SwapContracts",
+            contractsName: "AddressManager",
+            functionName: "setSwapContracts",
+            params: [[
+                v3_periphery_testnet_address.swapRouter,
+                v3_periphery_testnet_address.quoter
+            ]],
+            signer: adminSigner
+        },
+        {
+            taskName: "设置结算代币",
+            contractsName: "AddressManager",
+            functionName: "setSettlementToken",
+            params: [token_contracts_address.settlementToken],
+            signer: adminSigner
+        },
+        {
+            taskName: "添加支持代币 (wROSE.P)",
+            contractsName: "AddressManager",
+            functionName: "addToken",
+            params: [token_contracts_address.wrosePrivacy],
+            signer: adminSigner
+        },
         {
             taskName: "设置所有合约地址",
             contractsName: "AddressManager",

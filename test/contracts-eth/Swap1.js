@@ -9,6 +9,8 @@ const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
 
+// npx hardhat test test/contracts-eth/Swap1.js 
+
 describe("交易测试-常规交易测试", function () {
   // 解构变量，用于单元测试
   

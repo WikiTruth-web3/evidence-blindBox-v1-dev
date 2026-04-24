@@ -56,8 +56,8 @@ async function initializeContracts(contracts, connectors, signers) {
   await addressManager.setSwapContracts(swapContracts);
   await addressManager.setAllAddress();
   // 在tokenConfig中设置
-  // await addressManager.setSettlementToken(settlementToken.target);
-  // await addressManager.addToken(wBTC.target);
+  await addressManager.setSettlementToken(settlementToken.target);
+  await addressManager.addToken(wBTC.target);
 
   // 设置初始参数
   await truthBoxConnectors.dao.setIncrementRate(incrementRate);
@@ -83,10 +83,6 @@ function generateTestData() {
   
   return {
     bytes_mint: '0x' + randomBytes.toString('hex'),
-    bytes_deliver: '0x' + randomBytes.toString('hex'),
-    officeKey01: '0x' + crypto.randomBytes(32).toString('hex'),
-    officeKey02: '0x' + crypto.randomBytes(32).toString('hex'),
-    officeKey03: '0x' + crypto.randomBytes(32).toString('hex'),
     bytes32_1: '0x' + crypto.randomBytes(32).toString('hex'),
     bytes32_2: '0x' + crypto.randomBytes(32).toString('hex'),
     bytes32_buyer: '0x' + crypto.randomBytes(32).toString('hex'),

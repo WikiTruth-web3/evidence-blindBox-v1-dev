@@ -45,4 +45,5 @@ contract MockERC20 is ERC20 {
         address from = _msgSender();
         _burn(from, amount_);
     }
+    
 }

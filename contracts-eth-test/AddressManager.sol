@@ -72,7 +72,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      * @dev Settlement token contract
      * @dev The token used for settlement
      */
-    address public settlementToken;
+    address internal _settlementToken;
 
     // Other supported token addresses
     address[] internal _tokenList;
@@ -237,7 +237,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      * @notice (init step: 3)
      */
     function setSettlementToken(address token_) external onlyAdmin {
-        address oldToken = settlementToken;
+        address oldToken = _settlementToken;
         if (token_ == address(0) || token_ == oldToken) revert InvalidAddress();
 
         if (oldToken != address(0)) {
@@ -246,7 +246,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         _removeTokenFromList(token_);
         _tokenStatus[token_] = TokenEnum.Active;
 
-        settlementToken = token_;
+        _settlementToken = token_;
     }
 
     /**
@@ -296,7 +296,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     function _removeToken(address token_) internal {
         if (_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
-        if (token_ == settlementToken) revert IsSettlementToken();
+        if (token_ == _settlementToken) revert IsSettlementToken();
         // remove from _tokenList
         _removeTokenFromList(token_);
         _tokenStatus[token_] = TokenEnum.Inactive;
@@ -334,6 +334,11 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         return _swapContracts;
     }
 
+    function settlementToken() external view returns (address) {
+        if (_settlementToken == address(0)) revert InvalidAddress();
+        return _settlementToken;
+    }
+
     /**
      * @dev Check if the token is supported
      * @param token_ Token contract address
@@ -348,7 +353,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      */
     function isSettlementToken(address token_) external view returns (bool) {
         if (token_ == address(0)) revert InvalidAddress();
-        return token_ == settlementToken;
+        return token_ == _settlementToken;
     }
 
     // ----------------------------------- Reserved address management --------------------------------------------------

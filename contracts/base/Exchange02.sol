@@ -103,7 +103,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         address sender = _msgSender();
 
         bytes32 userId = USER_MANAGER.getUserId(sender);
-        address token;
+        address token = ADDR_MANAGER.settlementToken();
 
         if (userId != truthBox.minterIdOf(boxId_)) {
             // others sell
@@ -116,10 +116,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
             price_ = 0;
         } else {
             // NOTE minter sell
-            if (
-                acceptedToken_ != address(0) &&
-                acceptedToken_ != ADDR_MANAGER.settlementToken()
-            ) {
+            if (acceptedToken_ != token && acceptedToken_ != address(0)) {
                 if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) {
                     revert TokenNotSupported();
                 }
@@ -253,5 +250,4 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         return _boxExchengData[boxId_]._refundRequestDeadline;
     }
 
-    // -------------------------------------------------------------------
 }

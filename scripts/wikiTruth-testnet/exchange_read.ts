@@ -12,8 +12,8 @@ import { TaskMap, IExchangeRead } from "../types/contracts-functions";
 // 当前需要执行的查询列表
 const current_executes: (keyof IExchangeRead)[] = [
     'acceptedToken',
-    'refundPermit',
-    'isInReviewDeadline'
+    // 'refundPermit',
+    // 'isInReviewDeadline'
 ];
 
 async function main() {
@@ -28,7 +28,7 @@ async function main() {
     const { adminSigner } = await getSigners_SapphireTestnet();
 
     // 测试数据定义
-    const testBoxId = BigInt(1); 
+    const boxId = BigInt(2); 
     const dummySiweToken = "0x"; // 示例 SIWE Token
 
     // 定义所有可能的读取任务
@@ -38,49 +38,49 @@ async function main() {
             taskName: "计算待支付金额",
             contractsName: "Exchange",
             functionName: "calcPayMoney",
-            params: [testBoxId, dummySiweToken],
+            params: [boxId, dummySiweToken],
             signer: null
         },
         'acceptedToken': {
             taskName: "获取接受的代币地址",
             contractsName: "Exchange",
             functionName: "acceptedToken",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'refundPermit': {
             taskName: "检查退款许可",
             contractsName: "Exchange",
             functionName: "refundPermit",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'refundRequestDeadline': {
             taskName: "获取退款申请截止时间",
             contractsName: "Exchange",
             functionName: "refundRequestDeadline",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'refundReviewDeadline': {
             taskName: "获取退款审核截止时间",
             contractsName: "Exchange",
             functionName: "refundReviewDeadline",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'isInRequestRefundDeadline': {
             taskName: "检查是否在退款申请期内",
             contractsName: "Exchange",
             functionName: "isInRequestRefundDeadline",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'isInReviewDeadline': {
             taskName: "检查是否在退款审核期内",
             contractsName: "Exchange",
             functionName: "isInReviewDeadline",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         }
     };

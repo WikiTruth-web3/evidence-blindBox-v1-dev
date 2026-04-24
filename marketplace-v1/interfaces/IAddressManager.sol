@@ -172,12 +172,6 @@ interface IAddressManager {
      */
     function isTokenSupported(address token_) external view returns (bool);
 
-    /**
-     * @notice Check if token is settlement token
-     * @param token_ Token address to check
-     * @return Whether the token is the settlement token
-     */
-    // function isSettlementToken(address token_) external view returns (bool);
 
     /**
      * @notice Get token list

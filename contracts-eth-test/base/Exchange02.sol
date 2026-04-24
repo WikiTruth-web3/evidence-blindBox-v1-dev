@@ -101,7 +101,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         address sender = msg.sender;
 
         bytes32 userId = USER_MANAGER.getUserId(sender);
-        address token;
+        address token = ADDR_MANAGER.settlementToken();
 
         if (userId != truthBox.minterIdOf(boxId_)) {
             // others sell
@@ -114,10 +114,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
             price_ = 0;
         } else {
             // NOTE minter sell
-            if (
-                acceptedToken_ != address(0) &&
-                acceptedToken_ != ADDR_MANAGER.settlementToken()
-            ) {
+            if (acceptedToken_ != token && acceptedToken_ != address(0)) {
                 if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) {
                     revert TokenNotSupported();
                 }
