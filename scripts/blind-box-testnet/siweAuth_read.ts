@@ -3,8 +3,8 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { TaskMap, ISiweAuthRead } from "../types/contracts-functions";
-import { getSiweMsg, erc191sign } from "../utils/SiweAuth";
-
+import { get_siwe_token } from "../utils/SiweAuth";
+import { core_contracts_address } from "../utils/contracts_address";
 /**
  * SiweAuth 合约读取（查询）批处理脚本
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/siweAuth_read.ts --network sapphire-testnet
@@ -42,13 +42,8 @@ async function main() {
     const statement = "Sign in to WikiTruth for authentication test.";
     const resources = ["https://wikitruth.xyz/api/v1"];
     
-    const siweMsg = await getSiweMsg(domain, adminSigner, chainId, undefined, statement, resources);
-    const signature = await erc191sign(siweMsg, adminSigner);
+    const token = await get_siwe_token(domain, adminSigner, chainId, core_contracts_address.siweAuth);
     
-    // 将消息和签名打包成 Token (此处格式需与合约 ISiweAuth 接收格式一致)
-    // 假设合约中是用这种方式拼接的
-    const token = ethers.solidityPacked(["string", "bytes"], [siweMsg, signature.serialized]);
-
     // 2. 定义所有可能的读取任务
     const all_tasks: TaskMap<ISiweAuthRead> = {
 

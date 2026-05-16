@@ -1,29 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // OpenZeppelin Contracts (last updated v5.0.0) (token/ERC721/ERC721.sol)
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
-import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange contract
- *  Implement basic TruthBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
+ *  Implement basic BlindBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
@@ -94,7 +81,7 @@ contract Exchange is Exchange03, IExchange {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
         bytes32 userId = USER_MANAGER.getUserId(sender);
-        uint256 price = TRUTH_BOX.getPrice(boxId_);
+        uint256 price = BLIND_BOX.getPrice(boxId_);
 
         return _calcPayMoney(boxId_, userId, price);
     }

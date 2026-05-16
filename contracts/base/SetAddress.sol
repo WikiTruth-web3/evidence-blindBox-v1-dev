@@ -1,25 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IBlindBox} from "@marketplace-v1/interfaces/IBlindBox.sol";
 
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
@@ -35,7 +22,7 @@ contract SetAddress {
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    ITruthBox internal TRUTH_BOX;
+    IBlindBox internal BLIND_BOX;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -53,7 +40,7 @@ contract SetAddress {
         IAddressManager addrMgr = ADDR_MANAGER;
 
         address siweAuth = addrMgr.siweAuth();
-        address truthBox = addrMgr.truthBox();
+        address blindBox = addrMgr.blindBox();
         address exchange = addrMgr.exchange();
         address fundManager = addrMgr.fundManager();
         address userManager = addrMgr.userManager();
@@ -63,11 +50,11 @@ contract SetAddress {
         }
 
         if (
-            truthBox != address(0) &&
-            truthBox != address(TRUTH_BOX) &&
-            enum_ != CoreContracts.TruthBox
+            blindBox != address(0) &&
+            blindBox != address(BLIND_BOX) &&
+            enum_ != CoreContracts.BlindBox
         ) {
-            TRUTH_BOX = ITruthBox(truthBox);
+            BLIND_BOX = IBlindBox(blindBox);
         }
 
         if (

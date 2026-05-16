@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 
 describe("FundManager", function () {
@@ -13,7 +13,7 @@ describe("FundManager", function () {
     const { 
       admin, fundManager_DAO, dao, minter, fundManager_minter,
       fundManager, exchange
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 切换为true
     await fundManager.pause();
@@ -32,10 +32,10 @@ describe("FundManager", function () {
   it("切换提款许可---提款", async function () {
     const { 
 
-      truthBox_minter, truthBox_buyer, exchange_minter,exchange_buyer,
+      blindBox_minter, blindBox_buyer, exchange_minter,exchange_buyer,
       bytes32_1, bytes32_2, fundManager_minter, wBTC, settlementToken, address_zero,
       fundManager, exchange
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // ===========================mint =========================
     await exchange_minter.sell(0, address_zero, 2000);
@@ -59,20 +59,20 @@ describe("FundManager", function () {
 
   // 设置滑点-成功
   // it("设置滑点-成功", async function () {
-  //   const {admin, fundManager} = await loadFixture(deployTruthBoxFixture);
+  //   const {admin, fundManager} = await loadFixture(deployBlindBoxFixture);
   //   await fundManager.setSlippageProtection(10);
   //   expect(await fundManager.slippageProtection()).to.equal(10);
   // });
 
   // 设置滑点-失败
   // it("设置滑点-失败", async function () {
-  //   const {admin, fundManager} = await loadFixture(deployTruthBoxFixture);
+  //   const {admin, fundManager} = await loadFixture(deployBlindBoxFixture);
   //   await expect(fundManager.setSlippageProtection(101)).to.be.reverted;
   //   await expect(fundManager.setSlippageProtection(0)).to.be.reverted;
   // });
 
   it("直接--接收orderAmount-失败", async function () {
-    const {admin, minter, fundManager,wBTC} = await loadFixture(deployTruthBoxFixture);
+    const {admin, minter, fundManager,wBTC} = await loadFixture(deployBlindBoxFixture);
 
     const fundMinter = await fundManager.connect(minter);
     // 调用接收服务费函数，传入1000个代币
@@ -81,7 +81,7 @@ describe("FundManager", function () {
   });
 
   it("接收延迟费用-失败-不能直接调用", async function () {
-    const {admin, minter, seller, buyer, fundManager,wBTC} = await loadFixture(deployTruthBoxFixture);
+    const {admin, minter, seller, buyer, fundManager,wBTC} = await loadFixture(deployBlindBoxFixture);
     // 调用接收服务费函数，传入1000个代币
     await expect(fundManager.payDelayFee(1, buyer.address, 1000)).to.be.reverted;
     // 检查
@@ -93,7 +93,7 @@ describe("FundManager", function () {
   });
 
   it("直接--allocationRewards-失败", async function () {
-    const {fundManager} = await loadFixture(deployTruthBoxFixture);
+    const {fundManager} = await loadFixture(deployBlindBoxFixture);
     // 调用feeToken合约mint函数，给minter地址发送10000个代币
     await expect(fundManager.allocationRewards(1)).to.be.reverted;
     
@@ -101,7 +101,7 @@ describe("FundManager", function () {
 
 
   it("查询-为空", async function () {
-    const {minter, fundManager, seller, wBTC, userManager} = await loadFixture(deployTruthBoxFixture);
+    const {minter, fundManager, seller, wBTC, userManager} = await loadFixture(deployBlindBoxFixture);
     // const orderAmount = await fundManager.orderAmount(1, minter.address);
     // 检查orderMoney是否为空
     expect(await fundManager.orderAmounts(1, minter.address)).to.equal(0);
@@ -113,11 +113,11 @@ describe("FundManager", function () {
 
   it("非buyer提取退款-失败", async function () {
     const { 
-      truthBox_minter, exchange_minter, exchange_buyer, fundManager_buyer,fundManager_completer,
+      blindBox_minter, exchange_minter, exchange_buyer, fundManager_buyer,fundManager_completer,
       bytes32_buyer, bytes_deliver, fundManager, exchange,fundManager_minter,wBTC, 
       settlementToken,
       address_zero,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售、购买、发货、请求退款
     await exchange_minter.sell(1, address_zero, 2000);
@@ -147,11 +147,11 @@ describe("FundManager", function () {
 
   it("非minter提取奖励-失败", async function () {
     const { 
-      truthBox_minter, exchange_minter, exchange_buyer, exchange_other,
+      blindBox_minter, exchange_minter, exchange_buyer, exchange_other,
       bytes32_buyer, bytes_deliver, fundManager, fundManager_buyer,
       wBTC, address_zero, settlementToken,
-      truthBox,minter,fundManager_completer,fundManager_minter,
-    } = await loadFixture(deployTruthBoxFixture);
+      blindBox,minter,fundManager_completer,fundManager_minter,
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售、购买、完成交易
     await exchange_minter.sell(2, address_zero, 2000);
@@ -177,11 +177,11 @@ describe("FundManager", function () {
 
   it("buyer提取订单金额-失败", async function () {
     const { 
-      truthBox_minter, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
+      blindBox_minter, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
       wBTC, address_zero, settlementToken, 
       userManager, userManager_buyer2,
       fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售并竞拍，但未最终购买
     await exchange_minter.auction(3, address_zero, 2000);
@@ -219,15 +219,15 @@ describe("FundManager", function () {
 
   it("测试调整费率-交易的资金", async function () { 
     const { 
-      truthBox, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
-      settlementToken, exchange_DAO, truthBox_DAO, fundManager_DAO,buyer, truthBox_buyer,
+      blindBox, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
+      settlementToken, exchange_DAO, blindBox_DAO, fundManager_DAO,buyer, blindBox_buyer,
       bytes32_buyer, fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer,
       address_zero,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 调整费率
     await exchange_DAO.setBidIncrementRate(150);
-    await truthBox_DAO.setIncrementRate(150);
+    await blindBox_DAO.setIncrementRate(150);
 
     // 拍卖成交，
     await exchange_minter.auction(1, address_zero, 2000);
@@ -238,17 +238,17 @@ describe("FundManager", function () {
     await exchange_buyer.completeOrder(1);
 
     // 验证价格是否为3000
-    expect (await truthBox.getPrice(1)).to.equal(3000);
+    expect (await blindBox.getPrice(1)).to.equal(3000);
     
     // 缴纳延迟费用
     await time.increase(340*24*60*60);
     const balance_buyer_1 = await settlementToken.balanceOf(buyer.address)
-    await truthBox_buyer.delay(1);
+    await blindBox_buyer.delay(1);
     const balance_buyer_2 = await settlementToken.balanceOf(buyer.address)
 
     await time.increase(365*24*60*60);
     expect(balance_buyer_1-balance_buyer_2).to.equal(3000);
-    await truthBox_buyer.delay(1);
+    await blindBox_buyer.delay(1);
     const balance_buyer_3 = await settlementToken.balanceOf(buyer.address)
     expect(balance_buyer_2-balance_buyer_3).to.equal(4500);
 

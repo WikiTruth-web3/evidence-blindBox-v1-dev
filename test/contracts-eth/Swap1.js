@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -19,11 +19,11 @@ describe("交易测试-常规交易测试", function () {
     const { 
       admin, dao, minter, buyer, completer,
       settlementToken, 
-      truthBox, exchange, fundManager, userManager_buyer,
+      blindBox, exchange, fundManager, userManager_buyer,
       DAY, MONTH, YEAR,bytes32_zero,
-      exchange_minter,exchange_completer, exchange_buyer, truthBox_buyer, 
+      exchange_minter,exchange_completer, exchange_buyer, blindBox_buyer, 
       address_zero, userManager_completer ,dao_fund_manager
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 时间增加360天
     await time.increase(MONTH);
@@ -32,8 +32,8 @@ describe("交易测试-常规交易测试", function () {
     await exchange_minter.sell(2, address_zero, 1000);
 
     // ==========  检查1，2号的deadline是否等于当前时间加365天 ===
-    const deadline_01 = Number(await truthBox.getDeadline(1));
-    const deadline_02 = Number(await truthBox.getDeadline(2));
+    const deadline_01 = Number(await blindBox.getDeadline(1));
+    const deadline_02 = Number(await blindBox.getDeadline(2));
     // 获取当前区块时间：当前时间戳/1000+360天
     const now = await time.latest();
     console.log("Swap1-01-当前区块时间:", timestampToDate(now));
@@ -54,12 +54,12 @@ describe("交易测试-常规交易测试", function () {
     );
 
     // 检查价格
-    expect(await truthBox.getPrice(1)).to.equal(2000);
-    expect(await truthBox.getPrice(2)).to.equal(1000);
+    expect(await blindBox.getPrice(1)).to.equal(2000);
+    expect(await blindBox.getPrice(2)).to.equal(1000);
 
     // 检查状态是否是1
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Selling);
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Selling);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Selling);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Selling);
 
     // 检查出售者应该为空
     expect(await exchange.sellerIdOf(1)).to.equal(bytes32_zero);
@@ -81,13 +81,13 @@ describe("交易测试-常规交易测试", function () {
     // ========================== 时间、状态、价格 ==========================
     
     // 检查1号的状态是否是2
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Paid);
-    const deadline_01_2 = Number(await truthBox.getDeadline(1));
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Paid);
+    const deadline_01_2 = Number(await blindBox.getDeadline(1));
     expect(deadline_01_2).to.equal(deadline_01);
 
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Paid);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Paid);
 
-    const deadline_04 = Number(await truthBox.getDeadline(2));
+    const deadline_04 = Number(await blindBox.getDeadline(2));
     expect(deadline_04).to.equal(deadline_02);
 
     // 检查购买者是否是buyer
@@ -99,7 +99,7 @@ describe("交易测试-常规交易测试", function () {
     // ============================== 完成1 ==================================
     await exchange_buyer.completeOrder(1);
     // 检查1号的状态是否是4
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
 
     // 检查1号的
     const orderAmounts_1_buyer = await fundManager.orderAmounts(1, buyer.address);
@@ -122,14 +122,14 @@ describe("交易测试-常规交易测试", function () {
 
     // ========================== 缴纳延迟费用 ==========================
     await time.increase(340 * 24 * 60 * 60);
-    const price01 = await truthBox.getPrice(1);
+    const price01 = await blindBox.getPrice(1);
     console.log("Swap1-01-price01缴费前:", price01);
-    const deadline_05 = Number(await truthBox.getDeadline(1));
+    const deadline_05 = Number(await blindBox.getDeadline(1));
     console.log("Swap1-01-deadline_05缴费后:", timestampToDate(deadline_05));
-    await truthBox_buyer.delay(1);
-    const price02 = await truthBox.getPrice(1);
+    await blindBox_buyer.delay(1);
+    const price02 = await blindBox.getPrice(1);
     console.log("Swap1-01-price02缴费后:", price02);
-    const deadline_06 = Number(await truthBox.getDeadline(1));
+    const deadline_06 = Number(await blindBox.getDeadline(1));
     console.log("Swap1-01-deadline_06缴费后:", timestampToDate(deadline_06));
     
 
@@ -141,14 +141,14 @@ describe("交易测试-常规交易测试", function () {
   });
 
   it("02-minter拍卖-buyer竞拍-检查时间-价格-状态", async function () {
-    const { admin, dao, minter, buyer, settlementToken, buyer2, truthBox, exchange, fundManager_buyer ,
+    const { admin, dao, minter, buyer, settlementToken, buyer2, blindBox, exchange, fundManager_buyer ,
       bytes_deliver, userManager_buyer,bytes_mint ,YEAR,MONTH, address_zero, 
       exchange_minter,exchange_DAO,exchange_buyer,exchange_buyer2,userManager_buyer2
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
     
     await exchange_minter.auction(1, address_zero, 2000);
     // 检查1，2号的deadline是否等于当前时间加365天
-    const deadline_01 = Number(await truthBox.getDeadline(1));
+    const deadline_01 = Number(await blindBox.getDeadline(1));
     // 获取当前区块时间：当前时间戳/1000+360天
     const now = await time.latest();
     console.log("Swap1-当前区块时间:", timestampToDate(now));
@@ -161,9 +161,9 @@ describe("交易测试-常规交易测试", function () {
     );
 
     // 检查1，2，的价格是否是2000
-    expect(await truthBox.getPrice(1)).to.equal(2000);
+    expect(await blindBox.getPrice(1)).to.equal(2000);
     // 检查1，2，的状态是否是1
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Auctioning);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Auctioning);
 
     // ========================== 竞拍1 ==========================
     await time.increase(20 * 24 * 60 * 60);
@@ -173,12 +173,12 @@ describe("交易测试-常规交易测试", function () {
     const buyerId = await userManager_buyer.myUserId();
     expect(await exchange.buyerIdOf(1)).to.equal(buyerId);
     // 检查时间是否延后
-    const deadline_02 = Number(await truthBox.getDeadline(1));
+    const deadline_02 = Number(await blindBox.getDeadline(1));
     // 获取当前区块时间：当前时间戳/1000+360天
     const now02 = await time.latest();
     console.log("Swap1-当前区块时间:", timestampToDate(now02));
     console.log("Swap1-deadline_02竞拍1次:", timestampToDate(deadline_02));
-    expect(await truthBox.getPrice(1)).to.equal(2200);
+    expect(await blindBox.getPrice(1)).to.equal(2200);
 
 
     // ========================== 竞拍2 ==========================
@@ -189,18 +189,18 @@ describe("交易测试-常规交易测试", function () {
     const buyer2_id = await userManager_buyer2.myUserId();
     expect(await exchange.buyerIdOf(1)).to.equal(buyer2_id);
     // 检查 时间是否延后
-    const deadline_03 = Number(await truthBox.getDeadline(1));
+    const deadline_03 = Number(await blindBox.getDeadline(1));
     // 获取当前区块时间：当前时间戳/1000+360天
     const now03 = await time.latest();
     console.log("Swap1-当前区块时间:", timestampToDate(now03));
     console.log("Swap1-deadline_03竞拍2次:", timestampToDate(deadline_03));
-    expect(await truthBox.getPrice(1)).to.equal(2420);
+    expect(await blindBox.getPrice(1)).to.equal(2420);
 
 
     // ========================== 竞拍3 ==========================
     // buyer第二次竞拍
     await time.increase(20 * 24 * 60 * 60);
-    const price = await truthBox.getPrice(1);
+    const price = await blindBox.getPrice(1);
     console.log("Swap1-竞拍两次后的价格:", price);
     const payMoney_buyer = await exchange_buyer.calcPayMoney(1)
     console.log("Swap1-buyer第二次竞拍需要支付的资金:", payMoney_buyer);
@@ -212,7 +212,7 @@ describe("交易测试-常规交易测试", function () {
     // ========================== 竞拍4 ==========================
     // other第二次竞拍
     await time.increase(20 * 24 * 60 * 60);
-    console.log("Swap1-竞拍三次后的价格:", await truthBox.getPrice(1));
+    console.log("Swap1-竞拍三次后的价格:", await blindBox.getPrice(1));
     console.log("Swap1-other第二次竞拍需要支付的资金:", await exchange_buyer2.calcPayMoney(1));
     await exchange_buyer2.bid(1);
 
@@ -221,8 +221,8 @@ describe("交易测试-常规交易测试", function () {
     await time.increase(40 * 24 * 60 * 60);
 
     // 检查1号的状态是否是3
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Paid);
-    const deadline_04 = Number(await truthBox.getDeadline(1));
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Paid);
+    const deadline_04 = Number(await blindBox.getDeadline(1));
     console.log("Swap1-deadline_04发货后:", timestampToDate(deadline_04));
     // const buyer2_id = await userManager_buyer2.myUserId();
     expect(await exchange.buyerIdOf(1)).to.equal(buyer2_id);
@@ -236,15 +236,15 @@ describe("交易测试-常规交易测试", function () {
     // ========================== 完成 ==========================
     await exchange_buyer2.completeOrder(1);
     // 检查1号的状态是否是Delaying
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
 
   });
 
   it("03-minter拍卖-竞拍--多种角色提取资金", async function () {
-    const { admin, dao, minter, buyer, settlementToken, other, truthBox, 
+    const { admin, dao, minter, buyer, settlementToken, other, blindBox, 
       exchange_minter, exchange_buyer,exchange_DAO,fundManager_buyer,fundManager_minter,
       dao_fund_manager, fundManager_DAO,fundManager_dao_fund_manager, address_zero,
-      fundManager,bytes32_1,bytes_mint ,bytes_deliver} = await loadFixture(deployTruthBoxFixture);
+      fundManager,bytes32_1,bytes_mint ,bytes_deliver} = await loadFixture(deployBlindBoxFixture);
 
     // deadline增加30天的时间,共计60天，支付服务费
     await exchange_minter.auction(1, address_zero, 1000);
@@ -261,7 +261,7 @@ describe("交易测试-常规交易测试", function () {
     // ========================== 完成 ==========================
     await exchange_buyer.completeOrder(1);
     // 检查1号的状态是否是5
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
     // 检查各个账户的收入
     // minter收入 1000-1000*3% = 970
     const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);

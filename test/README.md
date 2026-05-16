@@ -51,7 +51,7 @@ test/
 npx hardhat test test/contracts-eth/*.js
 
 # 运行特定测试
-npx hardhat test test/contracts-eth/TruthBox.js
+npx hardhat test test/contracts-eth/BlindBox.js
 npx hardhat test test/contracts-eth/Exchange.js
 ```
 
@@ -59,7 +59,7 @@ npx hardhat test test/contracts-eth/Exchange.js
 
 | 功能模块             | eth 版本 | Sapphire 版本 |
 | -------------------- | -------- | ------------- |
-| TruthBox 基本功能    | ✅       | ✅            |
+| BlindBox 基本功能    | ✅       | ✅            |
 | Exchange 交易功能    | ✅       | ✅            |
 | FundManager 资金管理 | ✅       | ✅            |
 | TruthNFT NFT 功能    | ✅       | ✅            |
@@ -104,7 +104,7 @@ export interface DeployedContracts {
   wBTC: Contract;
   otherToken: Contract;
   otherToken2: Contract;
-  truthBox: Contract;
+  blindBox: Contract;
   swapContract: Contract;
   fundManager: Contract;
   exchange: Contract;
@@ -121,12 +121,12 @@ const {
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
-const { deployTruthBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./Fixture.js");
 
 describe("我的测试", function () {
   it("应该...", async function () {
-    const { admin, truthBox, exchange } = await loadFixture(
-      deployTruthBoxFixture,
+    const { admin, blindBox, exchange } = await loadFixture(
+      deployBlindBoxFixture,
     );
     // 测试逻辑
   });

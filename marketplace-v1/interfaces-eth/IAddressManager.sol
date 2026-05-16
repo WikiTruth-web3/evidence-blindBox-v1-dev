@@ -1,18 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 /**
@@ -21,7 +8,6 @@ pragma solidity ^0.8.24;
  * @dev This interface serves as the top-level constraint for the AddressManager contract, ensuring consistency between interface and implementation
  */
 interface IAddressManager {
-    
     // =====================================================================================
     //                                          Address Getters
     // =====================================================================================
@@ -51,10 +37,10 @@ interface IAddressManager {
     function daoFundManager() external view returns (address);
 
     /**
-     * @notice Get TruthBox contract address
-     * @return TruthBox contract address
+     * @notice Get BlindBox contract address
+     * @return BlindBox contract address
      */
-    function truthBox() external view returns (address);
+    function blindBox() external view returns (address);
 
     /**
      * @notice Get Exchange contract address
@@ -98,7 +84,7 @@ interface IAddressManager {
 
     /**
      * @notice Set addresses list
-     * @param list_ Address list [dao, governance, daoFundManager, userId, siweAuth, truthBox, truthNFT, exchange, fundManager]
+     * @param list_ Address list [dao, governance, daoFundManager, userId, siweAuth, blindBox, truthNFT, exchange, fundManager]
      * @dev Only callable by admin
      */
     function setAddressList(address[] memory list_) external;

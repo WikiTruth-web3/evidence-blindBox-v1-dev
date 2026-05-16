@@ -1,41 +1,28 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
-import {TruthBox03} from "./base/TruthBox03.sol";
-import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {BlindBox03} from "./base/BlindBox03.sol";
+import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
 import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
 
 /**
- *  @notice TruthBox contract
- *  Implement basic TruthBox functions, including mint, publish, blacklist, etc.
+ *  @notice BlindBox contract
+ *  Implement basic BlindBox functions, including mint, publish, blacklist, etc.
  *  Also includes important transaction-related functions, including setPrice, setDeadline, addDeadline, setStatus
- *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
+ *  @dev Inherits IBlindBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox is TruthBox03, ITruthBox {
+contract BlindBox is BlindBox03, IBlindBox {
     // ==================================================================================================
     constructor(
         address addrManager_,
         address trustedForwarder_,
         bytes memory pers_
-    ) TruthBox03(addrManager_, trustedForwarder_, pers_) {}
+    ) BlindBox03(addrManager_, trustedForwarder_, pers_) {}
 
     function setAddress() external onlyManager {
-        _setAddress(CoreContracts.TruthBox);
+        _setAddress(CoreContracts.BlindBox);
     }
 
     // ==========================================================================================================

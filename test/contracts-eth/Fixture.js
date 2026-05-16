@@ -11,7 +11,7 @@ const { createConnectors } = require("./fixtures/connectors");
 const { configureTokens } = require("./fixtures/tokenConfig");
 const { initializeContracts } = require("./fixtures/initialization");
 
-async function deployTruthBoxFixture() {
+async function deployBlindBoxFixture() {
   // 1. 部署所有合约
   const { signers, contracts } = await deployContracts();
   
@@ -39,10 +39,10 @@ async function deployTruthBoxFixture() {
     ...contracts,
     
     // 连接器（保持向后兼容的命名）
-    truthBox_minter: connectors.truthBoxConnectors.minter,
-    truthBox_other: connectors.truthBoxConnectors.other,
-    truthBox_DAO: connectors.truthBoxConnectors.dao,
-    truthBox_buyer: connectors.truthBoxConnectors.buyer,
+    blindBox_minter: connectors.blindBoxConnectors.minter,
+    blindBox_other: connectors.blindBoxConnectors.other,
+    blindBox_DAO: connectors.blindBoxConnectors.dao,
+    blindBox_buyer: connectors.blindBoxConnectors.buyer,
     
     exchange_minter: connectors.exchangeConnectors.minter,
     exchange_buyer: connectors.exchangeConnectors.buyer,
@@ -78,6 +78,6 @@ async function deployTruthBoxFixture() {
 
 module.exports = {
   // deployFeeTokenFixture,
-  deployTruthBoxFixture
+  deployBlindBoxFixture
 };
 

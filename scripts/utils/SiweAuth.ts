@@ -19,7 +19,7 @@ export async function getSiweMsg(
 ): Promise<string> {
     return new SiweMessage({
         domain,
-        address: await signer.getAddress(), // 签名者地址，在前端一般是钱包地址
+        address: await signer.getAddress(), 
         statement:
             statement ||
             `I accept the ExampleOrg Terms of Service: https://${domain}/tos`,
@@ -32,7 +32,32 @@ export async function getSiweMsg(
 }
 
 // Signs the given message as ERC-191 "personal_sign" message.
-export async function erc191sign(msg: string, signer: Signer) {
+async function erc191sign(msg: string, signer: Signer) {
     return ethers.Signature.from(await signer.signMessage(msg));
 }
 
+export async function get_siwe_token(
+    domain: string, 
+    signer: Signer, 
+    chainId: number, 
+    siweContract:any,
+    expiration?: Date, 
+    statement?: string, // 
+    resources?: string[], // 
+) {
+    console.log("🎫 正在通过 SiweAuth 合约登录以生成加密 Token...");
+    const siweMsg = await getSiweMsg(domain, signer, chainId, expiration, statement, resources);
+    const signature = await erc191sign(siweMsg, signer);
+    
+    const siweAuthAddr = siweContract;
+    const siweAuth = await ethers.getContractAt("SiweAuthWikiTruth", siweAuthAddr);
+    
+    const token = await siweAuth.login(siweMsg, {
+        v: signature.v,
+        r: signature.r,
+        s: signature.s
+    });
+    console.log("✅ 加密 Token 获取成功");
+
+    return token;
+}

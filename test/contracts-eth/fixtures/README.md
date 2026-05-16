@@ -4,7 +4,7 @@
 
 ```javascript
 // 导入主夹具函数
-const { deployTruthBoxFixture } = require("../Fixture");
+const { deployBlindBoxFixture } = require("../Fixture");
 
 // 或者导入特定模块
 const { deployContracts, createConnectors } = require("./fixtures");

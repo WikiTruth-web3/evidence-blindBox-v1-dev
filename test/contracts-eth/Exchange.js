@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 
 // 测试直接调用Exchange合约中的相关函数
@@ -14,7 +14,7 @@ describe("Exchange", function () {
     const { 
       exchange_DAO,
       fundManager, exchange
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
     
     const refundReviewPeriod = secondsToDhms(Number(await exchange.refundReviewPeriod()));
     const refundRequestPeriod = secondsToDhms(Number(await exchange.refundRequestPeriod()));
@@ -36,7 +36,7 @@ describe("Exchange", function () {
   });
 
   it("设置期限-失败", async function () {
-    const {exchange_DAO, exchange, exchange_minter} = await loadFixture(deployTruthBoxFixture);
+    const {exchange_DAO, exchange, exchange_minter} = await loadFixture(deployBlindBoxFixture);
     
     // ==========================期限值不正确=========================
     await expect(exchange_DAO.setRefundRequestPeriod(3*24*60*60)).to.be.revertedWithCustomError(exchange,"InvalidPeriod");
@@ -52,7 +52,7 @@ describe("Exchange", function () {
 
   // 直接设置退款许可 --- 失败
   it("直接设置退款许可 --- 失败", async function () {
-    const {exchange_minter, exchange} = await loadFixture(deployTruthBoxFixture);
+    const {exchange_minter, exchange} = await loadFixture(deployBlindBoxFixture);
     await expect(exchange.setRefundPermit(3, true)).to.be.revertedWithCustomError(exchange,"NotProjectCaller");
     await expect(exchange.setRefundPermit(1, true)).to.be.revertedWithCustomError(exchange,"NotProjectCaller");
     

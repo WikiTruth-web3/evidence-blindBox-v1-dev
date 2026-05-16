@@ -73,8 +73,8 @@ const TimeHelpers = {
 // 2. 状态处理辅助函数
 // const StatusHelpers = {
 //     // 验证代币状态
-//     async verifyTokenStatus(truthBox, tokenId, expectedStatus) {
-//         const status = await truthBox.getStatus(tokenId);
+//     async verifyTokenStatus(blindBox, tokenId, expectedStatus) {
+//         const status = await blindBox.getStatus(tokenId);
 //         expect(status).to.equal(expectedStatus);
 //     },
 

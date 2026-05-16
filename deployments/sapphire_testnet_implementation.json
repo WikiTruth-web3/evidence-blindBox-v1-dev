@@ -3,7 +3,7 @@
     "AddressManager_Implementation": "",
     "Exchange_Implementation": "",
     "FundManager_Implementation": "",
-    "TruthBox_Implementation": "",
+    "BlindBox_Implementation": "",
     "UserManager_Implementation": "",
     "Forwarder_Implementation": ""
 }

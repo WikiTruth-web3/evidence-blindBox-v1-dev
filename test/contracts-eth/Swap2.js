@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -12,12 +12,12 @@ const TimeHelpers = require("./helpers");
 describe("交易测试-多角色参与交易过程", function () {
 
   it("06-过期出售-seller-buyer-completer-提取资金", async function () {
-    const { admin, dao, minter, seller, buyer, settlementToken, completer, truthBox, 
+    const { admin, dao, minter, seller, buyer, settlementToken, completer, blindBox, 
       exchange, fundManager ,bytes_mint, bytes_deliver, bytes32_1 , address_zero,
       userManager_completer,
       fundManager_completer,fundManager_DAO,dao_fund_manager, fundManager_dao_fund_manager,
       exchange_seller,exchange_DAO,exchange_buyer,exchange_completer, fundManager_buyer,fundManager_minter,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await time.increase(380 * 24 * 60 * 60);
     // 
@@ -97,12 +97,12 @@ describe("交易测试-多角色参与交易过程", function () {
   });
 
   it("07-黑名单、公开的无法出售", async function () {
-    const { minter, truthBox, exchange_minter, settlementToken ,truthBox_DAO,
-      truthBox_minter, address_zero,
-    } = await loadFixture(deployTruthBoxFixture);
+    const { minter, blindBox, exchange_minter, settlementToken ,blindBox_DAO,
+      blindBox_minter, address_zero,
+    } = await loadFixture(deployBlindBoxFixture);
     
-    await truthBox_DAO.addToBlacklist(1);
-    await truthBox_DAO.addToBlacklist(2);
+    await blindBox_DAO.addToBlacklist(1);
+    await blindBox_DAO.addToBlacklist(2);
     // 时间增加360天
     await time.increase(360 * 24 * 60 * 60);
     // 应该抛出异常
@@ -112,11 +112,11 @@ describe("交易测试-多角色参与交易过程", function () {
   });
 
   it("08-黑名单、公开的无法拍卖", async function () {
-    const { minter, truthBox, exchange, settlementToken ,truthBox_DAO,
-      truthBox_minter,exchange_seller, address_zero,
-    } = await loadFixture(deployTruthBoxFixture);
+    const { minter, blindBox, exchange, settlementToken ,blindBox_DAO,
+      blindBox_minter,exchange_seller, address_zero,
+    } = await loadFixture(deployBlindBoxFixture);
 
-    await truthBox_DAO.addToBlacklist(1);
+    await blindBox_DAO.addToBlacklist(1);
     // 时间增加360天
     await time.increase(360 * 24 * 60 * 60);
     // 应该抛出异常
@@ -127,9 +127,9 @@ describe("交易测试-多角色参与交易过程", function () {
 
   it("09-过期-seller-出售/拍卖", async function () {
     const { 
-      minter, buyer, settlementToken, truthBox, exchange_seller, address_zero, seller,
+      minter, buyer, settlementToken, blindBox, exchange_seller, address_zero, seller,
       fundManager, bytes_mint,userManager_seller , exchange_minter,exchange, bytes32_zero,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await time.increase(380 * 24 * 60 * 60);
     await exchange_minter.sell(1, address_zero, 2000);
@@ -138,15 +138,15 @@ describe("交易测试-多角色参与交易过程", function () {
     await exchange_seller.auction(4, address_zero, 4000);
 
     // 检查价格是否被修改
-    expect(await truthBox.getPrice(1)).to.equal(2000);
-    expect(await truthBox.getPrice(2)).to.equal(3000);
-    expect(await truthBox.getPrice(3)).to.equal(1000);
-    expect(await truthBox.getPrice(4)).to.equal(1000);
+    expect(await blindBox.getPrice(1)).to.equal(2000);
+    expect(await blindBox.getPrice(2)).to.equal(3000);
+    expect(await blindBox.getPrice(3)).to.equal(1000);
+    expect(await blindBox.getPrice(4)).to.equal(1000);
     // 检查1，2，5号的状态是否是1
-    expect(await truthBox.getStatus(1)).to.equal(TimeHelpers.Status.Selling);
-    expect(await truthBox.getStatus(2)).to.equal(TimeHelpers.Status.Auctioning);
-    expect(await truthBox.getStatus(3)).to.equal(TimeHelpers.Status.Selling);
-    expect(await truthBox.getStatus(4)).to.equal(TimeHelpers.Status.Auctioning);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Selling);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Auctioning);
+    expect(await blindBox.getStatus(3)).to.equal(TimeHelpers.Status.Selling);
+    expect(await blindBox.getStatus(4)).to.equal(TimeHelpers.Status.Auctioning);
     // 检查 seller
     expect(await exchange.sellerIdOf(1)).to.equal(bytes32_zero);
     expect(await exchange.sellerIdOf(2)).to.equal(bytes32_zero);

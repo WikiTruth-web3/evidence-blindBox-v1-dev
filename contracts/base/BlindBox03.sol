@@ -1,38 +1,25 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 import {
     Sapphire
 } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
-import {TruthBox02} from "./TruthBox02.sol";
-import {Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {BlindBox02} from "./BlindBox02.sol";
+import {Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
 
 /**
- *  @notice TruthBox03 contract
- *  Implement basic TruthBox functions, mint and publish
+ *  @notice BlindBox03 contract
+ *  Implement basic BlindBox functions, mint and publish
  */
 
-contract TruthBox03 is TruthBox02 {
+contract BlindBox03 is BlindBox02 {
     // ==================================================================================================
     constructor(
         address addrManager_,
         address trustedForwarder_,
         bytes memory pers_
-    ) TruthBox02(addrManager_, trustedForwarder_, pers_) {}
+    ) BlindBox02(addrManager_, trustedForwarder_, pers_) {}
 
     //==================================================================================================
     //                                      Get Info Functions
@@ -66,7 +53,7 @@ contract TruthBox03 is TruthBox02 {
     //==================================================================================================
     //                                      Get Info Functions
     //==================================================================================================
-    // function getBasicData in the TruthBox, not in this contract
+    // function getBasicData in the BlindBox, not in this contract
 
     /**
      * @dev Get secret data of a box

@@ -1,28 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // OpenZeppelin Contracts (last updated v5.0.0) (token/ERC721/ERC721.sol)
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
-import {ITruthBox, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
 
 import {Exchange02} from "./Exchange02.sol";
 
 /**
  *  @notice Exchange03 contract
- *  Implement basic TruthBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
+ *  Implement basic BlindBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
@@ -46,13 +33,13 @@ contract Exchange03 is Exchange02 {
      * Bid also needs to calculate, and pay: payAmount
      */
     function _buy(uint256 boxId_) internal {
-        ITruthBox truthBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
 
         // _checkStatus(boxId_, Status.Selling);
-        if (truthBox.getStatus(boxId_) != Status.Selling)
+        if (blindBox.getStatus(boxId_) != Status.Selling)
             revert InvalidStatus();
 
-        truthBox.setStatus(boxId_, Status.Paid);
+        blindBox.setStatus(boxId_, Status.Paid);
 
         address sender = _msgSender();
 
@@ -62,7 +49,7 @@ contract Exchange03 is Exchange02 {
         // Buy operation, should directly set the deadline for applying for refund
         _setRefundRequestDeadline(boxId_, block.timestamp);
 
-        uint256 payAmount = truthBox.getPrice(boxId_);
+        uint256 payAmount = blindBox.getPrice(boxId_);
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BoxPurchased(boxId_, userId);
@@ -85,13 +72,13 @@ contract Exchange03 is Exchange02 {
      * @notice Request refund function, after requesting refund, the box status becomes Refunding
      * Need to check: status、deadline.
      * Request refund will modify: status、refundReviewDeadline.
-     * Request refund also needs to set the status of TRUTH_BOX to Published
+     * Request refund also needs to set the status of BLIND_BOX to Published
      */
     function _requestRefund(uint256 boxId_) internal {
         // _checkStatus(boxId_, Status.Paid);
-        ITruthBox truthBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canRequestRefund?
-        if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
 
         bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
@@ -100,11 +87,11 @@ contract Exchange03 is Exchange02 {
         if (_isInRequestRefundDeadline(boxId_)) {
             uint256 deadline = block.timestamp + _refundReviewPeriod;
             _boxExchengData[boxId_]._refundReviewDeadline = deadline;
-            truthBox.setStatus(boxId_, Status.Refunding);
+            blindBox.setStatus(boxId_, Status.Refunding);
 
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
-            truthBox.setStatus(boxId_, Status.Delaying);
+            blindBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         }
     }
@@ -118,10 +105,10 @@ contract Exchange03 is Exchange02 {
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
+        IBlindBox blindBox = BLIND_BOX;
+        if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
-        truthBox.setStatus(boxId_, Status.Delaying);
+        blindBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 
@@ -129,14 +116,14 @@ contract Exchange03 is Exchange02 {
      * @notice Agree refund function, after agreeing refund, the box status becomes Sold
      * Need to check: status、deadline.
      * Agree refund will modify: status、refundReviewDeadline.
-     * Agree refund also needs to set the status of TRUTH_BOX to Published
+     * Agree refund also needs to set the status of BLIND_BOX to Published
      */
     function _agreeRefund(uint256 boxId_) internal {
         // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
 
         // canAgree?
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
+        if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
 
         if (_isInReviewDeadline(boxId_)) {
@@ -144,7 +131,7 @@ contract Exchange03 is Exchange02 {
             bytes32 userId = USER_MANAGER.getUserId(_msgSender());
             if (
                 // erc2771 - _msgSender() is the real caller
-                userId != truthBox.minterIdOf(boxId_) &&
+                userId != blindBox.minterIdOf(boxId_) &&
                 msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use _msgSender()
             ) {
                 revert InvalidCaller();
@@ -152,7 +139,7 @@ contract Exchange03 is Exchange02 {
         }
         // If it exceeds the deadline, then it means anyone can call this function.
         _boxExchengData[boxId_]._refundPermit = true;
-        truthBox.setStatus(boxId_, Status.Published);
+        blindBox.setStatus(boxId_, Status.Published);
 
         emit RefundPermitChanged(boxId_, true);
     }
@@ -162,20 +149,20 @@ contract Exchange03 is Exchange02 {
      */
     function _refuseRefund(uint256 boxId_) internal {
         // _checkStatus(boxId_, Status.Refunding);
-        ITruthBox truthBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canRefuse?
-        if (truthBox.getStatus(boxId_) != Status.Refunding)
+        if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
         // According to whether it is within the review deadline, determine.
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
             if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
-            truthBox.setStatus(boxId_, Status.Delaying);
+            blindBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
-            truthBox.setStatus(boxId_, Status.Published);
+            blindBox.setStatus(boxId_, Status.Published);
 
             emit RefundPermitChanged(boxId_, true);
         }
@@ -189,15 +176,15 @@ contract Exchange03 is Exchange02 {
      * @notice Complete order function, after completing order, the box status becomes Sold
      * Need to check: refundPermit.
      * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of TRUTH_BOX to Delaying
+     * Complete order also needs to set the status of BLIND_BOX to Delaying
      * Complete order also needs to set refundRequestDeadline.
      * @notice Everybody can excute this function， and get helper rewards
      */
     function _completeOrder(uint256 boxId_) internal {
         // _checkStatus(boxId_, Status.Paid);
-        ITruthBox truthBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canComplete?
-        if (truthBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // erc2771
@@ -206,12 +193,12 @@ contract Exchange03 is Exchange02 {
 
         if (userId != _buyerIdOf(boxId_)) {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
-            if (userId != truthBox.minterIdOf(boxId_)) {
+            if (userId != blindBox.minterIdOf(boxId_)) {
                 _boxExchengData[boxId_]._completerId = userId;
                 emit CompleterAssigned(boxId_, userId);
             }
         }
-        truthBox.setStatus(boxId_, Status.Delaying);
+        blindBox.setStatus(boxId_, Status.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 }

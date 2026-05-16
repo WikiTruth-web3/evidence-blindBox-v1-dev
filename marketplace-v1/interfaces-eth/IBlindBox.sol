@@ -1,18 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 enum Status {
@@ -26,7 +13,7 @@ enum Status {
     Blacklisted
 }
 
-interface TruthBoxEvents {
+interface BlindBoxEvents {
     event BoxCreated(
         uint256 indexed boxId,
         bytes32 indexed userId,
@@ -43,11 +30,11 @@ interface TruthBoxEvents {
 }
 
 /**
- * @title ITruthBox
- * @notice TruthBox contract interface, defining all externally exposed functions and events
- * @dev This interface serves as the top-level constraint for the TruthBox contract, ensuring consistency between interface and implementation
+ * @title IBlindBox
+ * @notice BlindBox contract interface, defining all externally exposed functions and events
+ * @dev This interface serves as the top-level constraint for the BlindBox contract, ensuring consistency between interface and implementation
  */
-interface ITruthBox {
+interface IBlindBox {
     // =====================================================================================
     //                                          Address Management
     // =====================================================================================
@@ -63,7 +50,7 @@ interface ITruthBox {
     // =====================================================================================
 
     /**
-     * @notice Create a TruthBox
+     * @notice Create a BlindBox
      * @param boxInfoCID_ CID of the box info
      * @param key_ Key of the box
      * @param price_ Price of the box
@@ -76,7 +63,7 @@ interface ITruthBox {
     ) external returns (uint256);
 
     /**
-     * @notice Create and immediately publish a TruthBox
+     * @notice Create and immediately publish a BlindBox
      * @param boxInfoCID_ CID of the box info
      * @return boxId The created Box ID
      */
@@ -123,13 +110,9 @@ interface ITruthBox {
     /**
      * @notice Get secret data of a box (key)
      * @param boxId_ Box ID
-     * @param siweToken_ SIWE token of the user
      * @return key Key of the box
      */
-    function getSecretData(
-        uint256 boxId_,
-        bytes memory siweToken_
-    ) external view returns (bytes memory);
+    function getSecretData(uint256 boxId_) external view returns (bytes memory);
 
     // =====================================================================================
     //                                          Setter Functions (Project Contracts Only)
@@ -179,14 +162,14 @@ interface ITruthBox {
     // =====================================================================================
 
     /**
-     * @notice Publish TruthBox by minter
+     * @notice Publish BlindBox by minter
      * @param boxId_ Box ID
      * @dev Only callable by minter, box must be in Storing status
      */
     function publishByMinter(uint256 boxId_) external;
 
     /**
-     * @notice Publish TruthBox by buyer
+     * @notice Publish BlindBox by buyer
      * @param boxId_ Box ID
      * @dev Only callable by buyer, box must be in Delaying status
      */
@@ -228,9 +211,9 @@ interface ITruthBox {
     // ================================================
 
     /**
-     * @notice Get the minter userId of a box
+     * @notice Get the minter address of a box
      * @param boxId_ Box ID
-     * @return minterId Minter userId of the box
+     * @return minter Minter userId of the box
      * @dev Only callable by project contracts
      */
     function minterIdOf(uint256 boxId_) external view returns (bytes32);

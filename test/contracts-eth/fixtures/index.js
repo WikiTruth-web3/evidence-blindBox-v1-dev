@@ -9,7 +9,7 @@ const { configureTokens } = require("./tokenConfig");
 const { 
   initializeContracts, 
   generateTestData, 
-  createTestTruthBoxes,
+  createTestBlindBoxes,
   incrementRate,
   bidIncrementRate,
   serviceFeeRate,
@@ -30,7 +30,7 @@ module.exports = {
   // 初始化配置
   initializeContracts,
   generateTestData,
-  createTestTruthBoxes,
+  createTestBlindBoxes,
   incrementRate,
   bidIncrementRate,
   serviceFeeRate,
@@ -40,6 +40,6 @@ module.exports = {
   // 工具函数
   utils: {
     generateTestData,
-    createTestTruthBoxes
+    createTestBlindBoxes
   }
 };

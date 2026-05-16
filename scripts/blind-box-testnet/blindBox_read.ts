@@ -4,8 +4,8 @@ import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 
 /**
- * TruthBox 合约读取操作批处理脚本
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/truthBox_read.ts --network sapphire-testnet
+ * BlindBox 合约读取操作批处理脚本
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/blindBox_read.ts --network sapphire-testnet
  */
 
 const current_executes = [
@@ -17,42 +17,42 @@ const current_executes = [
 ];
 
 async function main() {
-    console.log("🔍 开始读取 TruthBox 合约状态...");
+    console.log("🔍 开始读取 BlindBox 合约状态...");
     const { adminSigner } = await getSigners_SapphireTestnet();
     const testBoxId = 1;
 
     const all_tasks: { [key: string]: CallFunctionParams } = {
         'getStatus': {
             taskName: "获取状态",
-            contractsName: "TruthBox",
+            contractsName: "BlindBox",
             functionName: "getStatus",
             params: [testBoxId],
             signer: null
         },
         'getPrice': {
             taskName: "获取价格",
-            contractsName: "TruthBox",
+            contractsName: "BlindBox",
             functionName: "getPrice",
             params: [testBoxId],
             signer: null
         },
         'getDeadline': {
             taskName: "获取截止日期",
-            contractsName: "TruthBox",
+            contractsName: "BlindBox",
             functionName: "getDeadline",
             params: [testBoxId],
             signer: null
         },
         'getBasicData': {
             taskName: "获取基础数据 (Status, Price, Deadline)",
-            contractsName: "TruthBox",
+            contractsName: "BlindBox",
             functionName: "getBasicData",
             params: [testBoxId],
             signer: null
         },
         'isInBlacklist': {
             taskName: "检查是否在黑名单中",
-            contractsName: "TruthBox",
+            contractsName: "BlindBox",
             functionName: "isInBlacklist",
             params: [testBoxId],
             signer: null

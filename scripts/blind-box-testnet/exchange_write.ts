@@ -64,7 +64,7 @@ async function main() {
             signer: adminSigner
         },
         'buy': {
-            taskName: "购买 TruthBox",
+            taskName: "购买 BlindBox",
             contractsName: "Exchange",
             functionName: "buy",
             params: [testBoxId],

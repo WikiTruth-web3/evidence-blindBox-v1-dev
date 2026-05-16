@@ -36,7 +36,7 @@ export interface IAddressManagerRead {
     dao(): Promise<string>;
     governance(): Promise<string>;
     daoFundManager(): Promise<string>;
-    truthBox(): Promise<string>;
+    blindBox(): Promise<string>;
     exchange(): Promise<string>;
     fundManager(): Promise<string>;
     userManager(): Promise<string>;
@@ -78,10 +78,10 @@ export interface IUserManagerWrite {
 }
 
 // =====================================================================================
-// TruthBox
+// BlindBox
 // =====================================================================================
 
-export interface ITruthBoxRead {
+export interface IBlindBoxRead {
     getStatus(boxId_: bigint | string): Promise<number>;
     getPrice(boxId_: bigint | string): Promise<bigint>;
     getDeadline(boxId_: bigint | string): Promise<bigint>;
@@ -90,7 +90,7 @@ export interface ITruthBoxRead {
     isInBlacklist(boxId_: bigint | string): Promise<boolean>;
 }
 
-export interface ITruthBoxWrite {
+export interface IBlindBoxWrite {
     setAddress(): Promise<any>;
     create(tokenCID_: string, boxInfoCID_: string, key_: string | Uint8Array, price_: bigint | string): Promise<any>;
     createAndPublish(tokenCID_: string, boxInfoCID_: string): Promise<any>;
@@ -200,7 +200,7 @@ export interface ISiweAuthWrite {
 export interface ContractInterfaces {
     AddressManager: { read: IAddressManagerRead, write: IAddressManagerWrite };
     UserManager: { read: IUserManagerRead, write: IUserManagerWrite };
-    TruthBox: { read: ITruthBoxRead, write: ITruthBoxWrite };
+    BlindBox: { read: IBlindBoxRead, write: IBlindBoxWrite };
     Exchange: { read: IExchangeRead, write: IExchangeWrite };
     FundManager: { read: IFundManagerRead, write: IFundManagerWrite };
     Forwarder: { read: IForwarderRead, write: IForwarderWrite };

@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -14,9 +14,9 @@ describe("交易测试-多代币测试", function () {
   it("15- minter 使用testToken出售", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, truthBox, truthBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
       fundManager, exchange,fundManager_buyer2,fundManager_buyer, fundManager_minter,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await exchange_minter.sell(1, wBTC.target, 2000);
     await exchange_minter.auction(2, wBTC.target, 2000);
@@ -62,9 +62,9 @@ describe("交易测试-多代币测试", function () {
   it("15- seller 使用testToken出售", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, truthBox, truthBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
       fundManager, exchange, exchange_seller, fundManager_buyer2,fundManager_buyer, fundManager_minter,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await time.increase(380*24*60*60)
     await exchange_seller.sell(1, wBTC.target, 2000);

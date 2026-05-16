@@ -18,20 +18,20 @@ async function createConnectors(signers, contracts) {
     wBTC,
     wETH,
     wROSE,
-    truthBox,
+    blindBox,
     swapContract,
     fundManager,
     exchange,
     userManager
   } = contracts;
 
-  // TruthBox 连接器
-  const truthBoxConnectors = {
-    other: truthBox.connect(other),
-    minter: truthBox.connect(minter),
-    dao: truthBox.connect(dao),
-    buyer: truthBox.connect(buyer),
-    buyer2: truthBox.connect(buyer2),
+  // BlindBox 连接器
+  const blindBoxConnectors = {
+    other: blindBox.connect(other),
+    minter: blindBox.connect(minter),
+    dao: blindBox.connect(dao),
+    buyer: blindBox.connect(buyer),
+    buyer2: blindBox.connect(buyer2),
   };
 
   // Exchange 连接器
@@ -93,7 +93,7 @@ async function createConnectors(signers, contracts) {
   };
 
   return {
-    truthBoxConnectors,
+    blindBoxConnectors,
     exchangeConnectors,
     userManagerConnectors,
     fundManagerConnectors,

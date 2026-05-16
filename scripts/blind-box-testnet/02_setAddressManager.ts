@@ -52,8 +52,8 @@ async function main() {
             supportsSetAdmin: true,
         },
         {
-            name: "TruthBox",
-            address: core_contracts_address.truthBox,
+            name: "BlindBox",
+            address: core_contracts_address.blindBox,
             supportsSetAddressManager: true,
             supportsSetAdmin: true,
         },

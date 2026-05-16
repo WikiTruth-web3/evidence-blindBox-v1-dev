@@ -1,31 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
-import {
-    Sapphire
-} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
-import {
-    ERC2771Context
-} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-import {IdentitySalt} from "../abstract/IdentitySalt.sol";
-import {SecretKeyManager} from "../abstract/SecretKeyManager.sol";
 import {TruthBox01} from "./TruthBox01.sol";
-import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {
+    TruthBoxEvents,
+    Status
+} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
 
 /**
  *  @notice TruthBox contract
@@ -34,13 +15,7 @@ import {TruthBoxEvents, Status} from "@marketplace-v1/interfaces/ITruthBox.sol";
  *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox02 is
-    TruthBox01,
-    TruthBoxEvents,
-    ERC2771Context,
-    SiweContext,
-    SecretKeyManager
-{
+contract TruthBox02 is TruthBox01, TruthBoxEvents {
     struct BasicData {
         Status _status;
         uint256 _price;
@@ -57,15 +32,7 @@ contract TruthBox02 is
     mapping(uint256 boxId => SecretData) internal _secretData;
 
     // ==================================================================================================
-    constructor(
-        address addrManager_,
-        address trustedForwarder_,
-        bytes memory pers_
-    )
-        TruthBox01(addrManager_)
-        ERC2771Context(trustedForwarder_)
-        SecretKeyManager(pers_)
-    {}
+    constructor(address addrManager_) TruthBox01(addrManager_) {}
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -89,25 +56,9 @@ contract TruthBox02 is
     ) internal returns (uint256) {
         uint256 boxId = _nextBoxId;
 
-        bytes32 nonce;
-        bytes memory encryptedData;
-
-        // erc2771 - _msgSender() is the real caller
-        address sender = _msgSender();
+        // erc2771 - msg.sender is the real caller
+        address sender = msg.sender;
         bytes32 userId = USER_MANAGER.getUserId(sender);
-
-        if (key_.length != 0) {
-            // 1. Derive box-specific symmetric key
-            bytes32 secretKey = _deriveDataKey(bytes32(boxId));
-
-            // 2. Generate random nonce
-            nonce = bytes32(
-                Sapphire.randomBytes(32, abi.encodePacked(boxId, sender))
-            );
-
-            // 3. Encrypt data with the derived key
-            encryptedData = Sapphire.encrypt(secretKey, nonce, key_, "");
-        }
 
         _basicData[boxId] = BasicData({
             _price: price_,
@@ -117,8 +68,8 @@ contract TruthBox02 is
 
         _secretData[boxId] = SecretData({
             _minterId: userId,
-            _nonce: nonce,
-            _encryptedData: encryptedData
+            _nonce: bytes32(0),
+            _encryptedData: key_
         });
 
         unchecked {
@@ -130,9 +81,7 @@ contract TruthBox02 is
         return boxId;
     }
 
-    function _checkCID(
-        string calldata boxInfoCID_
-    ) internal pure {
+    function _checkCID(string calldata boxInfoCID_) internal pure {
         if (bytes(boxInfoCID_).length == 0) revert EmptyBoxInfoCID();
     }
 
@@ -156,7 +105,7 @@ contract TruthBox02 is
 
         unchecked {
             // On mainnet, the deadline is 365 days, but on testnet, the deadline is 15 days
-            deadline = block.timestamp + 15 days; // NOTE mainnet 365 days----testnet 15 days
+            deadline = block.timestamp + 365 days; // NOTE 365 days----15 days
         }
 
         uint256 boxId = _setBoxData(
@@ -183,5 +132,20 @@ contract TruthBox02 is
 
         emit BoxStatusChanged(boxId, Status.Published);
         return boxId;
+    }
+
+    // ==========================================================================================================
+    function _checkMinter(uint256 boxId_) internal view {
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        if (userId != _secretData[boxId_]._minterId) revert NotMinter();
+    }
+
+    function _checkBuyer(uint256 boxId_) internal view {
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
+    }
+
+    function _boxExists(uint256 boxId_) internal view {
+        if (boxId_ >= _nextBoxId) revert BoxNotExists();
     }
 }

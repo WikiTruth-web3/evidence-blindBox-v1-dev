@@ -1,18 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 interface FundManagerEvents {
@@ -78,7 +65,7 @@ interface IFundManager {
 
     /**
      * @notice Pay order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
      * @param userId_ Buyer id
@@ -93,7 +80,7 @@ interface IFundManager {
 
     /**
      * @notice Pay delay fee
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
      * @dev Only callable by project contracts
@@ -106,7 +93,7 @@ interface IFundManager {
 
     /**
      * @notice Allocate rewards
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @dev Only callable by project contracts
      */
     function allocationRewards(uint256 boxId_) external;
@@ -118,7 +105,7 @@ interface IFundManager {
     /**
      * @notice Withdraw order amounts (for buyers who failed to participate in bidding)
      * @param token_ Token address
-     * @param list_ List of TruthBox IDs
+     * @param list_ List of BlindBox IDs
      */
     function withdrawOrderAmounts(
         address token_,
@@ -128,7 +115,7 @@ interface IFundManager {
     /**
      * @notice Withdraw refund amounts
      * @param token_ Token address
-     * @param list_ List of TruthBox IDs
+     * @param list_ List of BlindBox IDs
      */
     function withdrawRefundAmounts(
         address token_,
@@ -147,7 +134,7 @@ interface IFundManager {
 
     /**
      * @notice Get order amount (for project contracts)
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param userId_ User ID
      * @return Order amount
      * @dev Only callable by project contracts
@@ -159,7 +146,7 @@ interface IFundManager {
 
     /**
      * @notice Get order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param siweToken_ User SIWE token
      * @return Order amount
      */

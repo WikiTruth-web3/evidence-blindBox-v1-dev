@@ -4,16 +4,16 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
 
 describe("UserManager- 相关测试", function () {
   it("获取用户ID", async function () {
     const { 
-      truthBox, exchange, fundManager, userManager,
+      blindBox, exchange, fundManager, userManager,
       buyer, minter, dao,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 现在检查myUserId()返回的值
     const id_minter = await userManager_minter.myUserId();

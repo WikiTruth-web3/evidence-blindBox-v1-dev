@@ -24,8 +24,8 @@ async function deployContracts() {
   const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH");
   const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE");
 
-  const TruthBox = await ethers.getContractFactory("TruthBox");
-  const truthBox = await TruthBox.deploy(addressManager.target);
+  const BlindBox = await ethers.getContractFactory("BlindBox");
+  const blindBox = await BlindBox.deploy(addressManager.target);
 
   // 部署交换和资金管理合约
   const SwapContract = await ethers.getContractFactory("SwapContract");
@@ -55,7 +55,7 @@ async function deployContracts() {
       wBTC,
       wETH,
       wROSE,
-      truthBox,
+      blindBox,
       swapContract,
       fundManager,
       exchange,

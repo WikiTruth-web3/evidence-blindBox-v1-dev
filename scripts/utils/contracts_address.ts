@@ -7,7 +7,7 @@ import deploymentImplementation from "../../deployments/sapphire_testnet_impleme
 export const core_contracts_address = {
     addressManager: deploymentInfo.AddressManager,
     forwarder: deploymentInfo.Forwarder,
-    truthBox: deploymentInfo.TruthBox,
+    blindBox: deploymentInfo.BlindBox,
     exchange: deploymentInfo.Exchange,
     fundManager: deploymentInfo.FundManager,
     userManager: deploymentInfo.UserManager,
@@ -34,10 +34,10 @@ export const core_contracts_testnet = [
         implementation: deploymentImplementation.Forwarder_Implementation,
     },
     {
-        name: "TruthBox",
-        contract: "TruthBox",
-        address: deploymentInfo.TruthBox,
-        implementation: deploymentImplementation.TruthBox_Implementation,
+        name: "BlindBox",
+        contract: "BlindBox",
+        address: deploymentInfo.BlindBox,
+        implementation: deploymentImplementation.BlindBox_Implementation,
     },
     {
         name: "Exchange",

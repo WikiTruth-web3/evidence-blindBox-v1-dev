@@ -37,7 +37,7 @@ async function main() {
                 daoFundManagerAddress,  // daoFundManager 
                 core_contracts_address.userManager,
                 core_contracts_address.siweAuth,
-                core_contracts_address.truthBox,
+                core_contracts_address.blindBox,
                 core_contracts_address.exchange,
                 core_contracts_address.fundManager,
                 core_contracts_address.forwarder,

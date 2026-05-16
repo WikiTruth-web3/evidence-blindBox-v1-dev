@@ -15,7 +15,7 @@ const slippageProtection = 10;
 async function initializeContracts(contracts, connectors, signers) {
   const {
     addressManager,
-    truthBox,
+    blindBox,
     exchange,
     fundManager,
     swapContract,
@@ -25,7 +25,7 @@ async function initializeContracts(contracts, connectors, signers) {
   } = contracts;
 
   const {
-    truthBoxConnectors,
+    blindBoxConnectors,
     exchangeConnectors,
     fundManagerConnectors,
   } = connectors;
@@ -41,7 +41,7 @@ async function initializeContracts(contracts, connectors, signers) {
     dao_fund_manager.address,
     userManager.target, 
     siweAuth.address, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
-    truthBox.target, 
+    blindBox.target, 
     exchange.target, 
     fundManager.target, 
     forwarder.address
@@ -60,7 +60,7 @@ async function initializeContracts(contracts, connectors, signers) {
   await addressManager.addToken(wBTC.target);
 
   // 设置初始参数
-  await truthBoxConnectors.dao.setIncrementRate(incrementRate);
+  await blindBoxConnectors.dao.setIncrementRate(incrementRate);
   await exchangeConnectors.dao.setRefundRequestPeriod(15 * 24 * 60 * 60); // 15天
   await exchangeConnectors.dao.setRefundReviewPeriod(30 * 24 * 60 * 60); // 30天
   await exchangeConnectors.dao.setBidIncrementRate(bidIncrementRate);
@@ -71,8 +71,8 @@ async function initializeContracts(contracts, connectors, signers) {
   // 生成测试用的随机数据
   const testData = generateTestData();
 
-  // 创建测试用的TruthBox项目
-  await createTestTruthBoxes(truthBoxConnectors.minter, testData);
+  // 创建测试用的BlindBox项目
+  await createTestBlindBoxes(blindBoxConnectors.minter, testData);
 
   return testData;
 }
@@ -91,23 +91,23 @@ function generateTestData() {
   };
 }
 
-async function createTestTruthBoxes(truthBoxMinter, testData) {
+async function createTestBlindBoxes(blindBoxMinter, testData) {
   const signers = await ethers.getSigners();
   const minter = signers[4]; // minter 是第5个签名者
 
-  // 创建测试用的TruthBox项目
-  await truthBoxMinter.create("00_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("01_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("02_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("03_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.create("04_infoURI", testData.bytes_mint, 1000);
-  await truthBoxMinter.createAndPublish("05_infoURI——public");
+  // 创建测试用的BlindBox项目
+  await blindBoxMinter.create("00_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.create("01_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.create("02_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.create("03_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.create("04_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.createAndPublish("05_infoURI——public");
 }
 
 module.exports = {
   initializeContracts,
   generateTestData,
-  createTestTruthBoxes,
+  createTestBlindBoxes,
   incrementRate,
   bidIncrementRate,
   serviceFeeRate,

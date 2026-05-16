@@ -16,7 +16,7 @@ const current_executes: (keyof IAddressManagerRead)[] = [
     'daoFundManager',
     // 'userManager',
     // 'siweAuth',
-    // 'truthBox',
+    // 'blindBox',
     // 'exchange',
     // 'fundManager',
     // 'forwarder',
@@ -85,10 +85,10 @@ async function main() {
             params: [],
             signer: null
         },
-        'truthBox': {
-            taskName: "获取TruthBox地址",
+        'blindBox': {
+            taskName: "获取BlindBox地址",
             contractsName: "AddressManager",
-            functionName: "truthBox",
+            functionName: "blindBox",
             params: [],
             signer: null
         },

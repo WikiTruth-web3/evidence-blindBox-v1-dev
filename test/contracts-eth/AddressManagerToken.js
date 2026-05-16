@@ -4,16 +4,16 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
 
 describe("AddressManager-Token- 相关测试", function () {
   it("移除官方代币--失败", async function () {
     const { 
-      truthBox, exchange, fundManager, userManager, addressManager,
+      blindBox, exchange, fundManager, userManager, addressManager,
       buyer, minter, dao, settlementToken, wBTC, wETH, address_zero,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     expect(await addressManager.isSettlementToken(settlementToken.target)).to.equal(true);
     // 尝试移除官方代币，失败
@@ -23,10 +23,10 @@ describe("AddressManager-Token- 相关测试", function () {
 
   it("修改官方代币", async function () {
     const { 
-      truthBox, exchange, userManager, addressManager, quoter, swapContract, fundManager, 
+      blindBox, exchange, userManager, addressManager, quoter, swapContract, fundManager, 
       buyer, minter, dao, wETH, wROSE, settlementToken, address_zero, wBTC,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await addressManager.setSettlementToken(wETH.target);
 
@@ -42,10 +42,10 @@ describe("AddressManager-Token- 相关测试", function () {
 
   it("尝试将官方代币添加---失败", async function () {
     const { 
-      truthBox, exchange, fundManager, userManager, addressManager,
+      blindBox, exchange, fundManager, userManager, addressManager,
       buyer, minter, dao, settlementToken, wBTC, wETH, address_zero,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     await expect(addressManager.addToken(settlementToken.target)).to.be.revertedWithCustomError(addressManager, "TokenIsActive");
 
@@ -53,10 +53,10 @@ describe("AddressManager-Token- 相关测试", function () {
 
   it("尝试添加0地址代币---失败", async function () {
     const { 
-      truthBox, exchange, fundManager, userManager, addressManager,
+      blindBox, exchange, fundManager, userManager, addressManager,
       buyer, minter, dao, settlementToken, wBTC, wETH, address_zero,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
     // 设置0地址为官方代币，失败
     await expect(addressManager.setSettlementToken(address_zero)).to.be.revertedWithCustomError(addressManager, "InvalidAddress");
 
@@ -66,10 +66,10 @@ describe("AddressManager-Token- 相关测试", function () {
 
   it("addToken代币管理", async function () {
     const { 
-      truthBox, exchange, fundManager, userManager, addressManager,
+      blindBox, exchange, fundManager, userManager, addressManager,
       buyer, minter, dao, settlementToken, wBTC, wETH, address_zero,
       userManager_buyer, userManager_minter, userManager_DAO
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     expect(await addressManager.isTokenSupported(wETH.target)).to.equal(false);
     // 添加代币

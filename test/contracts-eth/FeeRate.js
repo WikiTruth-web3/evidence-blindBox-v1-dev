@@ -4,16 +4,16 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./Fixture.js");
 
 describe("FundManager_FeeRate", function () {
 
   it("dao设置费率---成功", async function () {
     const { 
       admin, admin2, dao, minter, seller, buyer, completer, other, other2,
-      fundManager_DAO,truthBox_DAO,truthBox_minter, exchange_DAO, exchange_minter,
+      fundManager_DAO,blindBox_DAO,blindBox_minter, exchange_DAO, exchange_minter,
       fundManager, exchange, dao_fund_manager,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
     
     await fundManager_DAO.setServiceFeeRate(10);
     await exchange_DAO.setBidIncrementRate(101);
@@ -39,11 +39,11 @@ describe("FundManager_FeeRate", function () {
   it("检查费用是否正确", async function () {
     const { 
       admin, dao, minter, buyer, settlementToken, completer,
-      truthBox, exchange, fundManager, 
+      blindBox, exchange, fundManager, 
       DAY, MONTH, YEAR,
-      exchange_minter,exchange_DAO, exchange_buyer, truthBox_buyer, exchange_completer,
+      exchange_minter,exchange_DAO, exchange_buyer, blindBox_buyer, exchange_completer,
       address_zero,dao_fund_manager,userManager_buyer, userManager_completer
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     // 时间增加360天
     await time.increase(MONTH);
@@ -82,14 +82,14 @@ describe("FundManager_FeeRate", function () {
     expect(incomeMinter02).to.equal(2900);
 
     // ========================== 缴纳延迟费用 ==========================
-    await expect(truthBox_buyer.delay(1)).to.be.revertedWithCustomError(truthBox,"NotInWindowPeriod");
+    await expect(blindBox_buyer.delay(1)).to.be.revertedWithCustomError(blindBox,"NotInWindowPeriod");
     // 必须在距离deadline的30天之内
     await time.increase(340 * 24 * 60 * 60);
 
-    const price01 = await truthBox.getPrice(1);
+    const price01 = await blindBox.getPrice(1);
     expect(price01).to.equal(2000); 
-    await truthBox_buyer.delay(1); // 缴费后，价格变为4000，收取服务费2000*5%=100
-    const price02 = await truthBox.getPrice(1);
+    await blindBox_buyer.delay(1); // 缴费后，价格变为4000，收取服务费2000*5%=100
+    const price02 = await blindBox.getPrice(1);
     expect(price02).to.equal(4000);
     
 

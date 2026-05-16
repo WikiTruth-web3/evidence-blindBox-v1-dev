@@ -1,22 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/**
- *         ██╗    ██╗██╗██╗  ██╗██╗    ████████╗██████╗ ██╗   ██╗████████╗██╗  ██╗
- *         ██║    ██║██║██║ ██╔╝██║    ╚══██╔══╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
- *         ██║ █╗ ██║██║█████╔╝ ██║       ██║   ██████╔╝██║   ██║   ██║   ███████║
- *         ██║███╗██║██║██╔═██╗ ██║       ██║   ██╔══██╗██║   ██║   ██║   ██╔══██║
- *         ╚███╔███╔╝██║██║  ██╗██║       ██║   ██║  ██║╚██████╔╝   ██║   ██║  ██║
- *          ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
- *
- *  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- *  ┃                        Website: https://wikitruth.eth.limo/                         ┃
- *  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
- */
-
 pragma solidity ^0.8.24;
 
 import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+import {IBlindBox} from "@marketplace-v1/interfaces/IBlindBox.sol";
 import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
 import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
 import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
@@ -57,7 +44,7 @@ contract AddressManager is IAddressManager, Error {
     address public siweAuth;
 
     // Core trading contracts
-    address public truthBox;
+    address public blindBox;
     address public fundManager;
     address public exchange;
 
@@ -128,7 +115,7 @@ contract AddressManager is IAddressManager, Error {
         daoFundManager, 
         userManager, 
         siweAuth, 
-        truthBox, 
+        blindBox, 
         exchange, 
         fundManager,
         forwarder
@@ -164,8 +151,8 @@ contract AddressManager is IAddressManager, Error {
         }
         // Core contracts
         if (list_[5] != address(0)) {
-            if (_mappingBool(truthBox, list_[5])) {
-                truthBox = list_[5];
+            if (_mappingBool(blindBox, list_[5])) {
+                blindBox = list_[5];
             }
         }
         if (list_[6] != address(0)) {
@@ -252,7 +239,7 @@ contract AddressManager is IAddressManager, Error {
     function setAllAddress() external onlyAdmin {
         IExchange(exchange).setAddress();
         IFundManager(fundManager).setAddress();
-        ITruthBox(truthBox).setAddress();
+        IBlindBox(blindBox).setAddress();
         IUserManager(userManager).setAddress();
         IForwarder(forwarder).setAddress();
     }

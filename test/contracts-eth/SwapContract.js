@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployTruthBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -14,10 +14,10 @@ describe("交易合约测试-SwapContract", function () {
   it("16- 基本功能测试", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, truthBox, truthBox_DAO, address_zero, minter, dao_fund_manager, admin,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager, admin,
       fundManager, exchange,fundManager_buyer2,fundManager_buyer, fundManager_minter,
       swapContract, swapContract_minter, swapContract_buyer, swapContract_other,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     const amountIn = await swapContract_minter.getSwapAmountIn(wBTC.target, settlementToken.target, 10000);
     console.log("amountIn:", amountIn);
@@ -36,10 +36,10 @@ describe("交易合约测试-SwapContract", function () {
   it("16- 交易测试-swapExact-getSwapAmountOut", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, truthBox, truthBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
       fundManager, exchange,fundManager_buyer2,fundManager_buyer, fundManager_minter,
       swapContract, swapContract_minter, swapContract_buyer, swapContract_other,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     console.log("-----------------输入10000 个officialToken-----------------");
 
@@ -69,10 +69,10 @@ describe("交易合约测试-SwapContract", function () {
   it("16- 交易测试-swapForExact-getSwapAmountIn", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, truthBox, truthBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
       fundManager, exchange,fundManager_buyer2,fundManager_buyer, fundManager_minter,
       swapContract, swapContract_minter, swapContract_buyer, swapContract_other,
-    } = await loadFixture(deployTruthBoxFixture);
+    } = await loadFixture(deployBlindBoxFixture);
 
     console.log("-----------------需要输出10000 个officialToken-----------------");
 
