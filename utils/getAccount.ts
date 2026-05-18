@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { Signer, Wallet } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { user_evm_WikiTruth } from "../WikiTruth_account";
+import { user_evm_WikiTruth } from "../account_admin";
 
 /**
  * 网络配置接口

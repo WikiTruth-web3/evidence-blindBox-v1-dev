@@ -4,10 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {
-    FundsType,
-    RewardType
-} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
+import {FundsType, RewardType} from "@interfaces/eth/IFundManager.sol";
 import {FundManager02} from "./FundManager02.sol";
 
 /**
@@ -26,7 +23,7 @@ contract FundManager03 is FundManager02 {
 
     /**
      * @dev Pay order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
      * @param userId_ Buyer id
@@ -48,7 +45,7 @@ contract FundManager03 is FundManager02 {
 
     /**
      * @dev Pay delay fee
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param sender_ Sender address
      * @param amount_ Amount to pay
      */
@@ -73,7 +70,7 @@ contract FundManager03 is FundManager02 {
 
     /**
      * @dev Allocate rewards
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      */
     function _allocationRewards(uint256 boxId_) internal {
         bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);

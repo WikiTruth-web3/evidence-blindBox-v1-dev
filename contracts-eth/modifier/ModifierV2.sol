@@ -2,9 +2,7 @@
 
 pragma solidity ^0.8.24;
 
-import {
-    IAddressManager
-} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {SetAddress} from "../base/SetAddress.sol";
 import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 

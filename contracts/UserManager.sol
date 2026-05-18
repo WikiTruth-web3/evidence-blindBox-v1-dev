@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.24;
 
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {Error} from "@interfaces/Error.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 import {IdentitySalt} from "./abstract/IdentitySalt.sol";
 

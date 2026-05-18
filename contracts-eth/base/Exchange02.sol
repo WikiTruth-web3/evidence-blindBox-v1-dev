@@ -7,14 +7,14 @@ pragma solidity ^0.8.24;
 //     ERC2771Context
 // } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-import {ITruthBox, Status} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
-import {ExchangeEvents} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
+import {ExchangeEvents} from "@interfaces/eth/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 // import {SiweContext} from "@siwe/SiweContext.sol";
 
 /**
  *  @notice Exchange02 contract
- *  Implement basic TruthBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
+ *  Implement basic BlindBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
@@ -80,8 +80,8 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         Status status_,
         uint256 seconds_
     ) internal {
-        ITruthBox truthBox = TRUTH_BOX;
-        if (truthBox.getStatus(boxId_) != Status.Storing)
+        IBlindBox BlindBox = TRUTH_BOX;
+        if (BlindBox.getStatus(boxId_) != Status.Storing)
             revert InvalidStatus();
         // erc2771 - _msgSender() is the real caller
         // address sender = _msgSender();
@@ -90,9 +90,9 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         bytes32 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();
 
-        if (userId != truthBox.minterIdOf(boxId_)) {
+        if (userId != BlindBox.minterIdOf(boxId_)) {
             // others sell
-            if (truthBox.getDeadline(boxId_) >= block.timestamp) {
+            if (BlindBox.getDeadline(boxId_) >= block.timestamp) {
                 revert DeadlineNotOver();
             }
             _boxExchengData[boxId_]._sellerId = userId;
@@ -109,7 +109,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
                 token = acceptedToken_;
             }
         }
-        truthBox.setBasicData(
+        BlindBox.setBasicData(
             boxId_,
             price_,
             status_,
@@ -137,8 +137,8 @@ contract Exchange02 is Exchange01, ExchangeEvents {
      * @param boxId_ Box ID
      */
     function _bidPrice(uint256 boxId_) internal returns (uint256) {
-        ITruthBox truthBox = TRUTH_BOX;
-        (Status status, uint256 price, uint256 deadline) = truthBox
+        IBlindBox BlindBox = TRUTH_BOX;
+        (Status status, uint256 price, uint256 deadline) = BlindBox
             .getBasicData(boxId_);
 
         // canBid?
@@ -149,7 +149,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         _setRefundRequestDeadline(boxId_, block.timestamp + 30 days);
         uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
 
-        truthBox.setBasicData(
+        BlindBox.setBasicData(
             boxId_,
             newPrice,
             Status.Auctioning,

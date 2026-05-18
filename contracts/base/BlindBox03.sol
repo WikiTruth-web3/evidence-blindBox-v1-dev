@@ -6,7 +6,7 @@ import {
     Sapphire
 } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {BlindBox02} from "./BlindBox02.sol";
-import {Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
+import {Status} from "@interfaces/sapphire/IBlindBox.sol";
 
 /**
  *  @notice BlindBox03 contract

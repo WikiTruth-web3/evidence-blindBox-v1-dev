@@ -2,27 +2,27 @@
 
 pragma solidity ^0.8.24;
 
-import {TruthBox03} from "./base/TruthBox03.sol";
-import {ITruthBox, Status} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {BlindBox03} from "./base/BlindBox03.sol";
+import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
- *  @notice TruthBox contract
- *  Implement basic TruthBox functions, including mint, publish, blacklist, etc.
+ *  @notice BlindBox contract
+ *  Implement basic BlindBox functions, including mint, publish, blacklist, etc.
  *  Also includes important transaction-related functions, including setPrice, setDeadline, addDeadline, setStatus
- *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
+ *  @dev Inherits IBlindBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox is TruthBox03, ITruthBox {
+contract BlindBox is BlindBox03, IBlindBox {
     // ==================================================================================================
-    constructor(address addrManager_) TruthBox03(addrManager_) {}
+    constructor(address addrManager_) BlindBox03(addrManager_) {}
 
     /**
      * @notice Set the contract address
      * @dev Get and set the related contract addresses from AddressManager
      */
     function setAddress() external onlyManager {
-        _setAddress(CoreContracts.TruthBox);
+        _setAddress(CoreContracts.BlindBox);
     }
 
     // ==========================================================================================================
@@ -105,7 +105,7 @@ contract TruthBox is TruthBox03, ITruthBox {
     // ==========================================================================================================
 
     /**
-     * @dev Publish TruthBox, which minter can call,
+     * @dev Publish BlindBox, which minter can call,
      * If the minter wants to publish, it must be Storing status.
      */
     function publishByMinter(uint256 boxId_) external {
@@ -115,7 +115,7 @@ contract TruthBox is TruthBox03, ITruthBox {
     }
 
     /**
-     * @dev Publish TruthBox, which administrators can call,
+     * @dev Publish BlindBox, which administrators can call,
      * If the buyer wants to publish, it must be Delaying status.
      */
     function publishByBuyer(uint256 boxId_) external {

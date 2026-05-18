@@ -5,13 +5,13 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
+// import {IBlindBox} from "@interfaces/interfaces/IBlindBox.sol";
 import {
     FundManagerEvents,
     FundsType,
     RewardType
-} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
 
 import {I_Swap} from "../dex/interfaceSwap.sol";
 
@@ -47,7 +47,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
     /**
      * @dev Internal method: Calculate allocation
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param minterId_ Minter userId
      * @param amount_ Amount
      * @param token_ Token address
@@ -143,7 +143,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
     /**
      * @dev Calculate how much tokenIn is needed to swap and how much tokenOut can be swapped
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param tokenIn_ Token address (the token to be swapped)
      * @param tokenOut_ Token address (the token to be swapped to)
      * @param amount_ Amount
@@ -176,7 +176,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             tokenOut_,
             amount_
         );
-        // Reset the price of TruthBox
+        // Reset the price of BlindBox
         TRUTH_BOX.setPrice(boxId_, amountOut);
 
         // Calculate the amount of funds used to allocate to other roles
@@ -205,7 +205,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
-     * @param list_ List of TruthBox IDs
+     * @param list_ List of BlindBox IDs
      * @param type_ Type of withdrawal, either 0(order) or 1(refund)
      */
     function _withdrawOrderAmounts(

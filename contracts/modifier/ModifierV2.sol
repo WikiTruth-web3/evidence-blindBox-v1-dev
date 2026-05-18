@@ -4,8 +4,8 @@ pragma solidity ^0.8.24;
 
 import {SetAddress} from "../base/SetAddress.sol";
 
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {Error} from "@interfaces/Error.sol";
 
 /**
  * @title ModifierV2

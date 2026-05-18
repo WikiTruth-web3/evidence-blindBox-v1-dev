@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.24;
 
-interface AllEvents_wikitruth {
+interface AllEvents {
     // ========== Exchange ==========
     event BoxListed(
         uint256 indexed boxId,

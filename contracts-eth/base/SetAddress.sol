@@ -2,15 +2,13 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
-import {
-    IAddressManager
-} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice SetAddress
@@ -24,7 +22,7 @@ contract SetAddress {
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    ITruthBox internal TRUTH_BOX;
+    IBlindBox internal TRUTH_BOX;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -42,7 +40,7 @@ contract SetAddress {
         IAddressManager addrMgr = ADDR_MANAGER;
 
         // address siweAuth = addrMgr.siweAuth();
-        address truthBox = addrMgr.truthBox();
+        address blindBox = addrMgr.blindBox();
         address exchange = addrMgr.exchange();
         address fundManager = addrMgr.fundManager();
         address userManager = addrMgr.userManager();
@@ -52,11 +50,11 @@ contract SetAddress {
         // }
 
         if (
-            truthBox != address(0) &&
-            truthBox != address(TRUTH_BOX) &&
-            enum_ != CoreContracts.TruthBox
+            blindBox != address(0) &&
+            blindBox != address(TRUTH_BOX) &&
+            enum_ != CoreContracts.BlindBox
         ) {
-            TRUTH_BOX = ITruthBox(truthBox);
+            TRUTH_BOX = IBlindBox(blindBox);
         }
 
         if (

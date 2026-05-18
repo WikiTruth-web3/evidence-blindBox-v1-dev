@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.24;
 
-import "@marketplace-v1/library/StorageSlot.sol";
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
+import "@interfaces/library/StorageSlot.sol";
+import {Error} from "@interfaces/interfaces-sapphire/Error.sol";
 
 /**
  * @title ProxyUpgrade

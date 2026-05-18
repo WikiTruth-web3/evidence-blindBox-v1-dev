@@ -2,20 +2,20 @@
 
 pragma solidity ^0.8.24;
 
-// import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-// import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
-// import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+// import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+// import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+// import {IExchange} from "@interfaces/eth/IExchange.sol";
 // import {
 //     IAddressManager
-// } from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
+// } from "@interfaces/eth/IAddressManager.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 /**
- *  @notice TruthBox01
- *  This contract defines the basic variables and functions of TruthBox
+ *  @notice BlindBox01
+ *  This contract defines the basic variables and functions of BlindBox
  */
 
-contract TruthBox01 is ModifierV2 {
+contract BlindBox01 is ModifierV2 {
     uint8 internal _incrementRate; // 2.0 * 100
 
     uint256 internal _nextBoxId;

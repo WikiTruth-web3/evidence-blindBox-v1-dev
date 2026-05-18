@@ -12,7 +12,7 @@ import {
 import {IdentitySalt} from "../abstract/IdentitySalt.sol";
 import {SecretKeyManager} from "../abstract/SecretKeyManager.sol";
 import {BlindBox01} from "./BlindBox01.sol";
-import {BlindBoxEvents, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
+import {BlindBoxEvents, Status} from "@interfaces/sapphire/IBlindBox.sol";
 
 /**
  *  @notice BlindBox contract

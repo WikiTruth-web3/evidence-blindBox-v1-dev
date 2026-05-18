@@ -3,10 +3,10 @@
 
 pragma solidity ^0.8.24;
 
-import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
+import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
+import {IExchange} from "@interfaces/sapphire/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange contract

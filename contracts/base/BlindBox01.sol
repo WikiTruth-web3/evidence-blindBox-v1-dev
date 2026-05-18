@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {IFundManager} from "@interfaces/sapphire/IFundManager.sol";
+import {IExchange} from "@interfaces/sapphire/IExchange.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 /**

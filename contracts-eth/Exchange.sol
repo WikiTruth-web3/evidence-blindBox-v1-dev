@@ -3,14 +3,14 @@
 
 pragma solidity ^0.8.24;
 
-import {ITruthBox, Status} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
-import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
+import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange contract
- *  Implement basic TruthBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
+ *  Implement basic BlindBox trading functions, including Selling, Auctioning, Paid, Refunding, Completed
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 

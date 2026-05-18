@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.24;
 
-// import {Sapphire} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {MultiDomainSiweAuth} from "@siwe/MultiDomainSiweAuth.sol";
-// import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
 
-contract SiweAuthWikiTruth is MultiDomainSiweAuth {
+/**
+ *
+ */
+contract SiweAuth is MultiDomainSiweAuth {
     // =======================================================================================================
     constructor(
         string memory primaryDomain,

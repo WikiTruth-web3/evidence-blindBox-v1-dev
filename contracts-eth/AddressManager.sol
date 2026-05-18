@@ -2,14 +2,12 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
-import {ITruthBox} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
-import {IFundManager} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces-eth/IExchange.sol";
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
-import {
-    IAddressManager
-} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {Error} from "@interfaces/Error.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 
 import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 
@@ -243,7 +241,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function setAllAddress() external onlyAdmin {
         IExchange(exchange).setAddress();
         IFundManager(fundManager).setAddress();
-        ITruthBox(truthBox).setAddress();
+        IBlindBox(truthBox).setAddress();
         IUserManager(userManager).setAddress();
         // IForwarder(forwarder).setAddress();
     }

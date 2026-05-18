@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IBlindBox} from "@marketplace-v1/interfaces/IBlindBox.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
+import {IFundManager} from "@interfaces/sapphire/IFundManager.sol";
+import {IExchange} from "@interfaces/sapphire/IExchange.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {IForwarder} from "@interfaces/sapphire/IForwarder.sol";
+import {Error} from "@interfaces/Error.sol";
 
 // import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 

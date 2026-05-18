@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.24;
 
-import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
+import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
 
 import {Exchange02} from "./Exchange02.sol";
 

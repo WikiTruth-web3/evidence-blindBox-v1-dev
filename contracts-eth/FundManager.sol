@@ -4,13 +4,13 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 import {
     IFundManager,
     FundsType,
     RewardType
-} from "@marketplace-v1/interfaces-eth/IFundManager.sol";
+} from "@interfaces/eth/IFundManager.sol";
 import {FundManager03} from "./base/FundManager03.sol";
 /**
  * @title FundManager
@@ -36,7 +36,7 @@ contract FundManager is FundManager03, IFundManager {
 
     /**
      * @dev Pay order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param buyer_ Buyer address
      * @param amount_ Amount to pay
      * @param userId_ Buyer id
@@ -52,7 +52,7 @@ contract FundManager is FundManager03, IFundManager {
 
     /**
      * @dev Pay delay fee
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param sender_ Sender address
      * @param amount_ Amount to pay
      */
@@ -69,7 +69,7 @@ contract FundManager is FundManager03, IFundManager {
 
     /**
      * @dev Allocate rewards
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      */
     function allocationRewards(uint256 boxId_) external onlyProjectContract {
         _allocationRewards(boxId_);
@@ -80,7 +80,7 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
-     * @param list_ List of TruthBox IDs
+     * @param list_ List of BlindBox IDs
      */
     function withdrawOrderAmounts(
         address token_,
@@ -92,7 +92,7 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
-     * @param list_ List of TruthBox IDs
+     * @param list_ List of BlindBox IDs
      */
     function withdrawRefundAmounts(
         address token_,
@@ -117,7 +117,7 @@ contract FundManager is FundManager03, IFundManager {
 
     /**
      * @dev Get order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param userId_ User ID
      * @return Order amount
      */
@@ -130,7 +130,7 @@ contract FundManager is FundManager03, IFundManager {
 
     /**
      * @dev Get order amount
-     * @param boxId_ TruthBox ID
+     * @param boxId_ BlindBox ID
      * @param user_ User address
      * @return Order amount
      */

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.24;
 
-import "@marketplace-v1/library/StorageSlot.sol";
+import "@interfaces/library/StorageSlot.sol";
 
 contract Proxy {
     bytes32 internal constant IMPLEMENTATION_SLOT =

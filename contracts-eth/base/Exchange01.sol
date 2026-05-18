@@ -5,11 +5,11 @@ pragma solidity ^0.8.24;
 
 // import "@openzeppelin/contracts/utils/Context.sol";
 
-// import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-// import {ITruthBox} from "@marketplace-v1/interfaces/ITruthBox.sol";
-// import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-// import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-// import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
+// import {IUserManager} from "@interfaces/interfaces/IUserManager.sol";
+// import {IBlindBox} from "@interfaces/interfaces/IBlindBox.sol";
+// import {IFundManager} from "@interfaces/interfaces/IFundManager.sol";
+// import {IExchange} from "@interfaces/interfaces/IExchange.sol";
+// import {IAddressManager} from "@interfaces/interfaces/IAddressManager.sol";
 
 import {ModifierV2} from "../modifier/ModifierV2.sol";
 

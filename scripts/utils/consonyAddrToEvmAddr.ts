@@ -1,4 +1,4 @@
-import { user_oasis_WikiTruth } from "../../WikiTruth_account";
+import { user_oasis_WikiTruth } from "../../account_admin";
 import { ethers } from "ethers";
 import * as crypto from "crypto";
 import * as dotenv from "dotenv";

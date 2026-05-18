@@ -8,7 +8,7 @@ import "dotenv/config"
 import "./tasks"
 import "@nomicfoundation/hardhat-foundry";
 import "hardhat-abi-exporter";
-import { hardhat_accounts } from "./test_account";
+import { hardhat_accounts } from "./account_hardhat";
 
 
 const sapphire_testnet_admin = process.env.ADMIN_PRIVATE_KEY_EVM ? process.env.ADMIN_PRIVATE_KEY_EVM : "";
@@ -99,14 +99,14 @@ const config: HardhatUserConfig = {
     runOnCompile: true,   // 开启编译时自动导出
     clear: true,          // 每次导出前清空目录
     flat: false,          // 按路径层级导出，避免同名合约（如 AddressManager）输出冲突
-    only: [':TruthBox$', ':Exchange$', ':FundManager$', ':UserManager$', ':AddressManager$', ':Forwarder$', 'SiweAuthWikiTruth'], // 可选：只导出匹配名称的合约（支持正则）
+    only: [':BlindBox$', ':Exchange$', ':FundManager$', ':UserManager$', ':AddressManager$', ':Forwarder$', 'SiweAuth'], // 可选：只导出匹配名称的合约（支持正则）
     spacing: 2,           // JSON 缩进格数
     format: "json",       // 导出格式，支持 "json" 或 "minimal" (极简模式)
   },
   // paths: {
-  //   sources: "./contracts-eth-test", 
+  //   sources: "./contracts-eth", 
   //   tests: "./test",
-  //   cache: "./cache/contracts-eth-test",
+  //   cache: "./cache/contracts-eth",
   //   artifacts: "./artifacts"
   // },
   paths: {

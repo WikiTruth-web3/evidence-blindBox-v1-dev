@@ -7,8 +7,8 @@ import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
-import {ExchangeEvents} from "@marketplace-v1/interfaces/IExchange.sol";
+import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
+import {ExchangeEvents} from "@interfaces/sapphire/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 

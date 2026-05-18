@@ -3,8 +3,8 @@
 pragma solidity ^0.8.24;
 
 import {BlindBox03} from "./base/BlindBox03.sol";
-import {IBlindBox, Status} from "@marketplace-v1/interfaces/IBlindBox.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice BlindBox contract

@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.24;
 
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IFundManager} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IBlindBox} from "@marketplace-v1/interfaces/IBlindBox.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {IFundManager} from "@interfaces/sapphire/IFundManager.sol";
+import {IExchange} from "@interfaces/sapphire/IExchange.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
 
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice SetAddress

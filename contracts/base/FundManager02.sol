@@ -8,13 +8,13 @@ import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-// import {IBlindBox} from "@marketplace-v1/interfaces/IBlindBox.sol";
+// import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
 import {
     FundManagerEvents,
     FundsType,
     RewardType
-} from "@marketplace-v1/interfaces/IFundManager.sol";
-import {IExchange} from "@marketplace-v1/interfaces/IExchange.sol";
+} from "@interfaces/sapphire/IFundManager.sol";
+import {IExchange} from "@interfaces/sapphire/IExchange.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 
 import {ISwapRouter} from "@uniswap-v3/interfaces/ISwapRouter.sol";

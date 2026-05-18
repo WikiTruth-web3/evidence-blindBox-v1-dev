@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { user_evm_WikiTruth } from "../../WikiTruth_account";
+import { user_evm_WikiTruth } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { core_contracts_address, token_contracts_address } from "../utils/contracts_address";

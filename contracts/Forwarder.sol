@@ -6,9 +6,9 @@ import {
     ERC2771Forwarder
 } from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 
-import {IAddressManager} from "@marketplace-v1/interfaces/IAddressManager.sol";
-import {IUserManager} from "@marketplace-v1/interfaces/IUserManager.sol";
-import {IForwarder} from "@marketplace-v1/interfaces/IForwarder.sol";
+import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {IForwarder} from "@interfaces/sapphire/IForwarder.sol";
 import {Modifier} from "./modifier/Modifier.sol";
 
 import {Pausable} from "./abstract/Pausable.sol";

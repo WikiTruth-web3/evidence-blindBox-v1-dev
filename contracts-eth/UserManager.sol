@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.24;
 
-import {Error} from "@marketplace-v1/interfaces/Error.sol";
-import {
-    IAddressManager
-} from "@marketplace-v1/interfaces-eth/IAddressManager.sol";
-import {IUserManager} from "@marketplace-v1/interfaces-eth/IUserManager.sol";
+import {Error} from "@interfaces/Error.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
 import {ModifierV2} from "./modifier/ModifierV2.sol";
-import {CoreContracts} from "@marketplace-v1/interfaces/IContracts.sol";
+import {CoreContracts} from "@interfaces/IContracts.sol";
 
 /**
  * @title UserManager

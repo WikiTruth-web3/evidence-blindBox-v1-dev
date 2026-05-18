@@ -2,20 +2,17 @@
 
 pragma solidity ^0.8.24;
 
-import {TruthBox01} from "./TruthBox01.sol";
-import {
-    TruthBoxEvents,
-    Status
-} from "@marketplace-v1/interfaces-eth/ITruthBox.sol";
+import {BlindBox01} from "./BlindBox01.sol";
+import {BlindBoxEvents, Status} from "@interfaces/eth/IBlindBox.sol";
 
 /**
- *  @notice TruthBox contract
- *  Implement basic TruthBox functions, including mint, publish, blacklist, etc.
+ *  @notice BlindBox contract
+ *  Implement basic BlindBox functions, including mint, publish, blacklist, etc.
  *  Also includes important transaction-related functions, including setPrice, setDeadline, addDeadline, setStatus
- *  @dev Inherits ITruthBox interface to ensure consistency between interface and implementation
+ *  @dev Inherits IBlindBox interface to ensure consistency between interface and implementation
  */
 
-contract TruthBox02 is TruthBox01, TruthBoxEvents {
+contract BlindBox02 is BlindBox01, BlindBoxEvents {
     struct BasicData {
         Status _status;
         uint256 _price;
@@ -32,7 +29,7 @@ contract TruthBox02 is TruthBox01, TruthBoxEvents {
     mapping(uint256 boxId => SecretData) internal _secretData;
 
     // ==================================================================================================
-    constructor(address addrManager_) TruthBox01(addrManager_) {}
+    constructor(address addrManager_) BlindBox01(addrManager_) {}
 
     // ==========================================================================================================
     //                                                 mint Functions

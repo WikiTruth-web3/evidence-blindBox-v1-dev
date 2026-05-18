@@ -2,6 +2,7 @@ node_modules
 .env
 # .env.example
 .env.local
+.env.account
 
 coverage
 coverage.json
@@ -17,3 +18,4 @@ abi/
 secret/
 vibeCoding/
 # other files
+log.md
