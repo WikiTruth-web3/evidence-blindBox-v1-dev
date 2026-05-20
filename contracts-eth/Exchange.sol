@@ -4,7 +4,7 @@
 pragma solidity ^0.8.24;
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IExchange, PaymentType} from "@interfaces/eth/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
 import {CoreContracts} from "@interfaces/IContracts.sol";
 
@@ -14,7 +14,7 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange is Exchange03, IExchange {
+contract ExchangeBase is Exchange03, IExchange {
     // ========================================================================================================
 
     constructor(address addrManager_) Exchange03(addrManager_) {}
@@ -66,38 +66,39 @@ contract Exchange is Exchange03, IExchange {
     //                                          Buying related functions
     // ========================================================================================================
 
-    /**
-     * @notice Buy function, the buyer needs to pay
-     * @param boxId_ Box ID
-     * Need to check: status、buyer.
-     * Buy will modify: buyer、status、refundRequestDeadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
-    function buy(uint256 boxId_) external {
-        _buy(boxId_);
+    function buy(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        PaymentType payType_
+    ) external onlyProjectContract {
+        IBlindBox blindBox = BLIND_BOX;
+        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
+
+        blindBox.setStatus(boxId_, Status.Paid);
+
+        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._paymentType = payType_;
+
+        _setRefundRequestDeadline(boxId_, block.timestamp);
+
+        emit BoxPurchased(boxId_, buyerUserId_);
     }
 
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
-     * @param boxId_ Box ID
-     * Need to check: deadline、status、buyer.
-     * Bid will modify: buyer、price、deadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
-    function bid(uint256 boxId_) external {
-        _bid(boxId_);
-    }
+    function bid(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        uint256 price_,
+        PaymentType payType_
+    ) external onlyProjectContract {
+        if (buyerUserId_ == _buyerIdOf(boxId_)) revert NotBuyer();
 
-    /**
-     * @notice Calculate the pay amount
-     * @param boxId_ Box ID
-     * @return The pay amount
-     */
-    function calcPayMoney(uint256 boxId_) public view returns (uint256) {
-        uint256 price = TRUTH_BOX.getPrice(boxId_);
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        uint256 currentRequiredPrice = _bidPrice(boxId_);
+        require(price_ >= currentRequiredPrice, "Bid price is too low");
 
-        return _calcPayMoney(boxId_, userId, price);
+        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._paymentType = payType_;
+
+        emit BidPlaced(boxId_, buyerUserId_, price_);
     }
 
     // ========================================================================================================
@@ -114,7 +115,7 @@ contract Exchange is Exchange03, IExchange {
      * @notice Request refund function, after requesting refund, the box status becomes Refunding
      * Need to check: status、deadline.
      * Request refund will modify: status、refundReviewDeadline.
-     * Request refund also needs to set the status of TRUTH_BOX to Published
+     * Request refund also needs to set the status of BLIND_BOX to Published
      */
     function requestRefund(uint256 boxId_) external {
         _requestRefund(boxId_);
@@ -131,7 +132,7 @@ contract Exchange is Exchange03, IExchange {
      * @notice Agree refund function, after agreeing refund, the box status becomes Sold
      * Need to check: status、deadline.
      * Agree refund will modify: status、refundReviewDeadline.
-     * Agree refund also needs to set the status of TRUTH_BOX to Published
+     * Agree refund also needs to set the status of BLIND_BOX to Published
      */
     function agreeRefund(uint256 boxId_) external {
         _agreeRefund(boxId_);
@@ -152,7 +153,7 @@ contract Exchange is Exchange03, IExchange {
      * @notice Complete order function, after completing order, the box status becomes Sold
      * Need to check: refundPermit.
      * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of TRUTH_BOX to Delaying
+     * Complete order also needs to set the status of BLIND_BOX to Delaying
      * Complete order also needs to set refundRequestDeadline.
      */
     function completeOrder(uint256 boxId_) external {
@@ -219,5 +220,9 @@ contract Exchange is Exchange03, IExchange {
 
     function isInReviewDeadline(uint256 boxId_) external view returns (bool) {
         return _isInReviewDeadline(boxId_);
+    }
+
+    function paymentTypeOf(uint256 boxId_) external view returns (PaymentType) {
+        return _boxExchengData[boxId_]._paymentType;
     }
 }

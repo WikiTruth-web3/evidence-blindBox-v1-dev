@@ -65,38 +65,38 @@ export const UserManagerModule = buildModule("UserManagerModule", (m) => {
   return { userManager };
 });
 
-// ==================== Module 5: TruthBox ====================
-export const TruthBoxModule = buildModule("TruthBoxModule", (m) => {
+// ==================== Module 5: BlindBox ====================
+export const BlindBoxModule = buildModule("BlindBoxModule", (m) => {
   const { addressManager } = m.useModule(AddressManagerModule);
   const { forwarder } = m.useModule(ForwarderModule);
   const { userManager } = m.useModule(UserManagerModule);
 
   const pers = ethers.hexlify(ethers.randomBytes(32));
 
-  const truthBox = m.contract("TruthBox", [
+  const blindBox = m.contract("BlindBox", [
     addressManager,
     forwarder,
     pers
   ], {
-    id: "TruthBox",
+    id: "BlindBox",
     after: [userManager] // 强制在 UserManager 部署完成后再执行
   });
 
-  return { truthBox };
+  return { blindBox };
 });
 
 // ==================== Module 6: Exchange ====================
 export const ExchangeModule = buildModule("ExchangeModule", (m) => {
   const { addressManager } = m.useModule(AddressManagerModule);
   const { forwarder } = m.useModule(ForwarderModule);
-  const { truthBox } = m.useModule(TruthBoxModule);
+  const { blindBox } = m.useModule(BlindBoxModule);
 
   const exchange = m.contract("Exchange", [
     addressManager,
     forwarder
   ], {
     id: "Exchange",
-    after: [truthBox] // 强制在 TruthBox 部署完成后再执行
+    after: [blindBox] // 强制在 BlindBox 部署完成后再执行
   });
 
   return { exchange };
@@ -126,7 +126,7 @@ export default buildModule("WikiTruthDirectDeploy", (m) => {
   const { forwarder } = m.useModule(ForwarderModule);
   // const { siweAuth } = m.useModule(SiweAuthModule);
   const { userManager } = m.useModule(UserManagerModule);
-  const { truthBox } = m.useModule(TruthBoxModule);
+  const { blindBox } = m.useModule(BlindBoxModule);
   const { exchange } = m.useModule(ExchangeModule);
   const { fundManager } = m.useModule(FundManagerModule);
 
@@ -135,7 +135,7 @@ export default buildModule("WikiTruthDirectDeploy", (m) => {
     forwarder,
     // siweAuth,
     userManager,
-    truthBox,
+    blindBox,
     exchange,
     fundManager
   };

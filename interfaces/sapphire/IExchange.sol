@@ -14,6 +14,13 @@ interface ExchangeEvents {
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
+    event CrossChainOrderCompleted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+    event CrossChainRefundPermitted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+}
+
+enum PaymentType {
+    Native,
+    CrossChain
 }
 
 /**
@@ -62,20 +69,34 @@ interface IExchange {
     ) external;
 
     // =====================================================================================
-    //                                          Buying Functions
+    //                                          Buying/Payment Functions (Project Contracts Only)
     // =====================================================================================
 
     /**
-     * @notice Buy a box
+     * @notice Process a purchase of a Selling BlindBox
      * @param boxId_ Box ID
+     * @param buyerUserId_ The user ID of the buyer
+     * @param payType_ Payment type (Native/CrossChain)
      */
-    function buy(uint256 boxId_) external;
+    function buy(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        PaymentType payType_
+    ) external;
 
     /**
-     * @notice Place a bid on an auction
+     * @notice Place a bid on an Auctioning BlindBox
      * @param boxId_ Box ID
+     * @param buyerUserId_ The user ID of the bidder
+     * @param price_ The current bid price to be paid
+     * @param payType_ Payment type
      */
-    function bid(uint256 boxId_) external;
+    function bid(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        uint256 price_,
+        PaymentType payType_
+    ) external;
 
     /**
      * @notice Calculate payment amount for a bid
@@ -141,6 +162,11 @@ interface IExchange {
     // =====================================================================================
     //                                          Getter Functions
     // =====================================================================================
+
+    /**
+     * @notice Get payment type of a box
+     */
+    function paymentTypeOf(uint256 boxId_) external view returns (PaymentType);
 
     /**
      * @notice Get buyer userId

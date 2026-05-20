@@ -30,7 +30,7 @@ contract BlindBox is BlindBox03, IBlindBox {
     // ==========================================================================================================
 
     /**
-     * @dev Create a truth box
+     * @dev Create a blind box
      * @param boxInfoCID_ The CID of the box info
      * @param key_ The key of the box
      * @param price_ The price of the box

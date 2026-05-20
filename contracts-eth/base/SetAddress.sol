@@ -22,7 +22,7 @@ contract SetAddress {
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    IBlindBox internal TRUTH_BOX;
+    IBlindBox internal BLIND_BOX;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -51,10 +51,10 @@ contract SetAddress {
 
         if (
             blindBox != address(0) &&
-            blindBox != address(TRUTH_BOX) &&
+            blindBox != address(BLIND_BOX) &&
             enum_ != CoreContracts.BlindBox
         ) {
-            TRUTH_BOX = IBlindBox(blindBox);
+            BLIND_BOX = IBlindBox(blindBox);
         }
 
         if (

@@ -63,15 +63,42 @@ contract Exchange is Exchange03, IExchange {
     }
 
     // ========================================================================================================
-    //                                          Buying related functions
+    //                                          Buying/Payment Functions (Project Contracts Only)
     // ========================================================================================================
 
-    function buy(uint256 boxId_) external {
-        _buy(boxId_);
+    function buy(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        PaymentType payType_
+    ) external onlyProjectContract {
+        IBlindBox blindBox = BLIND_BOX;
+        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
+
+        blindBox.setStatus(boxId_, Status.Paid);
+
+        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._paymentType = payType_;
+
+        _setRefundRequestDeadline(boxId_, block.timestamp);
+
+        emit BoxPurchased(boxId_, buyerUserId_);
     }
 
-    function bid(uint256 boxId_) external {
-        _bid(boxId_);
+    function bid(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        uint256 price_,
+        PaymentType payType_
+    ) external onlyProjectContract {
+        if (buyerUserId_ == _buyerIdOf(boxId_)) revert NotBuyer();
+
+        uint256 currentRequiredPrice = _bidPrice(boxId_);
+        require(price_ >= currentRequiredPrice, "Bid price is too low");
+
+        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._paymentType = payType_;
+
+        emit BidPlaced(boxId_, buyerUserId_, price_);
     }
 
     function calcPayMoney(
@@ -124,6 +151,12 @@ contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
     //                                           Getter function
     // ========================================================================================================
+
+    function paymentTypeOf(
+        uint256 boxId_
+    ) external view override returns (PaymentType) {
+        return _boxExchengData[boxId_]._paymentType;
+    }
 
     function buyerIdOf(
         uint256 boxId_

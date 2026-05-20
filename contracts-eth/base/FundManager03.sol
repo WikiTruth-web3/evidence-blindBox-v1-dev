@@ -61,7 +61,7 @@ contract FundManager03 is FundManager02 {
             amount_
         );
 
-        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
         _calculateAllocation(boxId_, minterId, amount_, settlementToken);
     }
 
@@ -74,7 +74,7 @@ contract FundManager03 is FundManager02 {
      */
     function _allocationRewards(uint256 boxId_) internal {
         bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
-        bytes32 minterId = TRUTH_BOX.minterIdOf(boxId_);
+        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
         address token = EXCHANGE.acceptedToken(boxId_);
 
         uint256 amount = _orderAmounts[boxId_][buyerId];

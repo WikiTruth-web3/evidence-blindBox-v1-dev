@@ -8,7 +8,7 @@ import {
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
-import {ExchangeEvents} from "@interfaces/sapphire/IExchange.sol";
+import {ExchangeEvents, PaymentType} from "@interfaces/sapphire/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 
@@ -29,6 +29,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
+        PaymentType _paymentType; // Payment type record
     }
 
     mapping(uint256 boxId => BoxExchengData data) internal _boxExchengData;
@@ -168,20 +169,6 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
      * Bid will modify: buyer、price、deadline.
      * Bid also needs to calculate, and pay: payAmount
      */
-    function _bid(uint256 boxId_) internal {
-        address sender = _msgSender();
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        if (userId == _buyerIdOf(boxId_)) revert NotBuyer();
-
-        uint256 price = _bidPrice(boxId_);
-
-        uint256 payAmount = _calcPayMoney(boxId_, userId, price);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId); // need approve to FUND_MANAGER。
-
-        _boxExchengData[boxId_]._buyerId = userId;
-
-        emit BidPlaced(boxId_, userId);
-    }
 
     function _calcPayMoney(
         uint256 boxId_,

@@ -12,7 +12,7 @@ export default buildModule("Deploy_20260424_v2", (m) => {
 
   const addressManager_new = m.contract("AddressManager", []);
   const exchange = m.contract("Exchange", [addressManager,forwarder]);
-  // const truthBox = m.contract("TruthBox", [addressManager,forwarder,pers]);
+  // const blindBox = m.contract("BlindBox", [addressManager,forwarder,pers]);
   // const truthNFT = m.contract("TruthNFT", [addressManager_Proxy]);
   // const fundManager = m.contract("FundManager", [addressManager_Proxy]);
   // const userId = m.contract("UserId", [addressManager_Proxy]);
@@ -20,7 +20,7 @@ export default buildModule("Deploy_20260424_v2", (m) => {
   return { 
     addressManager_new,
     exchange, 
-    // truthBox,
+    // blindBox,
     // fundManager,
     // truthNFT, 
     // userId 

@@ -8,7 +8,7 @@ pragma solidity ^0.8.24;
 // } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {ExchangeEvents} from "@interfaces/eth/IExchange.sol";
+import {ExchangeEvents, PaymentType} from "@interfaces/eth/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 // import {SiweContext} from "@siwe/SiweContext.sol";
 
@@ -22,6 +22,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     // =======================================================================================================
 
     struct BoxExchengData {
+        string chainToken; // Chain-specific token name
         address _acceptedToken; // If address(0), then it means support settlementToken
         bytes32 _sellerId; // If address(0), then it means by minter sell
         bytes32 _buyerId;
@@ -29,6 +30,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
+        PaymentType _paymentType;
     }
 
     mapping(uint256 boxId => BoxExchengData data) internal _boxExchengData;
@@ -46,8 +48,8 @@ contract Exchange02 is Exchange01, ExchangeEvents {
      * @param boxId_ Box ID
      * If the box status is Auctioning, and the deadline is over, then it is directly Paid.
      */
-    function _checkStatus(uint256 boxId_, Status status_) internal view {
-        if (TRUTH_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
+    function _isNotStatus(uint256 boxId_, Status status_) internal view {
+        if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
     }
 
     // Check the refund timestamp. Within the refund time,
@@ -55,7 +57,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     function _isInRequestRefundDeadline(
         uint256 boxId_
     ) internal view returns (bool) {
-        _checkStatus(boxId_, Status.Paid);
+        _isNotStatus(boxId_, Status.Paid);
 
         if (_boxExchengData[boxId_]._refundRequestDeadline < block.timestamp)
             return false;
@@ -63,7 +65,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     }
 
     function _isInReviewDeadline(uint256 boxId_) internal view returns (bool) {
-        _checkStatus(boxId_, Status.Refunding);
+        _isNotStatus(boxId_, Status.Refunding);
         if (_boxExchengData[boxId_]._refundReviewDeadline < block.timestamp)
             return false;
         return true;
@@ -80,7 +82,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         Status status_,
         uint256 seconds_
     ) internal {
-        IBlindBox BlindBox = TRUTH_BOX;
+        IBlindBox BlindBox = BLIND_BOX;
         if (BlindBox.getStatus(boxId_) != Status.Storing)
             revert InvalidStatus();
         // erc2771 - _msgSender() is the real caller
@@ -109,6 +111,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
                 token = acceptedToken_;
             }
         }
+
         BlindBox.setBasicData(
             boxId_,
             price_,
@@ -129,69 +132,16 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         emit RequestDeadlineChanged(boxId_, deadline);
     }
 
-    // ========================================================================================================
-    //                                          Buying related functions
-    // ========================================================================================================
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
-     * @param boxId_ Box ID
-     */
-    function _bidPrice(uint256 boxId_) internal returns (uint256) {
-        IBlindBox BlindBox = TRUTH_BOX;
-        (Status status, uint256 price, uint256 deadline) = BlindBox
-            .getBasicData(boxId_);
-
-        // canBid?
-        if (deadline < block.timestamp) revert DeadlineIsOver();
-        if (status != Status.Auctioning) revert InvalidStatus();
-
-        // NOTE: 30 days----3 days
-        _setRefundRequestDeadline(boxId_, block.timestamp + 30 days);
-        uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
-
-        BlindBox.setBasicData(
-            boxId_,
-            newPrice,
-            Status.Auctioning,
-            block.timestamp + 30 days
-        );
-
-        return price;
+    function _setRefundPermit(uint256 boxId_, bool permission_) internal {
+        _boxExchengData[boxId_]._refundPermit = permission_;
+        emit RefundPermitChanged(boxId_, permission_);
     }
 
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
-     * @param boxId_ Box ID
-     * Need to check: deadline、status、buyer.
-     * Bid will modify: buyer、price、deadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
-    function _bid(uint256 boxId_) internal {
-        address sender = msg.sender;
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        if (userId == _buyerIdOf(boxId_)) revert NotBuyer();
-
-        uint256 price = _bidPrice(boxId_);
-
-        uint256 payAmount = _calcPayMoney(boxId_, userId, price);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId); // need approve to FUND_MANAGER。
-
-        _boxExchengData[boxId_]._buyerId = userId;
-
-        emit BidPlaced(boxId_, userId);
-    }
-
-    function _calcPayMoney(
-        uint256 boxId_,
-        bytes32 userId_,
-        uint256 price_
-    ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(
-            boxId_,
-            userId_
-        );
-        uint256 amount = price_ - balance;
-        return amount;
+    // =========================================================================================================
+    //                                           Virtual Payment Functions
+    // ========================================================================================================
+    function _processAllocation(uint256 boxId_) internal virtual {
+        FUND_MANAGER.allocationRewards(boxId_);
     }
 
     // ========================================================================================================

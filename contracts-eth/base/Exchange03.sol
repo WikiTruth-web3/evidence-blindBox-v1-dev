@@ -4,6 +4,7 @@
 pragma solidity ^0.8.24;
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
+import {PaymentType} from "@interfaces/eth/IExchange.sol";
 
 import {Exchange02} from "./Exchange02.sol";
 
@@ -22,44 +23,38 @@ contract Exchange03 is Exchange02 {
     //                                          Buying related functions
     // ========================================================================================================
 
+    function _processAllocation(uint256 boxId_) internal override {
+        if (_boxExchengData[boxId_]._paymentType == PaymentType.Native) {
+            super._processAllocation(boxId_);
+        } else {
+            emit CrossChainOrderCompleted(boxId_, _buyerIdOf(boxId_));
+        }
+    }
+
     /**
-     * @notice Buy function, the buyer needs to pay
+     * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
      * @param boxId_ Box ID
-     * Need to check: status、buyer.
-     * Buy will modify: buyer、status、refundRequestDeadline.
-     * Bid also needs to calculate, and pay: payAmount
      */
-    function _buy(uint256 boxId_) internal {
-        IBlindBox blindBox = TRUTH_BOX;
+    function _bidPrice(uint256 boxId_) internal returns (uint256) {
+        IBlindBox BlindBox = BLIND_BOX;
+        (Status status, uint256 price, ) = BlindBox.getBasicData(boxId_);
 
-        // _checkStatus(boxId_, Status.Selling);
-        if (blindBox.getStatus(boxId_) != Status.Selling)
-            revert InvalidStatus();
+        // canBid?
+        if (status != Status.Auctioning) revert InvalidStatus();
 
-        blindBox.setStatus(boxId_, Status.Paid);
+        uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
 
-        address sender = msg.sender;
+        BlindBox.setBasicData(
+            boxId_,
+            newPrice,
+            Status.Auctioning,
+            block.timestamp + 30 days
+        );
 
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        _boxExchengData[boxId_]._buyerId = userId;
-
-        // Buy operation, should directly set the deadline for applying for refund
-        _setRefundRequestDeadline(boxId_, block.timestamp);
-
-        uint256 payAmount = blindBox.getPrice(boxId_);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
-
-        emit BoxPurchased(boxId_, userId);
+        return price;
     }
 
-    // =========================================================================================================
-    //                                           finalize related functions
-    // ========================================================================================================
 
-    function _setRefundPermit(uint256 boxId_, bool permission_) internal {
-        _boxExchengData[boxId_]._refundPermit = permission_;
-        emit RefundPermitChanged(boxId_, permission_);
-    }
 
     // ========================================================================================================
     //                                           Refund function
@@ -69,17 +64,16 @@ contract Exchange03 is Exchange02 {
      * @notice Request refund function, after requesting refund, the box status becomes Refunding
      * Need to check: status、deadline.
      * Request refund will modify: status、refundReviewDeadline.
-     * Request refund also needs to set the status of TRUTH_BOX to Published
+     * Request refund also needs to set the status of BLIND_BOX to Published
      */
     function _requestRefund(uint256 boxId_) internal {
-        // _checkStatus(boxId_, Status.Paid);
-        IBlindBox blindBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canRequestRefund?
         if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (_refundPermit(boxId_)) revert RefundPermitTrue();
         // erc2771 - msg.sender is the real caller
         bytes32 userId = USER_MANAGER.getUserId(msg.sender);
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         if (_isInRequestRefundDeadline(boxId_)) {
             uint256 deadline = block.timestamp + _refundReviewPeriod;
@@ -89,7 +83,7 @@ contract Exchange03 is Exchange02 {
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
             blindBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
+            _processAllocation(boxId_);
         }
     }
 
@@ -100,25 +94,23 @@ contract Exchange03 is Exchange02 {
         // erc2771 - msg.sender is the real caller
         bytes32 userId = USER_MANAGER.getUserId(msg.sender);
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
-        // _checkStatus(boxId_, Status.Refunding);
-        IBlindBox blindBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
+        if (_refundPermit(boxId_)) revert RefundPermitTrue();
         blindBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+        _processAllocation(boxId_);
     }
 
     /**
      * @notice Agree refund function, after agreeing refund, the box status becomes Sold
      * Need to check: status、deadline.
      * Agree refund will modify: status、refundReviewDeadline.
-     * Agree refund also needs to set the status of TRUTH_BOX to Published
+     * Agree refund also needs to set the status of BLIND_BOX to Published
      */
     function _agreeRefund(uint256 boxId_) internal {
-        // _checkStatus(boxId_, Status.Refunding);
-        IBlindBox blindBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
 
         // canAgree?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
@@ -140,14 +132,17 @@ contract Exchange03 is Exchange02 {
         blindBox.setStatus(boxId_, Status.Published);
 
         emit RefundPermitChanged(boxId_, true);
+
+        if (_boxExchengData[boxId_]._paymentType == PaymentType.CrossChain) {
+            emit CrossChainRefundPermitted(boxId_, _buyerIdOf(boxId_));
+        }
     }
 
     /**
      * @notice Refuse refund function, after refusing refund, the box status becomes Published!
      */
     function _refuseRefund(uint256 boxId_) internal {
-        // _checkStatus(boxId_, Status.Refunding);
-        IBlindBox blindBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canRefuse?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
@@ -157,7 +152,7 @@ contract Exchange03 is Exchange02 {
             // Check role: DAO
             if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
             blindBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
+            _processAllocation(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
             blindBox.setStatus(boxId_, Status.Published);
@@ -174,12 +169,11 @@ contract Exchange03 is Exchange02 {
      * @notice Complete order function, after completing order, the box status becomes Sold
      * Need to check: refundPermit.
      * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of TRUTH_BOX to Delaying
+     * Complete order also needs to set the status of BLIND_BOX to Delaying
      * Complete order also needs to set refundRequestDeadline.
      */
     function _completeOrder(uint256 boxId_) internal {
-        // _checkStatus(boxId_, Status.Paid);
-        IBlindBox blindBox = TRUTH_BOX;
+        IBlindBox blindBox = BLIND_BOX;
         // canComplete?
         if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
@@ -196,6 +190,6 @@ contract Exchange03 is Exchange02 {
             }
         }
         blindBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+        _processAllocation(boxId_);
     }
 }

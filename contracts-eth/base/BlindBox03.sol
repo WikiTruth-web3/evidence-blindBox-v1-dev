@@ -87,7 +87,7 @@ contract BlindBox03 is BlindBox02 {
     // ==================================================================================================
 
     function _checkStatus(uint256 boxId_, Status status_) internal view {
-        if (_basicData[boxId_]._status != status_) revert InvalidStatus();
+        if (_getStatus(boxId_) != status_) revert InvalidStatus();
     }
 
     function _checkIsBlacklisted(uint256 boxId_) internal view {

@@ -32,27 +32,12 @@ contract Exchange03 is Exchange02 {
      * Buy will modify: buyer、status、refundRequestDeadline.
      * Bid also needs to calculate, and pay: payAmount
      */
-    function _buy(uint256 boxId_) internal {
-        IBlindBox blindBox = BLIND_BOX;
-
-        // _checkStatus(boxId_, Status.Selling);
-        if (blindBox.getStatus(boxId_) != Status.Selling)
-            revert InvalidStatus();
-
-        blindBox.setStatus(boxId_, Status.Paid);
-
-        address sender = _msgSender();
-
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        _boxExchengData[boxId_]._buyerId = userId;
-
-        // Buy operation, should directly set the deadline for applying for refund
-        _setRefundRequestDeadline(boxId_, block.timestamp);
-
-        uint256 payAmount = blindBox.getPrice(boxId_);
-        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
-
-        emit BoxPurchased(boxId_, userId);
+    function _dispatchRewards(uint256 boxId_) internal {
+        if (_boxExchengData[boxId_]._paymentType == PaymentType.Native) {
+            FUND_MANAGER.allocationRewards(boxId_);
+        } else {
+            emit CrossChainOrderCompleted(boxId_, _buyerIdOf(boxId_));
+        }
     }
 
     // =========================================================================================================
@@ -92,7 +77,7 @@ contract Exchange03 is Exchange02 {
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
             blindBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
+            _dispatchRewards(boxId_);
         }
     }
 
@@ -109,7 +94,7 @@ contract Exchange03 is Exchange02 {
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
         blindBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+        _dispatchRewards(boxId_);
     }
 
     /**
@@ -142,6 +127,10 @@ contract Exchange03 is Exchange02 {
         blindBox.setStatus(boxId_, Status.Published);
 
         emit RefundPermitChanged(boxId_, true);
+
+        if (_boxExchengData[boxId_]._paymentType == PaymentType.CrossChain) {
+            emit CrossChainRefundPermitted(boxId_, _buyerIdOf(boxId_));
+        }
     }
 
     /**
@@ -159,7 +148,7 @@ contract Exchange03 is Exchange02 {
             // Check role: DAO
             if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
             blindBox.setStatus(boxId_, Status.Delaying);
-            FUND_MANAGER.allocationRewards(boxId_);
+            _dispatchRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
             blindBox.setStatus(boxId_, Status.Published);
@@ -199,6 +188,6 @@ contract Exchange03 is Exchange02 {
             }
         }
         blindBox.setStatus(boxId_, Status.Delaying);
-        FUND_MANAGER.allocationRewards(boxId_);
+        _dispatchRewards(boxId_);
     }
 }

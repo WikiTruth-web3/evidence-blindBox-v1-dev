@@ -177,7 +177,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             amount_
         );
         // Reset the price of BlindBox
-        TRUTH_BOX.setPrice(boxId_, amountOut);
+        BLIND_BOX.setPrice(boxId_, amountOut);
 
         // Calculate the amount of funds used to allocate to other roles
         // Include service fee, seller fee, completer fee

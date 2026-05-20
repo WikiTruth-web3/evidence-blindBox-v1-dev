@@ -41,7 +41,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     address public siweAuth;
 
     // Core trading contracts
-    address public truthBox;
+    address public blindBox;
     address public fundManager;
     address public exchange;
 
@@ -117,7 +117,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         daoFundManager, 
         userManager, 
         siweAuth, 
-        truthBox, 
+        blindBox, 
         exchange, 
         fundManager,
         forwarder
@@ -153,8 +153,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         }
         // Core contracts
         if (list_[5] != address(0)) {
-            if (_mappingBool(truthBox, list_[5])) {
-                truthBox = list_[5];
+            if (_mappingBool(blindBox, list_[5])) {
+                blindBox = list_[5];
             }
         }
         if (list_[6] != address(0)) {
@@ -241,7 +241,7 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function setAllAddress() external onlyAdmin {
         IExchange(exchange).setAddress();
         IFundManager(fundManager).setAddress();
-        IBlindBox(truthBox).setAddress();
+        IBlindBox(blindBox).setAddress();
         IUserManager(userManager).setAddress();
         // IForwarder(forwarder).setAddress();
     }

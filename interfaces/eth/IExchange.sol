@@ -14,6 +14,13 @@ interface ExchangeEvents {
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
+    event CrossChainOrderCompleted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+    event CrossChainRefundPermitted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+}
+
+enum PaymentType {
+    Native,
+    CrossChain
 }
 
 /**
@@ -33,58 +40,6 @@ interface IExchange {
     function setAddress() external;
 
     // =====================================================================================
-    //                                          Listing Functions
-    // =====================================================================================
-
-    /**
-     * @notice List a box for sale
-     * @param boxId_ Box ID
-     * @param acceptedToken_ Accepted token address (address(0) means official token)
-     * @param price_ Sale price
-     *
-     */
-    function sell(
-        uint256 boxId_,
-        address acceptedToken_,
-        uint256 price_
-    ) external;
-
-    /**
-     * @notice List a box for auction
-     * @param boxId_ Box ID
-     * @param acceptedToken_ Accepted token address (address(0) means official token)
-     * @param price_ Sale price
-     */
-    function auction(
-        uint256 boxId_,
-        address acceptedToken_,
-        uint256 price_
-    ) external;
-
-    // =====================================================================================
-    //                                          Buying Functions
-    // =====================================================================================
-
-    /**
-     * @notice Buy a box
-     * @param boxId_ Box ID
-     */
-    function buy(uint256 boxId_) external;
-
-    /**
-     * @notice Place a bid on an auction
-     * @param boxId_ Box ID
-     */
-    function bid(uint256 boxId_) external;
-
-    /**
-     * @notice Calculate payment amount for a bid
-     * @param boxId_ Box ID
-     * @return Payment amount required
-     */
-    function calcPayMoney(uint256 boxId_) external view returns (uint256);
-
-    // =====================================================================================
     //                                          Refund Functions
     // =====================================================================================
     /**
@@ -95,44 +50,46 @@ interface IExchange {
      */
     function setRefundPermit(uint256 boxId_, bool permission_) external;
 
-    /**
-     * @notice Request a refund
-     * @param boxId_ Box ID
-     * @dev Only buyer can call, box must be in Paid status
-     */
-    function requestRefund(uint256 boxId_) external;
-
-    /**
-     * @notice Cancel a refund request
-     * @param boxId_ Box ID
-     * @dev Only buyer can call, box must be in Refunding status
-     */
-    function cancelRefund(uint256 boxId_) external;
-
-    /**
-     * @notice Agree to a refund request
-     * @param boxId_ Box ID
-     * @dev Only minter or DAO can call within review deadline, box must be in Refunding status
-     */
-    function agreeRefund(uint256 boxId_) external;
-
-    /**
-     * @notice Refuse a refund request
-     * @param boxId_ Box ID
-     * @dev Only DAO can call within review deadline, box must be in Refunding status
-     */
-    function refuseRefund(uint256 boxId_) external;
-
     // =====================================================================================
-    //                                          Order Completion Functions
+    //                                          Buying Functions
     // =====================================================================================
 
     /**
-     * @notice Complete an order
+     * @notice Buy a box
      * @param boxId_ Box ID
-     * @dev Buyer can call anytime, others can call after refund deadline
+     * @param buyerUserId_ User ID
+     * @param payType_ Payment type
+     * @dev Only callable by project contracts
      */
-    function completeOrder(uint256 boxId_) external;
+    function buy(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        PaymentType payType_
+    ) external;
+
+    /**
+     * @notice Place a bid on an auction
+     * @param boxId_ Box ID
+     * @param buyerUserId_ User ID
+     * @param price_ The bid price
+     * @param payType_ Payment type
+     * @dev Only callable by project contracts
+     */
+    function bid(
+        uint256 boxId_,
+        bytes32 buyerUserId_,
+        uint256 price_,
+        PaymentType payType_
+    ) external;
+
+    /**
+     * @notice Complete order function, after completing order, the box status becomes Sold
+     * Need to check: refundPermit.
+     * Complete order will modify: status、completer.
+     * Complete order also needs to set the status of BLIND_BOX to Delaying
+     * Complete order also needs to set refundRequestDeadline.
+     */
+    // function completeOrder(uint256 boxId_, bytes32 userId_) external
 
     // =====================================================================================
     //                                          Getter Functions
@@ -209,6 +166,13 @@ interface IExchange {
      * @return Whether box is within refund review deadline
      */
     function isInReviewDeadline(uint256 boxId_) external view returns (bool);
+
+    /**
+     * @notice Get payment type
+     * @param boxId_ Box ID
+     * @return Payment type (Native/CrossChain)
+     */
+    function paymentTypeOf(uint256 boxId_) external view returns (PaymentType);
 
     // =====================================================================================
 }

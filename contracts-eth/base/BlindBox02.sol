@@ -83,7 +83,7 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents {
     }
 
     /**
-     * @dev Create a truth box
+     * @dev Create a blind box
      * @param boxInfoCID_ The CID of the box info
      * @param key_ The key of the box
      * @param price_ The price of the box

@@ -11,7 +11,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  * npx hardhat ignition deploy ... --module-id AddressManagerModule
  * 
  * 3. import module:
- * import { TruthBoxModule } from './00_DeployWithProxy_Modular';
+ * import { BlindBoxModule } from './00_DeployWithProxy_Modular';
  */
 
 
@@ -28,18 +28,18 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 //   return { implementation, proxy };
 // });
 
-// ==================== 模块2：TruthBox ====================
-export const TruthBoxModule = buildModule("TruthBoxModule", (m) => {
+// ==================== 模块2：BlindBox ====================
+export const BlindBoxModule = buildModule("BlindBoxModule", (m) => {
   // const { proxy: addressManagerProxy } = m.useModule(AddressManagerModule);
 
-  // const implementation = m.contract("TruthBox", [addressManagerProxy], {
-  //   id: "TruthBox_Implementation"
+  // const implementation = m.contract("BlindBox", [addressManagerProxy], {
+  //   id: "BlindBox_Implementation"
   // });
-//   "TruthBoxModule#TruthBox_Implementation": "0x4058F87ac5703c4929D43901FAA464bC139bB9D5",
+//   "BlindBoxModule#BlindBox_Implementation": "0x4058F87ac5703c4929D43901FAA464bC139bB9D5",
 
 
   const proxy = m.contract("Proxy_WikiTruth", [implementation], {
-    id: "TruthBox_Proxy"
+    id: "BlindBox_Proxy"
   });
 
   return {  
@@ -125,7 +125,7 @@ export const UserIdModule = buildModule("UserIdModule", (m) => {
 // ==================== 主模块：组合所有模块 ====================
 export default buildModule("AllContractsWithProxy", (m) => {
   // const addressManager = m.useModule(AddressManagerModule);
-  const truthBox = m.useModule(TruthBoxModule);
+  const blindBox = m.useModule(BlindBoxModule);
   const exchange = m.useModule(ExchangeModule);
   const fundManager = m.useModule(FundManagerModule);
   const userId = m.useModule(UserIdModule);
@@ -133,7 +133,7 @@ export default buildModule("AllContractsWithProxy", (m) => {
 
   return {
     // addressManagerProxy: addressManager.proxy,
-    truthBoxProxy: truthBox.proxy,
+    blindBoxProxy: blindBox.proxy,
     truthNFTProxy: truthNFT.proxy,
     exchangeProxy: exchange.proxy,
     fundManagerProxy: fundManager.proxy,
