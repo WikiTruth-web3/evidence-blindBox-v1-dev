@@ -67,7 +67,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         uint256 amountOut; // settlement token
 
         if (token_ != settlementToken) {
-            // totalRate += _extraFeeRate;
+            totalRate += _slippageProtection;
             (amountIn, amountOut) = _swap(
                 boxId_,
                 token_,
@@ -87,8 +87,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             emit RewardsAdded(
                 boxId_,
                 token_,
-                (amount_ - amountIn),
-                RewardType.Minter
+                (amount_ - amountIn)
             );
 
             // Directly assign the service fee to the DAO fund manager contract
@@ -99,7 +98,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
             // Record total reward amount
             _totalRewardAmounts[token_] += amount_;
-            emit RewardsAdded(boxId_, token_, amount_, RewardType.Total);
         }
     }
 

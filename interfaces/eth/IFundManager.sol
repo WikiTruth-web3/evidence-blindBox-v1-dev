@@ -21,8 +21,12 @@ interface FundManagerEvents {
     event RewardsAdded(
         uint256 indexed boxId,
         address indexed token,
-        uint256 amount,
-        RewardType rewardType
+        uint256 amount
+    );
+    event TotalRewardsAdded(
+        uint256 indexed boxId,
+        address indexed token,
+        uint256 amount
     );
 
     event RewardsWithdraw(
@@ -32,12 +36,6 @@ interface FundManagerEvents {
     );
 }
 
-enum RewardType {
-    Minter,
-    Seller,
-    Completer,
-    Total
-}
 enum FundsType {
     Order,
     Refund

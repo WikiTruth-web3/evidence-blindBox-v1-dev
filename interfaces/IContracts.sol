@@ -6,6 +6,7 @@ enum CoreContracts {
     BlindBox,
     Exchange,
     FundManager,
+    FundManagerCrossChain,
     UserManager
 }
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IUserManager} from "@interfaces/eth/IUserManager.sol";
 import {IFundManager} from "@interfaces/eth/IFundManager.sol";
-import {IFundManagerCorssChain} from "@interfaces/eth/IFundManagerCorssChain.sol";
+import {IFundManagerCrossChain} from "@interfaces/eth/IFundManagerCrossChain.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
@@ -23,7 +23,7 @@ contract SetAddress {
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    IFundManagerCorssChain internal FUND_MANAGER_CROSS_CHAIN;
+    IFundManagerCrossChain internal FUND_MANAGER_CROSS_CHAIN;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -74,7 +74,7 @@ contract SetAddress {
             fundManagerCrossChain != address(FUND_MANAGER_CROSS_CHAIN) &&
             enum_ != CoreContracts.FundManagerCrossChain
         ) {
-            FUND_MANAGER_CROSS_CHAIN = IFundManager(fundManagerCrossChain);
+            FUND_MANAGER_CROSS_CHAIN = IFundManagerCrossChain(fundManagerCrossChain);
         }
 
         if (
