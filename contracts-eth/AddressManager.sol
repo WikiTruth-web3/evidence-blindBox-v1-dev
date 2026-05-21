@@ -324,6 +324,12 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         return _settlementToken;
     }
 
+    function checkTokenSupported(address token_) external view {
+        if(token_ == address(0)) revert InvalidToken();
+        if(_tokenStatus[token_] != TokenEnum.Active) revert TokenUnSupported();
+
+    }
+
     /**
      * @dev Check if the token is supported
      * @param token_ Token contract address

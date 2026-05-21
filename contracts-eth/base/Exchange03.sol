@@ -23,14 +23,6 @@ contract Exchange03 is Exchange02 {
     //                                          Buying related functions
     // ========================================================================================================
 
-    function _processAllocation(uint256 boxId_) internal override {
-        if (_boxExchengData[boxId_]._paymentType == PaymentType.Native) {
-            super._processAllocation(boxId_);
-        } else {
-            emit CrossChainOrderCompleted(boxId_, _buyerIdOf(boxId_));
-        }
-    }
-
     /**
      * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
      * @param boxId_ Box ID
@@ -70,7 +62,6 @@ contract Exchange03 is Exchange02 {
         IBlindBox blindBox = BLIND_BOX;
         // canRequestRefund?
         if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
         // erc2771 - msg.sender is the real caller
         bytes32 userId = USER_MANAGER.getUserId(msg.sender);
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
@@ -78,8 +69,8 @@ contract Exchange03 is Exchange02 {
         if (_isInRequestRefundDeadline(boxId_)) {
             uint256 deadline = block.timestamp + _refundReviewPeriod;
             _boxExchengData[boxId_]._refundReviewDeadline = deadline;
-            blindBox.setStatus(boxId_, Status.Refunding);
 
+            blindBox.setStatus(boxId_, Status.Refunding);
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
             blindBox.setStatus(boxId_, Status.Delaying);
@@ -98,7 +89,7 @@ contract Exchange03 is Exchange02 {
         IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
+
         blindBox.setStatus(boxId_, Status.Delaying);
         _processAllocation(boxId_);
     }
@@ -133,9 +124,6 @@ contract Exchange03 is Exchange02 {
 
         emit RefundPermitChanged(boxId_, true);
 
-        if (_boxExchengData[boxId_]._paymentType == PaymentType.CrossChain) {
-            emit CrossChainRefundPermitted(boxId_, _buyerIdOf(boxId_));
-        }
     }
 
     /**
@@ -146,7 +134,6 @@ contract Exchange03 is Exchange02 {
         // canRefuse?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
         // According to whether it is within the review deadline, determine.
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
@@ -161,35 +148,4 @@ contract Exchange03 is Exchange02 {
         }
     }
 
-    // =========================================================================================================
-    //                                           finalize related functions
-    // ========================================================================================================
-
-    /**
-     * @notice Complete order function, after completing order, the box status becomes Sold
-     * Need to check: refundPermit.
-     * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of BLIND_BOX to Delaying
-     * Complete order also needs to set refundRequestDeadline.
-     */
-    function _completeOrder(uint256 boxId_) internal {
-        IBlindBox blindBox = BLIND_BOX;
-        // canComplete?
-        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        if (_refundPermit(boxId_)) revert RefundPermitTrue();
-
-        // erc2771
-        address sender = msg.sender;
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-
-        if (userId != _buyerIdOf(boxId_)) {
-            if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
-            if (userId != blindBox.minterIdOf(boxId_)) {
-                _boxExchengData[boxId_]._completerId = userId;
-                emit CompleterAssigned(boxId_, userId);
-            }
-        }
-        blindBox.setStatus(boxId_, Status.Delaying);
-        _processAllocation(boxId_);
-    }
 }

@@ -26,19 +26,36 @@ contract BlindBox03 is BlindBox02 {
     function _getStatus(uint256 boxId_) internal view returns (Status) {
         Status status = _basicData[boxId_]._status;
         // If the deadline has passed, then you need to judge the status of the box
-        if (_basicData[boxId_]._deadline < block.timestamp) {
-            // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
-            if (status == Status.Selling || status == Status.Auctioning) {
-                if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
+
+        uint256 deadline = _basicData[boxId_]._deadline;
+        
+        if (deadline < block.timestamp) {
+            if (status == Status.Storing) {
+                // Selling and nobuyer
+                if(deadline + 365 days < block.timestamp) {
                     return Status.Published;
-                } else {
-                    // If there is a buyer, then the status is Paid
-                    return Status.Paid;
                 }
-            } else if (status == Status.Delaying) {
-                // 2, Box in Delaying status, then the status is Published
-                return Status.Published;
+                return Status.Selling;
             }
+        } else if (status == Status.Selling || status == Status.Auctioning) {
+            // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
+            if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
+                return Status.Published;
+            } else {
+                // If there is a buyer, then the status is Paid
+                return Status.Paid;
+            }
+        } else if (status == Status.Paid) {
+            // is out of request refund deadline
+            if (
+                !EXCHANGE.isInRequestRefundDeadline(boxId_) 
+                ) {
+                return Status.Delaying;
+            }
+
+        } else if (status == Status.Delaying) {
+            // 2, Box in Delaying status, then the status is Published
+            return Status.Published;
         }
         return status;
     }
@@ -57,19 +74,16 @@ contract BlindBox03 is BlindBox02 {
         uint256 boxId_
     ) internal view returns (bytes memory) {
         Status status = _getStatus(boxId_);
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
 
         if (
-            status == Status.Storing ||
-            status == Status.Selling ||
-            status == Status.Auctioning
+            status <= 2 // Storing\Selling\Auctioning
         ) {
             // Role verification is handled by calling the function.
             // Since this is a view function, getUserId might not work if it needs to register.
             // But we can use getUserId.
-            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (userId != _minterIdOf(boxId_)) revert NotMinter();
         } else if (status == Status.Delaying || status == Status.Paid) {
-            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
@@ -86,7 +100,7 @@ contract BlindBox03 is BlindBox02 {
     //                               Checker Functions
     // ==================================================================================================
 
-    function _checkStatus(uint256 boxId_, Status status_) internal view {
+    function _isStatus(uint256 boxId_, Status status_) internal view {
         if (_getStatus(boxId_) != status_) revert InvalidStatus();
     }
 
@@ -151,7 +165,7 @@ contract BlindBox03 is BlindBox02 {
     // If the caster wishes to extend the confidentiality period, they will need to verify by minter account
     function _extendDeadline(uint256 boxId_, uint256 time_) internal {
         _checkMinter(boxId_);
-        _checkStatus(boxId_, Status.Storing);
+        _isStatus(boxId_, Status.Storing);
         _isInWindowPeriod(boxId_);
         if (time_ > 365 days) revert InvalidPeriod(); // NOTE: 365----15
 

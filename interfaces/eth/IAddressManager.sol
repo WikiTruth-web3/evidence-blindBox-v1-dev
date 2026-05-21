@@ -151,6 +151,9 @@ interface IAddressManager {
      */
     function settlementToken() external view returns (address);
 
+
+    function checkTokenSupported(address token_) external view ;
+
     /**
      * @notice Check if token is supported
      * @param token_ Token address to check

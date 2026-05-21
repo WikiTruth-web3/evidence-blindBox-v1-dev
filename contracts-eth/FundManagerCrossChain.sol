@@ -11,11 +11,14 @@ import {IFundManagerCrossChain, FundManagerCrossChainEvents} from "@interfaces/e
  * Tracks the virtual balance for buyers and prevents transaction double-spending via txHash checking.
  */
 contract FundManagerCrossChain is ModifierV2, IFundManagerCrossChain, FundManagerCrossChainEvents {
+
+    error EmptyTxHash();
+    error TxHashAlreadyProcessed();
     // Replay protection: txHash => processed status
     mapping(string => bool) private _processedTxs;
 
     // Virtual order amounts: boxId => userId => accumulated virtual amount
-    mapping(uint256 => mapping(bytes32 => uint256)) private _virtualOrderAmounts;
+    mapping(uint256 boxId => mapping(bytes32 userId => uint256 amount)) private _virtualOrderAmounts;
 
     constructor(address addrManager_) ModifierV2(addrManager_) {}
 
@@ -30,8 +33,8 @@ contract FundManagerCrossChain is ModifierV2, IFundManagerCrossChain, FundManage
         string calldata chainToken_,
         string calldata txHash_
     ) external override onlyProjectContract {
-        require(bytes(txHash_).length > 0, "Empty tx hash");
-        require(!_processedTxs[txHash_], "Tx hash already processed");
+        if (bytes(txHash_).length == 0) revert EmptyTxHash();
+        if (_processedTxs[txHash_]) revert TxHashAlreadyProcessed();
 
         _processedTxs[txHash_] = true;
         _virtualOrderAmounts[boxId_][userId_] += amount_;

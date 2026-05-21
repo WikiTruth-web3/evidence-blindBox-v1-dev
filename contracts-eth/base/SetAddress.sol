@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IUserManager} from "@interfaces/eth/IUserManager.sol";
 import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IFundManagerCorssChain} from "@interfaces/eth/IFundManagerCorssChain.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
@@ -17,12 +18,12 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
 
 contract SetAddress {
     IAddressManager internal ADDR_MANAGER;
-    // address internal SIWE_AUTH;
+    IBlindBox internal BLIND_BOX;
 
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    IBlindBox internal BLIND_BOX;
+    IFundManagerCorssChain internal FUND_MANAGER_CROSS_CHAIN;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -43,11 +44,8 @@ contract SetAddress {
         address blindBox = addrMgr.blindBox();
         address exchange = addrMgr.exchange();
         address fundManager = addrMgr.fundManager();
+        address fundManagerCrossChain = addrMgr.fundManagerCrossChain();
         address userManager = addrMgr.userManager();
-
-        // if (siweAuth != address(0) && siweAuth != address(SIWE_AUTH)) {
-        //     SIWE_AUTH = siweAuth;
-        // }
 
         if (
             blindBox != address(0) &&
@@ -70,6 +68,13 @@ contract SetAddress {
             enum_ != CoreContracts.FundManager
         ) {
             FUND_MANAGER = IFundManager(fundManager);
+        }
+        if (
+            fundManagerCrossChain != address(0) &&
+            fundManagerCrossChain != address(FUND_MANAGER_CROSS_CHAIN) &&
+            enum_ != CoreContracts.FundManagerCrossChain
+        ) {
+            FUND_MANAGER_CROSS_CHAIN = IFundManager(fundManagerCrossChain);
         }
 
         if (

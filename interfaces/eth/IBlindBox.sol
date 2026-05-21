@@ -7,8 +7,8 @@ enum Status {
     Selling,
     Auctioning,
     Paid,
-    Refunding,
     Delaying,
+    Refunding,
     Published,
     Blacklisted
 }

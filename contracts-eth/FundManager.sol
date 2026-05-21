@@ -75,6 +75,18 @@ contract FundManager is FundManager03, IFundManager {
         _allocationRewards(boxId_);
     }
 
+        /**
+     * @dev Allocate rewards
+     * @param boxId_ BlindBox ID
+     */
+    function allocationRewards_2(uint256 boxId_) external {
+        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        if(userId != BLIND_BOX.minterIdOf(boxId_)) revert NotMinter();
+        if(BLIND_BOX.getStatus(boxId_) != Status.Delaying) revert InvalidStatus();
+
+        _allocationRewards(boxId_);
+    }
+
     // ====================================================================================================================
     // Withdrawal Functions
     /**

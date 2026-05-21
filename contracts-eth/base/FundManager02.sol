@@ -58,22 +58,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         uint256 amount_,
         address token_
     ) internal {
-        // Get various rates and roles
-        bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
-        bytes32 sellerId = EXCHANGE.sellerIdOf(boxId_);
-        uint8 sellerRate;
-        uint8 completerRate;
-        // Calculate rewards
 
-        if (completerId != bytes32(0)) {
-            completerRate = _helperRewardRate;
-        }
-        // If there is a seller, it means the token is the original token
-        if (sellerId != bytes32(0)) {
-            sellerRate = _helperRewardRate;
-        }
-
-        uint8 totalRate = _serviceFeeRate + sellerRate + completerRate;
+        uint8 totalRate = _serviceFeeRate;
 
         address settlementToken = ADDR_MANAGER.settlementToken();
 
@@ -96,30 +82,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
         unchecked {
             // Calculate allocation amounts
-            uint256 sellerRewards = (amountOut * sellerRate) / totalRate;
-            uint256 completerRewards = (amountOut * completerRate) / totalRate;
-
-            if (completerRewards > 0) {
-                _rewardAmounts[completerId][
-                    settlementToken
-                ] += completerRewards;
-                emit RewardsAdded(
-                    boxId_,
-                    settlementToken,
-                    completerRewards,
-                    RewardType.Completer
-                );
-            }
-            // If there is a seller, it means the token is the original token
-            if (sellerRewards > 0) {
-                _rewardAmounts[sellerId][settlementToken] += sellerRewards;
-                emit RewardsAdded(
-                    boxId_,
-                    settlementToken,
-                    sellerRewards,
-                    RewardType.Seller
-                );
-            }
             // Update minter rewards (using original token)
             _rewardAmounts[minterId_][token_] += (amount_ - amountIn);
             emit RewardsAdded(
@@ -132,7 +94,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
             // Directly assign the service fee to the DAO fund manager contract
             IERC20(settlementToken).safeTransfer(
                 ADDR_MANAGER.daoFundManager(),
-                (amountOut - sellerRewards - completerRewards)
+                (amountOut)
             );
 
             // Record total reward amount
@@ -216,6 +178,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         if (list_.length == 0) revert EmptyList();
         uint256 amount;
         IExchange exchange = EXCHANGE;
+        IBlindBox blindBox =BLIND_BOX;
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
         bytes32 userId = USER_MANAGER.getUserId(sender);
@@ -234,10 +197,13 @@ contract FundManager02 is FundManager01, FundManagerEvents {
                 if (userId == buyerId) revert InvalidCaller();
             } else if (type_ == FundsType.Refund) {
                 // The caller must be the buyer and the refund must be permitted
-                if (userId != buyerId || !exchange.refundPermit(boxId)) {
+                if (
+                    userId != buyerId || 
+                    !exchange.refundPermit(boxId)
+                ) {
                     revert WithdrawError();
                 }
-                exchange.setRefundPermit(boxId, false);
+                blindBox.setStatus(boxId_, Status.Published);
             }
 
             // Confirm token type matches

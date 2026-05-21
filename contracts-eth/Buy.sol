@@ -12,6 +12,8 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  * @notice Native chain entry contract for buying and bidding BlindBoxes using ERC20 tokens (eth-test version).
  */
 contract Buy is ModifierV2, IBuy {
+    error BidPriceMustBeGreaterThanCurrentBalance();
+
     constructor(address addrManager_) ModifierV2(addrManager_) {}
 
     /**
@@ -48,7 +50,7 @@ contract Buy is ModifierV2, IBuy {
 
         // Calculate pay money (price - accumulated balance)
         uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(boxId_, userId);
-        require(price > balance, "Bid price must be greater than current balance");
+        if (price <= balance) revert BidPriceMustBeGreaterThanCurrentBalance();
         uint256 payAmount = price - balance;
 
         // 1. Pay incremental bid money

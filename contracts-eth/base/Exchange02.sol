@@ -24,9 +24,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     struct BoxExchengData {
         string chainToken; // Chain-specific token name
         address _acceptedToken; // If address(0), then it means support settlementToken
-        bytes32 _sellerId; // If address(0), then it means by minter sell
         bytes32 _buyerId;
-        bytes32 _completerId;
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
@@ -92,24 +90,12 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         bytes32 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();
 
-        if (userId != BlindBox.minterIdOf(boxId_)) {
-            // others sell
-            if (BlindBox.getDeadline(boxId_) >= block.timestamp) {
-                revert DeadlineNotOver();
-            }
-            _boxExchengData[boxId_]._sellerId = userId;
+        if (userId != BlindBox.minterIdOf(boxId_)) revert NotMinter();
 
-            // if the _sellerId is not the minter, they can't set the price
-            price_ = 0;
-        } else {
-            // NOTE minter sell
-            if (acceptedToken_ != token && acceptedToken_ != address(0)) {
-                if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) {
-                    revert TokenNotSupported();
-                }
-                _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
-                token = acceptedToken_;
-            }
+        if (acceptedToken_ != token ) {
+            ADDR_MANAGER.checkTokenSupported(acceptedToken_);
+            _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
+            token = acceptedToken_;
         }
 
         BlindBox.setBasicData(
@@ -119,7 +105,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
             block.timestamp + seconds_
         );
 
-        emit BoxListed(boxId_, userId, token);
+        emit BoxListed(boxId_, token);
     }
 
     function _setRefundRequestDeadline(
@@ -138,11 +124,17 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     }
 
     // =========================================================================================================
-    //                                           Virtual Payment Functions
+    //                                           Funds Functions
     // ========================================================================================================
-    function _processAllocation(uint256 boxId_) internal virtual {
-        FUND_MANAGER.allocationRewards(boxId_);
+        function _processAllocation(uint256 boxId_) internal {
+        if (_boxExchengData[boxId_]._paymentType == PaymentType.Native) {
+            FUND_MANAGER.allocationRewards(boxId_);
+        } else {
+            FUND_MANAGER_CROSS_CHAIN.allocationRewards(boxId_);
+            
+        }
     }
+
 
     // ========================================================================================================
     //                                           Getter function
@@ -150,14 +142,6 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     function _buyerIdOf(uint256 boxId_) internal view returns (bytes32) {
         return _boxExchengData[boxId_]._buyerId;
-    }
-
-    function _sellerIdOf(uint256 boxId_) internal view returns (bytes32) {
-        return _boxExchengData[boxId_]._sellerId;
-    }
-
-    function _completerIdOf(uint256 boxId_) internal view returns (bytes32) {
-        return _boxExchengData[boxId_]._completerId;
     }
 
     function _refundPermit(uint256 boxId_) internal view returns (bool) {

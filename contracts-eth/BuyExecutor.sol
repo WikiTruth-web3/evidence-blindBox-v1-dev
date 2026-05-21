@@ -15,11 +15,14 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  * Interacts with FundManagerCrossChain for payment verification and Exchange for status transitions.
  */
 contract BuyExecutor is ModifierV2, IBuyExecutor {
+    error EmptyTxHashes();
+    error LengthMismatch();
+    error BidPriceTooLow();
+
     address public executor;
     IFundManagerCrossChain public fundManagerCrossChain;
 
     event ExecutorChanged(address indexed oldExecutor, address indexed newExecutor);
-    event FundManagerCrossChainChanged(address indexed oldFmcc, address indexed newFmcc);
     event CrossChainPaymentRecorded(uint256 indexed boxId, bytes32 indexed buyerUserId, uint256 totalAmount);
 
     modifier onlyExecutor() {
@@ -44,7 +47,6 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
     }
 
     function setFundManagerCrossChain(address fmcc_) external onlyAdmin {
-        emit FundManagerCrossChainChanged(address(fundManagerCrossChain), fmcc_);
         fundManagerCrossChain = IFundManagerCrossChain(fmcc_);
     }
 
@@ -72,13 +74,14 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
      */
     function bidWithExecutor(
         uint256 boxId_,
+        uint256 price_,
         bytes32 buyerUserId_,
         string calldata chainToken_,
         uint256[] calldata amounts_,
         string[] calldata txHashes_
     ) external onlyExecutor {
-        require(txHashes_.length > 0, "Empty tx hashes");
-        require(txHashes_.length == amounts_.length, "Length mismatch");
+        if (txHashes_.length == 0) revert EmptyTxHashes();
+        if (txHashes_.length != amounts_.length) revert LengthMismatch();
 
         // 1. Record each individual payment and merge balances
         for (uint256 i = 0; i < txHashes_.length; i++) {
@@ -89,7 +92,8 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
         uint256 balance = fundManagerCrossChain.getVirtualAmount(boxId_, buyerUserId_);
 
         // 2. Call unified bid function in Exchange (handles status, timing, high bidder, and price checks)
-        EXCHANGE.bid(boxId_, buyerUserId_, balance, PaymentType.CrossChain);
+        uint256 currentRequiredPrice = EXCHANGE.bid(boxId_, buyerUserId_, PaymentType.CrossChain);
+        if (price_ < currentRequiredPrice) revert BidPriceTooLow();
 
         emit CrossChainPaymentRecorded(boxId_, buyerUserId_, balance);
     }

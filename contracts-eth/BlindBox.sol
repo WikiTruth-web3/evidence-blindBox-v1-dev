@@ -95,7 +95,7 @@ contract BlindBox is BlindBox03, IBlindBox {
 
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
-        _checkStatus(boxId_, Status.Delaying);
+        _isStatus(boxId_, Status.Delaying);
         _isInWindowPeriod(boxId_);
         _delay(boxId_);
     }
@@ -110,7 +110,7 @@ contract BlindBox is BlindBox03, IBlindBox {
      */
     function publishByMinter(uint256 boxId_) external {
         _checkMinter(boxId_);
-        _checkStatus(boxId_, Status.Storing);
+        _isStatus(boxId_, Status.Storing);
         _setStatus(boxId_, Status.Published);
     }
 
@@ -120,7 +120,7 @@ contract BlindBox is BlindBox03, IBlindBox {
      */
     function publishByBuyer(uint256 boxId_) external {
         _checkBuyer(boxId_);
-        _checkStatus(boxId_, Status.Delaying);
+        _isStatus(boxId_, Status.Delaying);
         _setStatus(boxId_, Status.Published);
     }
 

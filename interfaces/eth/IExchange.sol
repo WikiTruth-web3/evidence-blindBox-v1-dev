@@ -5,17 +5,15 @@ pragma solidity ^0.8.24;
 interface ExchangeEvents {
     event BoxListed(
         uint256 indexed boxId,
-        bytes32 indexed userId,
         address acceptedToken
     );
     event BoxPurchased(uint256 indexed boxId, bytes32 indexed userId);
     event BidPlaced(uint256 indexed boxId, bytes32 indexed userId);
-    event CompleterAssigned(uint256 indexed boxId, bytes32 indexed userId);
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
-    event CrossChainOrderCompleted(uint256 indexed boxId, bytes32 indexed buyerUserId);
-    event CrossChainRefundPermitted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+    // event CrossChainOrderCompleted(uint256 indexed boxId, bytes32 indexed buyerUserId);
+    // event CrossChainRefundPermitted(uint256 indexed boxId, bytes32 indexed buyerUserId);
 }
 
 enum PaymentType {
@@ -82,15 +80,6 @@ interface IExchange {
         PaymentType payType_
     ) external;
 
-    /**
-     * @notice Complete order function, after completing order, the box status becomes Sold
-     * Need to check: refundPermit.
-     * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of BLIND_BOX to Delaying
-     * Complete order also needs to set refundRequestDeadline.
-     */
-    // function completeOrder(uint256 boxId_, bytes32 userId_) external
-
     // =====================================================================================
     //                                          Getter Functions
     // =====================================================================================
@@ -102,22 +91,6 @@ interface IExchange {
      * @dev Only callable by project contracts
      */
     function buyerIdOf(uint256 boxId_) external view returns (bytes32);
-
-    /**
-     * @notice Get seller address
-     * @param boxId_ Box ID
-     * @return Seller address (address(0) means minter is the seller)
-     * @dev Only callable by project contracts
-     */
-    function sellerIdOf(uint256 boxId_) external view returns (bytes32);
-
-    /**
-     * @notice Get completer address
-     * @param boxId_ Box ID
-     * @return Completer address
-     * @dev Only callable by project contracts
-     */
-    function completerIdOf(uint256 boxId_) external view returns (bytes32);
 
     /**
      * @notice Get accepted token address

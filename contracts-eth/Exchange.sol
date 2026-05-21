@@ -87,18 +87,17 @@ contract ExchangeBase is Exchange03, IExchange {
     function bid(
         uint256 boxId_,
         bytes32 buyerUserId_,
-        uint256 price_,
         PaymentType payType_
-    ) external onlyProjectContract {
+    ) external onlyProjectContract returns(uint256) {
         if (buyerUserId_ == _buyerIdOf(boxId_)) revert NotBuyer();
 
         uint256 currentRequiredPrice = _bidPrice(boxId_);
-        require(price_ >= currentRequiredPrice, "Bid price is too low");
 
         _boxExchengData[boxId_]._buyerId = buyerUserId_;
         _boxExchengData[boxId_]._paymentType = payType_;
 
-        emit BidPlaced(boxId_, buyerUserId_, price_);
+        emit BidPlaced(boxId_, buyerUserId_);
+        return currentRequiredPrice;
     }
 
     // ========================================================================================================
@@ -111,12 +110,7 @@ contract ExchangeBase is Exchange03, IExchange {
     ) external onlyProjectContract {
         _setRefundPermit(boxId_, permission_);
     }
-    /**
-     * @notice Request refund function, after requesting refund, the box status becomes Refunding
-     * Need to check: status、deadline.
-     * Request refund will modify: status、refundReviewDeadline.
-     * Request refund also needs to set the status of BLIND_BOX to Published
-     */
+
     function requestRefund(uint256 boxId_) external {
         _requestRefund(boxId_);
     }
@@ -128,12 +122,6 @@ contract ExchangeBase is Exchange03, IExchange {
         _cancelRefund(boxId_);
     }
 
-    /**
-     * @notice Agree refund function, after agreeing refund, the box status becomes Sold
-     * Need to check: status、deadline.
-     * Agree refund will modify: status、refundReviewDeadline.
-     * Agree refund also needs to set the status of BLIND_BOX to Published
-     */
     function agreeRefund(uint256 boxId_) external {
         _agreeRefund(boxId_);
     }
@@ -143,21 +131,6 @@ contract ExchangeBase is Exchange03, IExchange {
      */
     function refuseRefund(uint256 boxId_) external {
         _refuseRefund(boxId_);
-    }
-
-    // =========================================================================================================
-    //                                           finalize related functions
-    // ========================================================================================================
-
-    /**
-     * @notice Complete order function, after completing order, the box status becomes Sold
-     * Need to check: refundPermit.
-     * Complete order will modify: status、completer.
-     * Complete order also needs to set the status of BLIND_BOX to Delaying
-     * Complete order also needs to set refundRequestDeadline.
-     */
-    function completeOrder(uint256 boxId_) external {
-        _completeOrder(boxId_);
     }
 
     // ========================================================================================================
@@ -171,22 +144,6 @@ contract ExchangeBase is Exchange03, IExchange {
      */
     function buyerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _buyerIdOf(boxId_);
-    }
-
-    /* NOTE If the _seller is address(0),
-     * it means that the _seller is the minter
-     */
-    function sellerIdOf(uint256 boxId_) external view returns (bytes32) {
-        return _sellerIdOf(boxId_);
-    }
-
-    /**
-     * @notice Get completer address
-     * @param boxId_ Box ID
-     * @return Completer address
-     */
-    function completerIdOf(uint256 boxId_) external view returns (bytes32) {
-        return _completerIdOf(boxId_);
     }
 
     // ===========================

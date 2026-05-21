@@ -24,16 +24,6 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
      * @dev The official service fee rate
      */
     uint8 internal _serviceFeeRate;
-    /**
-     * @dev The ecosystem participant reward rate
-     */
-    uint8 internal _helperRewardRate;
-
-    /**
-     * @dev Extra fee:
-     * when using non-settlement tokens, this fee will be incurred
-     */
-    uint8 internal _extraFeeRate;
 
     /**
      * @dev Slippage protection:
@@ -44,8 +34,6 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     // =====================================================================================
     constructor(address addrManager_) ModifierV2(addrManager_) {
         _serviceFeeRate = 30; // 30
-        _helperRewardRate = 10; // 10
-        _extraFeeRate = 10; // 10
         _slippageProtection = 10; // 10
     }
 
@@ -76,26 +64,6 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @dev Set helper reward rate
-     * @param Rate_ The helper reward rate
-     * Can be set to 0-30
-     */
-    function setHelperRewardRate(uint8 Rate_) external onlyDAO {
-        if (Rate_ > 30) revert InvalidRate();
-        _helperRewardRate = Rate_;
-    }
-
-    /**
-     * @dev Set extra fee rate
-     * @param Rate_ The extra fee rate
-     * Can be set to 0-20
-     */
-    function setExtraFeeRate(uint8 Rate_) external onlyDAO {
-        if (Rate_ > 20) revert InvalidRate();
-        _extraFeeRate = Rate_;
-    }
-
-    /**
      * @dev Set slippage protection
      * @param slippageProtection_ The slippage protection rate
      * Can be set to 0-100
@@ -111,17 +79,8 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     //                                         view get fee rate
     // ==========================================================================================================
 
-    // change name
-    function helperRewardRate() external view returns (uint8) {
-        return _helperRewardRate;
-    }
-
     function serviceFeeRate() external view returns (uint8) {
         return _serviceFeeRate;
-    }
-
-    function extraFeeRate() external view returns (uint8) {
-        return _extraFeeRate;
     }
 
     function slippageProtection() external view returns (uint8) {
