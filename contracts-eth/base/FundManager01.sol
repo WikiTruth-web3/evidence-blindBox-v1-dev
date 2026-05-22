@@ -34,7 +34,7 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     // =====================================================================================
     constructor(address addrManager_) ModifierV2(addrManager_) {
         _serviceFeeRate = 30; // 30
-        _slippageProtection = 10; // 10
+        _slippageProtection = 20; // NOTE in mainnet it`s 10
     }
 
     // =====================================================================================

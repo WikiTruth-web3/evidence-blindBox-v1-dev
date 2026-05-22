@@ -78,13 +78,11 @@ contract FundManager is FundManager03, IFundManager {
         /**
      * @dev Allocate rewards
      * @param boxId_ BlindBox ID
+     * @param sender_ 
+     * @param amount_ 
      */
-    function allocationRewards_2(uint256 boxId_) external {
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
-        if(userId != BLIND_BOX.minterIdOf(boxId_)) revert NotMinter();
-        if(BLIND_BOX.getStatus(boxId_) != Status.Delaying) revert InvalidStatus();
-
-        _allocationRewards(boxId_);
+    function allocationRewards(uint256 boxId_, address sender_, uint256 amount_) external onlyProjectContract {
+        _allocationRewards(boxId_, sender_, amount_);
     }
 
     // ====================================================================================================================
@@ -98,7 +96,10 @@ contract FundManager is FundManager03, IFundManager {
         address token_,
         uint256[] calldata list_
     ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Order);
+        uint256 amount = _withdrawOrderAmounts(token_, list_, "order");
+
+        emit OrderAmountWithdraw(list_, token_, userId, amount);
+
     }
 
     /**
@@ -110,7 +111,9 @@ contract FundManager is FundManager03, IFundManager {
         address token_,
         uint256[] calldata list_
     ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Refund);
+        uint256 amount = _withdrawOrderAmounts(token_, list_, "refund");
+        emit RefundAmountWithdraw(list_, token_, userId, amount);
+
     }
 
     //--------------------------------------------------
@@ -143,7 +146,7 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Get order amount
      * @param boxId_ BlindBox ID
-     * @param user_ User address
+     * @param user_ User address NOTE in sapphire is SIWE Token
      * @return Order amount
      */
     function orderAmounts(
@@ -157,7 +160,7 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Get reward amount
      * @param token_ Token address
-     * @param user_ User address
+     * @param user_ User address NOTE in sapphire is SIWE Token
      * @return user reward amount
      */
     function rewardAmounts(

@@ -46,24 +46,21 @@ contract Exchange02 is Exchange01, ExchangeEvents {
      * @param boxId_ Box ID
      * If the box status is Auctioning, and the deadline is over, then it is directly Paid.
      */
-    function _isNotStatus(uint256 boxId_, Status status_) internal view {
-        if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
-    }
+    // function _isStatus(uint256 boxId_, Status status_) internal view {
+    //     if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
+    // }
 
     // Check the refund timestamp. Within the refund time,
     // you can apply for a refund (set to refunding mode),
     function _isInRequestRefundDeadline(
         uint256 boxId_
     ) internal view returns (bool) {
-        _isNotStatus(boxId_, Status.Paid);
-
         if (_boxExchengData[boxId_]._refundRequestDeadline < block.timestamp)
             return false;
         return true;
     }
 
     function _isInReviewDeadline(uint256 boxId_) internal view returns (bool) {
-        _isNotStatus(boxId_, Status.Refunding);
         if (_boxExchengData[boxId_]._refundReviewDeadline < block.timestamp)
             return false;
         return true;

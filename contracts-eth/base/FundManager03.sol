@@ -62,7 +62,7 @@ contract FundManager03 is FundManager02 {
         );
 
         bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
-        _calculateAllocation(boxId_, minterId, amount_, settlementToken);
+        _calculateAllocation(boxId_, minterId, settlementToken, amount_);
     }
 
     // ====================================================================================================================
@@ -82,7 +82,27 @@ contract FundManager03 is FundManager02 {
 
         // Clear the original token order amount
         _orderAmounts[boxId_][buyerId] = 0;
-        _calculateAllocation(boxId_, minterId, amount, token);
+        _calculateAllocation(boxId_, minterId, token, amount);
+    }
+
+    /**
+     * @dev Allocate rewards
+     * @param boxId_ BlindBox ID
+     */
+    function _allocationRewards(uint256 boxId_, address sender_, uint256 amount_) internal {
+        if(BLIND_BOX.getStatus(boxId_) != Status.Delaying) revert InvalidStatus();
+        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
+        address token = EXCHANGE.acceptedToken(boxId_);
+
+        // NOTE sender pay amount in this contract.
+        IERC20(settlementToken).safeTransferFrom(
+            sender_,
+            address(this),
+            amount_
+        );
+
+        // Clear the original token order amount
+        _calculateAllocation(boxId_, minterId, token, amount);
     }
 
     // ====================================================================================================================

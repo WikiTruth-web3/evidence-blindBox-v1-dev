@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.24;
 
-interface FundManagerCrossChainEvents {
-    event CrossChainPaymentRecorded(
+interface FundManagerVirtualEvents {
+    event CrossChainPayment(
         uint256 indexed boxId,
         bytes32 indexed userId,
-        uint256 amount,
-        string chainToken,
-        string txHash
+        string chain,
+        string token,
+        uint256 amount
     );
 
     event CrossChainPaymentCleared(
@@ -18,15 +18,16 @@ interface FundManagerCrossChainEvents {
     );
 }
 
-interface IFundManagerCrossChain is FundManagerCrossChainEvents {
+interface IFundManagerVirtual is FundManagerVirtualEvents {
     function setAddress() external;
 
     function recordPayment(
         uint256 boxId_,
         bytes32 userId_,
         uint256 amount_,
-        string calldata chainToken_,
-        string calldata txHash_
+        string calldata chain_,
+        string calldata token_,
+        string[] calldata txHashList_
     ) external;
 
     function clearPayment(uint256 boxId_, bytes32 userId_) external;

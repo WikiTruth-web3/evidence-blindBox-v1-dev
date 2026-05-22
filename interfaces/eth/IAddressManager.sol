@@ -54,7 +54,7 @@ interface IAddressManager {
      */
     function fundManager() external view returns (address);
     
-    function fundManagerCrossChain() external view returns (address);
+    function fundManagerVirtual() external view returns (address);
 
     /**
      * @notice Get UserManager contract address

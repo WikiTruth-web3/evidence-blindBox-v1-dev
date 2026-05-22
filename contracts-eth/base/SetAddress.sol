@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IUserManager} from "@interfaces/eth/IUserManager.sol";
 import {IFundManager} from "@interfaces/eth/IFundManager.sol";
-import {IFundManagerCrossChain} from "@interfaces/eth/IFundManagerCrossChain.sol";
+import {IFundManagerVirtual} from "@interfaces/eth/IFundManagerVirtual.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
@@ -23,7 +23,7 @@ contract SetAddress {
     IUserManager internal USER_MANAGER;
     IExchange internal EXCHANGE;
     IFundManager internal FUND_MANAGER;
-    IFundManagerCrossChain internal FUND_MANAGER_CROSS_CHAIN;
+    IFundManagerVirtual internal FUND_MANAGER_VIRTUAL;
 
     // ==================================================================================================
     constructor(address addrManager_) {
@@ -44,7 +44,7 @@ contract SetAddress {
         address blindBox = addrMgr.blindBox();
         address exchange = addrMgr.exchange();
         address fundManager = addrMgr.fundManager();
-        address fundManagerCrossChain = addrMgr.fundManagerCrossChain();
+        address fundManagerVirtual = addrMgr.fundManagerVirtual();
         address userManager = addrMgr.userManager();
 
         if (
@@ -70,11 +70,11 @@ contract SetAddress {
             FUND_MANAGER = IFundManager(fundManager);
         }
         if (
-            fundManagerCrossChain != address(0) &&
-            fundManagerCrossChain != address(FUND_MANAGER_CROSS_CHAIN) &&
-            enum_ != CoreContracts.FundManagerCrossChain
+            fundManagerVirtual != address(0) &&
+            fundManagerVirtual != address(FUND_MANAGER_VIRTUAL) &&
+            enum_ != CoreContracts.FundManagerVirtual
         ) {
-            FUND_MANAGER_CROSS_CHAIN = IFundManagerCrossChain(fundManagerCrossChain);
+            FUND_MANAGER_VIRTUAL = IFundManagerVirtual(fundManagerVirtual);
         }
 
         if (

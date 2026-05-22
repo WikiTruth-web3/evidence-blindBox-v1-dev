@@ -70,7 +70,7 @@ contract ExchangeBase is Exchange03, IExchange {
         uint256 boxId_,
         bytes32 buyerUserId_,
         PaymentType payType_
-    ) external onlyProjectContract {
+    ) external onlyBuyContract {
         IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
 
@@ -86,17 +86,17 @@ contract ExchangeBase is Exchange03, IExchange {
 
     function bid(
         uint256 boxId_,
-        bytes32 buyerUserId_,
+        bytes32 buyerId_,
         PaymentType payType_
-    ) external onlyProjectContract returns(uint256) {
-        if (buyerUserId_ == _buyerIdOf(boxId_)) revert NotBuyer();
+    ) external onlyBuyContract returns(uint256) {
+        if (buyerId_ == _buyerIdOf(boxId_)) revert IsBuyer();
 
         uint256 currentRequiredPrice = _bidPrice(boxId_);
 
-        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._buyerId = buyerId_;
         _boxExchengData[boxId_]._paymentType = payType_;
 
-        emit BidPlaced(boxId_, buyerUserId_);
+        emit BidPlaced(boxId_, buyerId_);
         return currentRequiredPrice;
     }
 

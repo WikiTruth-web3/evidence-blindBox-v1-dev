@@ -14,16 +14,17 @@ interface FundManagerEvents {
         uint256[] list,
         address indexed token,
         bytes32 indexed userId,
-        uint256 amount,
-        FundsType fundsType
+        uint256 amount
+    );
+
+    event RefundAmountWithdraw(
+        uint256[] list,
+        address indexed token,
+        bytes32 indexed userId,
+        uint256 amount
     );
 
     event RewardsAdded(
-        uint256 indexed boxId,
-        address indexed token,
-        uint256 amount
-    );
-    event TotalRewardsAdded(
         uint256 indexed boxId,
         address indexed token,
         uint256 amount
@@ -34,11 +35,6 @@ interface FundManagerEvents {
         address indexed token,
         uint256 amount
     );
-}
-
-enum FundsType {
-    Order,
-    Refund
 }
 
 /**
@@ -95,6 +91,16 @@ interface IFundManager {
      * @dev Only callable by project contracts
      */
     function allocationRewards(uint256 boxId_) external;
+
+
+    /**
+     * @notice Allocate rewards
+     * @param boxId_ BlindBox ID
+     * @param sender_ who send the transaction
+     * @param amount_ Amount to pay
+     * @dev Only callable by project contracts
+     */
+    function allocationRewards(uint256 boxId_, address sender_, uint256 amount_) external;
 
     // =====================================================================================
     //                                          Withdrawal Functions

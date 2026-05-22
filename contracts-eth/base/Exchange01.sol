@@ -20,10 +20,15 @@ import {ModifierV2} from "../modifier/ModifierV2.sol";
  */
 
 contract Exchange01 is ModifierV2 {
+    error NotBuyContract();
+    
     uint256 internal _refundRequestPeriod;
     uint256 internal _refundReviewPeriod;
 
     uint8 internal _bidIncrementRate;
+
+    address internal BUY_CONTRACT;
+    address internal BUY_EXECUTOR_CONTRACT;
 
     // ========================================================================================================
 
@@ -31,6 +36,16 @@ contract Exchange01 is ModifierV2 {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
         _refundReviewPeriod = 15 days;
+    }
+
+    // ========================================================================================================
+
+    modifier onlyBuyContract {
+        if (
+            msg.sender != BUY_CONTRACT || 
+            msg.sender != BUY_EXECUTOR_CONTRACT
+        ) revert NotBuyContract();
+        _;
     }
 
     // =====================================================================================

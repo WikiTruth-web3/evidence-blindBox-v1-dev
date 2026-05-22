@@ -55,8 +55,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     function _calculateAllocation(
         uint256 boxId_,
         bytes32 minterId_,
-        uint256 amount_,
-        address token_
+        address token_,
+        uint256 amount_
     ) internal {
 
         uint8 totalRate = _serviceFeeRate;
@@ -68,6 +68,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
         if (token_ != settlementToken) {
             totalRate += _slippageProtection;
+            
             (amountIn, amountOut) = _swap(
                 boxId_,
                 token_,
@@ -81,7 +82,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         }
 
         unchecked {
-            // Calculate allocation amounts
             // Update minter rewards (using original token)
             _rewardAmounts[minterId_][token_] += (amount_ - amountIn);
             emit RewardsAdded(
@@ -121,6 +121,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         address[] memory swapContracts = ADDR_MANAGER.swapContracts();
         if (swapContracts.length == 0) revert EmptyList();
 
+        I_Swap swapContract = I_Swap(swapContracts[0]);
+
         // Authorize the maximum possible amount of tokens to SwapRouter
         if (
             IERC20(tokenIn_).allowance(address(this), swapContracts[0]) <
@@ -131,7 +133,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         /**
          * @dev Calculate how much tokenOut can be swapped with amountIn
          */
-        uint256 amountOut = I_Swap(swapContracts[0]).getSwapAmountOut(
+        uint256 amountOut = swapContract.getSwapAmountOut(
             tokenIn_,
             tokenOut_,
             amount_
@@ -144,7 +146,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         amountOut = (amountOut * totalRate_) / 1000;
 
         // Calculate the amount of funds used to swap
-        uint256 amountIn = I_Swap(swapContracts[0]).swapForExact(
+        uint256 amountIn = swapContract.swapForExact(
             tokenIn_,
             tokenOut_,
             amountOut
@@ -217,7 +219,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         // Execute refund
         IERC20(token_).safeTransfer(sender, amount);
 
-        emit OrderAmountWithdraw(list_, token_, userId, amount, type_);
+        return amount;
+
     }
     // ===================================================================================
 
