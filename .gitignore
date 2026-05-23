@@ -3,6 +3,7 @@ node_modules
 # .env.example
 .env.local
 .env.account
+.env.privacyERC20
 
 coverage
 coverage.json
