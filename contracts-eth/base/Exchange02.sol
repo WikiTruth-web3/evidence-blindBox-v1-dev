@@ -117,7 +117,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     function _setRefundPermitTrue(uint256 boxId_, Status status_) internal {
         if (
-            status_ != Status.Pulished &&
+            status_ != Status.Published &&
             status_ != Status.Blacklisted
         ) revert InvalidStatus();
         _boxExchengData[boxId_]._refundPermit = true;

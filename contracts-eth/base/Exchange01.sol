@@ -42,7 +42,7 @@ contract Exchange01 is SetCoreContracts {
 
     modifier onlyBuyContract {
         if (
-            msg.sender != BUY_CONTRACT || 
+            msg.sender != BUY_CONTRACT &&
             msg.sender != BUY_EXECUTOR_CONTRACT
         ) revert NotBuyContract();
         _;

@@ -15,7 +15,7 @@ import {PeripheralContracts, CoreContracts} from "@interfaces/IContracts.sol";
  *
  */
 
-contract BuyExecutorSet is ModifierV3{
+contract BuyExecutor01 is ModifierV3{
     address public executor;
 
     IExchange internal EXCHANGE;
