@@ -7,14 +7,14 @@ import {
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "../abstract/Pausable.sol";
 
-import {ModifierV2} from "../modifier/ModifierV2.sol";
+import {SetCoreContracts} from "../modifier/SetCoreContracts.sol";
 
 /**
  * @title FundManager01
  * @dev Fund management contract that supports multiple tokens
  */
 
-contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
+contract FundManager01 is SetCoreContracts, ReentrancyGuard, Pausable {
     event BuyerRefundRateAdded(uint256 boxId, uint8 rate);
     event DaoFeeRateAdded(uint256 boxId, uint8 rate);
     // =====================================================================================
@@ -32,7 +32,7 @@ contract FundManager01 is ModifierV2, ReentrancyGuard, Pausable {
     uint8 internal _slippageProtection;
 
     // =====================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
+    constructor(address addrManager_) SetCoreContracts(addrManager_) {
         _serviceFeeRate = 30; // 30
         _slippageProtection = 20; // NOTE in mainnet it`s 10
     }

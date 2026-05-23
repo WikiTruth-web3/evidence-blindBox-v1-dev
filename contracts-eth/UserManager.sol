@@ -25,8 +25,8 @@ contract UserManager is ModifierV2, IUserManager {
 
     // =====================================================================================
 
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.UserManager);
+    function setCoreContracts() external onlyManager {
+        _setCoreContracts(CoreContracts.UserManager);
     }
 
     // =====================================================================================

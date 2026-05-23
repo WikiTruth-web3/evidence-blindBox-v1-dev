@@ -19,8 +19,8 @@ contract Buy is ModifierV2, IBuy {
     /**
      * @notice Set core contract addresses from AddressManager.
      */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.Exchange);
+    function setCoreContracts() external onlyManager {
+        _setCoreContracts(CoreContracts.Exchange);
     }
 
     /**

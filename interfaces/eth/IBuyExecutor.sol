@@ -7,9 +7,7 @@ pragma solidity ^0.8.24;
  * @notice BuyExecutor contract interface.
  */
 interface IBuyExecutor {
-    function setAddress() external;
-    function setExecutor(address executor_) external;
-    function setFundManagerCrossChain(address fmcc_) external;
+    function setContracts() external;
 
     function buyWithExecutor(
         uint256 boxId_,
@@ -27,10 +25,5 @@ interface IBuyExecutor {
         string[] calldata txHashes_
     ) external;
 
-    function clearVirtualBalance(
-        uint256 boxId_,
-        bytes32 buyerUserId_
-    ) external;
-
-    function executor() external view returns (address);
+    // function executor() external view returns (address);
 }

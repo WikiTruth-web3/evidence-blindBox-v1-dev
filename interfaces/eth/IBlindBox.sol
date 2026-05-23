@@ -43,7 +43,7 @@ interface IBlindBox {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external;
+    function setCoreContracts() external;
 
     // =====================================================================================
     //                                          Box Creation

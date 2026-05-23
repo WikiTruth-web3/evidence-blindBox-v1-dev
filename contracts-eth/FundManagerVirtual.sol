@@ -2,19 +2,18 @@
 
 pragma solidity ^0.8.24;
 
-import {ModifierV2} from "./modifier/ModifierV2.sol";
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "./abstract/Pausable.sol";
-import {IFundManagerVirtual, FundManagerVirtualEvents} from "@interfaces/eth/IFundManagerVirtual.sol";
-
+import {IFundManagerVirtual} from "@interfaces/eth/IFundManagerVirtual.sol";
+import {FundManagerVirtual01} from "./base/FundManagerVirtual01.sol";
 /**
  * @title FundManagerVirtual
  * @notice Realizes the virtual ledger for cross-chain transactions (e.g. Zcash ZEC).
  * Tracks the virtual balance for buyers and prevents transaction double-spending via txHash checking.
  */
-contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManagerVirtual, FundManagerVirtualEvents {
+contract FundManagerVirtual is FundManagerVirtual01, ReentrancyGuard, Pausable, IFundManagerVirtual {
 
     error EmptyTxHash();
     error TxHashAlreadyProcessed();
@@ -28,32 +27,55 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
     }
 
     // Virtual order amounts: boxId => userId => accumulated virtual amount
-    mapping(uint256 boxId => mapping(bytes32 userId => orderData)) private _virtualOrderAmounts;
+    mapping(uint256 boxId => mapping(bytes32 userId => paymentData)) private _virtualOrderAmounts;
 
-    constructor(address addrManager_) ModifierV2(addrManager_) {}
+    constructor(address addrManager_) FundManagerVirtual01(addrManager_) {}
+
+    // ==================================================================================================
 
     function _record(
         uint256 boxId_,
         bytes32 userId_,
-        string calldata chain_,
-        string calldata token_,
         uint256 amount_
     ) internal {
-        if (bytes(chain_).length == 0) revert EmptyChain();
-        if (bytes(token_).length == 0) revert EmptyToken();
+
         if (amount_ == 0) revert EmptyAmount();
-
-        if (bytes(_chain).length == 0) {
-            _virtualOrderAmounts[boxId_][userId_]._chain = chain_;
-        }
-
-        if (bytes(_token).length == 0) {
-            _virtualOrderAmounts[boxId_][userId_]._token = token_;
-        }
 
         _virtualOrderAmounts[boxId_][userId_]._amount += amount_;
         emit CrossChainPayment(boxId_, userId_,  chain, token_,amount_);
 
+    }
+
+    function _recordChainToken(
+        uint256 boxId_, 
+        bytes32 userId_,
+        string calldata chain_, 
+        string calldata token_
+    ) internal {
+        bytes memory chain = _virtualOrderAmounts[boxId_][userId_]._chain;
+        bytes memory token = _virtualOrderAmounts[boxId_][userId_]._token;
+        if (bytes(chain_).length == 0) revert EmptyChain();
+        if (bytes(token_).length == 0) revert EmptyToken();
+
+        if (
+            bytes(chain).length != 0 &&
+            bytes(chain_) != chain
+        ) revert EmptyChain();
+        if (
+            bytes(token).length != 0 &&
+            bytes(token_) != token
+        ) revert EmptyToken();
+
+        _virtualOrderAmounts[boxId_][userId_]._chain = chain_;
+        _virtualOrderAmounts[boxId_][userId_]._token = token_;
+    }
+
+    function _recordHash(string calldata txHash_) internal{
+
+        if (bytes(txHash_).length == 0) revert EmptyTxHash();
+        if (_processedTxs[txHash_]) revert TxHashAlreadyProcessed();
+
+        _processedTxs[txHash_] = true;
     }
 
     /**
@@ -66,17 +88,12 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
         uint256 amount_,
         string calldata chain_,
         string calldata token_,
-        string[] calldata txHashList_
-    ) external{
-        if (txHashList_.length == 0) revert EmptyTxHash();
+        string calldata txHash_
+    ) external onlyProjectContracts {
 
-        for (i; i< txHashList_.length; i++) {
-            if (bytes(txHash_).length == 0) revert EmptyTxHash();
-            if (_processedTxs[txHash_]) revert TxHashAlreadyProcessed();
-
-            _processedTxs[txHash_] = true;
-        }
-        _record(boxId_, userId_,  chain, token_,amount_);
+        _recordHash(txHash_);
+        _record(boxId_, userId_, amount_);
+        _recordChainToken(boxId_, userId_,  chain, token_);
     }
 
     /**
@@ -120,10 +137,9 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
 
     // ======================================================================
 
-        /**
+    /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
-     * @param token_ Token address
-     * @param list_ List of BlindBox IDs
+     * @param boxId_ Blind Box Id
      * @param type_ Type of withdrawal, either 0(order) or 1(refund)
      */
     function _withdrawOrderAmounts(
@@ -148,7 +164,6 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
             ) {
                 revert WithdrawError();
             }
-            BLIND_BOX.setStatus(boxId_, Status.Published);
         }
         _checkPaymentAmount(boxId_,userId);
         _clearPayment(boxId_, userId);
@@ -157,8 +172,7 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
 
     /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
-     * @param token_ Token address
-     * @param list_ List of BlindBox IDs
+     * @param boxId_  Blind Box Id
      */
     function withdrawOrderAmounts(
         uint256 boxId_
@@ -168,8 +182,7 @@ contract FundManagerVirtual is ModifierV2, ReentrancyGuard, Pausable, IFundManag
 
     /**
      * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
-     * @param token_ Token address
-     * @param list_ List of BlindBox IDs
+     * @param boxId_ Blind Box Id
      */
     function withdrawRefundAmounts(
         uint256 boxId_

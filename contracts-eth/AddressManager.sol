@@ -8,8 +8,10 @@ import {IFundManager} from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {Error} from "@interfaces/Error.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {CoreContracts, PeripheralContracts} from "@interfaces/IContracts.sol";
 
 import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
+
 
 /**
  * @title AddressManager
@@ -31,27 +33,15 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     // address public admin;
 
     //--------------------------core contracts------------------------------
-    // DAO governance related contracts
-    address public dao;
-    address public governance;
-    address public daoFundManager;
+    
+    mapping (CoreContracts => address) internal _coreContracts;
+    mapping (PeripheralContracts => address) internal _peripheralContracts;
+    mapping (bytes32 key => address) internal _spreadContracts;
 
-    // User registration related contracts
-    address public userManager;
-    address public siweAuth;
-
-    // Core trading contracts
-    address public blindBox;
-    address public fundManager;
-    address public exchange;
-
-    // ERC2771 forwarder contract
-    address public forwarder;
+    // Project contract addresses
+    mapping(address contracts => bool) internal _isProjectContract;
 
     //--------------------------------------------------------
-
-    // Uniswap V3 SwapRouter contract and quoter contract
-    address[] internal _swapContracts;
 
     /**
      * @dev Settlement token contract
@@ -76,13 +66,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     //--------------------------other contracts------------------------------
 
-    // Reserved contract addresses
-    address[] internal _reservedList;
-
-    // Project contract addresses
-    // Used for white list check of project contracts
-    mapping(address contracts => bool) internal _isProjectContract;
-
     // =======================================================================================================
     constructor() {
         // admin = msg.sender;
@@ -105,117 +88,105 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     //     admin = newAdmin_;
     // }
 
-    // ======================================= init step function ==============================================
+    // ======================================= set contracts function ==============================================
 
+    function _OldNew(address old_, address new_) internal {
+        if (new_ == address(0) || new_ == old_) revert InvalidAddress();
+        _isProjectContract[new_] = true;
+        _isProjectContract[old_] = false;
+    }
     /**
      * @dev Set addresses
      * @notice (init step: 1)
-     * @param list_ Address list
-     * [
-        dao, 
-        governance, 
-        daoFundManager, 
-        userManager, 
-        siweAuth, 
-        blindBox, 
-        exchange, 
-        fundManager,
-        forwarder
-        ]
+     * @param name_ Contract name
+     * @param addr_ Contract address
      */
-    function setAddressList(address[] memory list_) external onlyAdmin {
-        // DAO contract
-        if (list_[0] != address(0)) {
-            if (_mappingBool(dao, list_[0])) {
-                dao = list_[0];
-            }
-        }
-        if (list_[1] != address(0)) {
-            if (_mappingBool(governance, list_[1])) {
-                governance = list_[1];
-            }
-        }
-        if (list_[2] != address(0)) {
-            if (_mappingBool(daoFundManager, list_[2])) {
-                daoFundManager = list_[2];
-            }
-        }
-        // Identity verification contracts
-        if (list_[3] != address(0)) {
-            if (_mappingBool(userManager, list_[3])) {
-                userManager = list_[3];
-            }
-        }
-        if (list_[4] != address(0)) {
-            if (_mappingBool(siweAuth, list_[4])) {
-                siweAuth = list_[4];
-            }
-        }
-        // Core contracts
-        if (list_[5] != address(0)) {
-            if (_mappingBool(blindBox, list_[5])) {
-                blindBox = list_[5];
-            }
-        }
-        if (list_[6] != address(0)) {
-            if (_mappingBool(exchange, list_[6])) {
-                exchange = list_[6];
-            }
-        }
-        if (list_[7] != address(0)) {
-            if (_mappingBool(fundManager, list_[7])) {
-                fundManager = list_[7];
-            }
-        }
-        // ERC2771 forwarder contract
-        if (list_[8] != address(0)) {
-            if (_mappingBool(forwarder, list_[8])) {
-                forwarder = list_[8];
-            }
-        }
+    function setCoreContract(CoreContracts name_, address addr_) external onlyAdmin {
+        address current = _coreContracts[name_];
+        _OldNew(current, new_);
+        
+        _coreContracts[name_] = addr_;
+    }
+
+    function setPeripheralContract(PeripheralContracts name_, address addr_) external onlyAdmin {
+        address current = _peripheralContracts[name_];
+        _OldNew(current, new_);
+
+        _peripheralContracts[name_] = addr_;
     }
 
     /**
-     * @notice (init step: 2)
-     * @param list_ Address list
-     * testnet we use uniswap v3, so we need to set swapRouter and quoter
-     * [
-        swapRouter, 
-        quoter 
-        ]
+     * @dev Set spread addresses
+     * @notice (init step: 1)
+     * @param name_ Contract name
+     * @param addr_ Contract address
      */
-    function setSwapContracts(address[] memory list_) external onlyAdmin {
-        for (uint256 i = 0; i < list_.length; i++) {
-            if (list_[i] != address(0)) {
-                if (i < _swapContracts.length) {
-                    if (_mappingBool(_swapContracts[i], list_[i])) {
-                        _swapContracts[i] = list_[i];
-                    }
-                } else {
-                    _swapContracts.push(list_[i]);
-                }
-            }
-        }
+    function setSpreadContract(string memory name_, address addr_) external onlyAdmin {
+        bytes32 key = keccak256(bytes(name));
+        address current = _spreadContracts[key];
+        _OldNew(current, new_);
+
+        _spreadContracts[key] = addr_;
+
     }
 
-    /**
-     * @dev Update the project contract mapping
-     * @param old_ Old contract address
-     * @param new_ New contract address
-     * @return Whether to update
-     */
-    function _mappingBool(address old_, address new_) internal returns (bool) {
-        if (old_ == address(0)) {
-            _isProjectContract[new_] = true;
-            return true;
-        }
-        if (old_ == new_) {
-            return false;
-        }
-        _isProjectContract[old_] = false;
-        _isProjectContract[new_] = true;
-        return true;
+    // ==========================================================================================
+
+    function removeCoreContract(CoreContracts name_) external onlyAdmin {
+        address current = _coreContracts[name_];
+        _coreContracts[name_] = address(0);
+        _isProjectContract[current] = false;
     }
+
+    function removePeripheralContract(PeripheralContracts name_) external onlyAdmin {
+        address current = _peripheralContracts[name_];
+        _peripheralContracts[name_] = address(0);
+        _isProjectContract[current] = false;
+    }
+
+    function removeSpreadContract(string memory name_) external onlyAdmin {
+        bytes32 key = keccak256(bytes(name));
+        address current = _spreadContracts[key];
+        _spreadContracts[key] = address(0);
+        _isProjectContract[current] = false;
+    }
+
+    // =================================================================================
+
+    function _checkZeroAddress(address addr_) internal view returns (address) {
+        if (addr_ == address(0)) revert ZeroAddress();
+        return addr_;
+    }
+    function getCoreContract(CoreContracts name_) external view returns (address) {
+        address current = _coreContracts[name_];
+        return _checkZeroAddress(current);
+    }
+    function getPeriphContr(PeripheralContracts name_) external view returns (address) {
+        address current = _peripheralContracts[name_];
+        return _checkZeroAddress(current);
+    }
+    function getSpreadContract(string memory name_) external view returns (address) {
+        bytes32 key = keccak256(bytes(name));
+        address current = _spreadContracts[key];
+        return _checkZeroAddress(current);
+    }
+
+    // =================================================================================
+
+
+        /**
+     * @notice (init step: 4)
+     * Set all contract addresses
+     */
+    function setCoreContractsToAll() external onlyAdmin {
+        IExchange(exchange).setCoreContracts();
+        IFundManager(fundManager).setCoreContracts();
+        IBlindBox(blindBox).setCoreContracts();
+        IUserManager(userManager).setCoreContracts();
+        // IForwarder(forwarder).setCoreContracts();
+    }
+
+    // =================================================================================
 
     /**
      * @dev Set settlement token
@@ -234,37 +205,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         _settlementToken = token_;
     }
 
-    /**
-     * @notice (init step: 4)
-     * Set all contract addresses
-     */
-    function setAllAddress() external onlyAdmin {
-        IExchange(exchange).setAddress();
-        IFundManager(fundManager).setAddress();
-        IBlindBox(blindBox).setAddress();
-        IUserManager(userManager).setAddress();
-        // IForwarder(forwarder).setAddress();
-    }
-    // =====================================================================================
-
-    /**
-     * @dev Add reserved address
-     * The reserved address can only be added, cannot be deleted, to avoid unnecessary impact.
-     */
-    function addReservedAddress(address reservedAddress_) external onlyAdmin {
-        if (reservedAddress_ == address(0)) revert InvalidAddress();
-        if (_isProjectContract[reservedAddress_]) revert AddressAlreadyExists();
-        _reservedList.push(reservedAddress_);
-        _isProjectContract[reservedAddress_] = true;
-    }
-
-    function removeReservedAddress(uint256 index_) external onlyAdmin {
-        if (index_ >= _reservedList.length) revert InvalidIndex();
-        address reservedAddress = _reservedList[index_];
-        _reservedList[index_] = _reservedList[_reservedList.length - 1];
-        _reservedList.pop();
-        _isProjectContract[reservedAddress] = false;
-    }
 
     // =================================== Other token management ==================================================
 
@@ -305,7 +245,9 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         _removeToken(token_);
     }
 
-    // =================================== getters Token ==================================================
+    // ====================================================================================================
+    //                                        getters Token  
+    // ====================================================================================================
 
     function isProjectContract(address contract_) external view returns (bool) {
         return _isProjectContract[contract_];
@@ -313,10 +255,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     function getTokenList() external view returns (address[] memory) {
         return _tokenList;
-    }
-
-    function swapContracts() external view returns (address[] memory) {
-        return _swapContracts;
     }
 
     function settlementToken() external view returns (address) {
@@ -327,7 +265,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function checkTokenSupported(address token_) external view {
         if(token_ == address(0)) revert InvalidToken();
         if(_tokenStatus[token_] != TokenEnum.Active) revert TokenUnSupported();
-
     }
 
     /**
@@ -347,16 +284,4 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
         return token_ == _settlementToken;
     }
 
-    // ----------------------------------- Reserved address management --------------------------------------------------
-
-    function reservedList() external view returns (address[] memory) {
-        return _reservedList;
-    }
-
-    function getAddressFromIndex(
-        uint256 index_
-    ) external view returns (address) {
-        if (index_ >= _reservedList.length) revert InvalidIndex();
-        return _reservedList[index_];
-    }
 }

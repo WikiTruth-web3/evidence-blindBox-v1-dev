@@ -9,19 +9,19 @@ pragma solidity ^0.8.24;
 //     IAddressManager
 // } from "@interfaces/eth/IAddressManager.sol";
 
-import {ModifierV2} from "../modifier/ModifierV2.sol";
+import {SetCoreContracts} from "../modifier/SetCoreContracts.sol";
 /**
  *  @notice BlindBox01
  *  This contract defines the basic variables and functions of BlindBox
  */
 
-contract BlindBox01 is ModifierV2 {
+contract BlindBox01 is SetCoreContracts {
     uint8 internal _incrementRate; // 2.0 * 100
 
     uint256 internal _nextBoxId;
 
     // ==================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {
+    constructor(address addrManager_) SetCoreContracts(addrManager_) {
         _incrementRate = 200;
     }
 

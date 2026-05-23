@@ -118,22 +118,19 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         uint256 amount_,
         uint8 totalRate_
     ) internal returns (uint256, uint256) {
-        address[] memory swapContracts = ADDR_MANAGER.swapContracts();
-        if (swapContracts.length == 0) revert EmptyList();
-
-        I_Swap swapContract = I_Swap(swapContracts[0]);
+        address swapContract = ADDR_MANAGER.getPeriphContr(PeripheralContracts.SwapContract);
 
         // Authorize the maximum possible amount of tokens to SwapRouter
         if (
-            IERC20(tokenIn_).allowance(address(this), swapContracts[0]) <
+            IERC20(tokenIn_).allowance(address(this), swapContract) <
             amount_
         ) {
-            _approveToken(tokenIn_, swapContracts[0]);
+            _approveToken(tokenIn_, swapContract);
         }
         /**
          * @dev Calculate how much tokenOut can be swapped with amountIn
          */
-        uint256 amountOut = swapContract.getSwapAmountOut(
+        uint256 amountOut = I_Swap(swapContract).getSwapAmountOut(
             tokenIn_,
             tokenOut_,
             amount_
@@ -146,7 +143,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         amountOut = (amountOut * totalRate_) / 1000;
 
         // Calculate the amount of funds used to swap
-        uint256 amountIn = swapContract.swapForExact(
+        uint256 amountIn = I_Swap(swapContract).swapForExact(
             tokenIn_,
             tokenOut_,
             amountOut
@@ -203,7 +200,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
                 ) {
                     revert WithdrawError();
                 }
-                blindBox.setStatus(boxId_, Status.Published);
             }
 
             // Confirm token type matches

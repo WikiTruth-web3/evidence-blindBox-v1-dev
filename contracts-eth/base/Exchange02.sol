@@ -115,9 +115,13 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         emit RequestDeadlineChanged(boxId_, deadline);
     }
 
-    function _setRefundPermit(uint256 boxId_, bool permission_) internal {
-        _boxExchengData[boxId_]._refundPermit = permission_;
-        emit RefundPermitChanged(boxId_, permission_);
+    function _setRefundPermitTrue(uint256 boxId_, Status status_) internal {
+        if (
+            status_ != Status.Pulished &&
+            status_ != Status.Blacklisted
+        ) revert InvalidStatus();
+        _boxExchengData[boxId_]._refundPermit = true;
+        emit RefundPermitChanged(boxId_, true);
     }
 
     // =========================================================================================================

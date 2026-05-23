@@ -19,7 +19,7 @@ interface FundManagerVirtualEvents {
 }
 
 interface IFundManagerVirtual is FundManagerVirtualEvents {
-    function setAddress() external;
+    function setCoreContracts() external;
 
     function recordPayment(
         uint256 boxId_,
@@ -27,7 +27,7 @@ interface IFundManagerVirtual is FundManagerVirtualEvents {
         uint256 amount_,
         string calldata chain_,
         string calldata token_,
-        string[] calldata txHashList_
+        string calldata txHash_
     ) external;
 
     function clearPayment(uint256 boxId_, bytes32 userId_) external;

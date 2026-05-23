@@ -106,10 +106,10 @@ contract Exchange03 is Exchange02 {
             revert InvalidStatus();
 
         if (_isInReviewDeadline(boxId_)) {
+            // erc2771 - msg.sender is the real caller
             // Check role: minter、DAO
             bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (
-                // erc2771 - msg.sender is the real caller
                 userId != blindBox.minterIdOf(boxId_) &&
                 msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use msg.sender
             ) {
@@ -129,13 +129,13 @@ contract Exchange03 is Exchange02 {
      */
     function _refuseRefund(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
+        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
         // canRefuse?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
         // According to whether it is within the review deadline, determine.
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
-            if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
             blindBox.setStatus(boxId_, Status.Delaying);
             _processAllocation(boxId_);
         } else {

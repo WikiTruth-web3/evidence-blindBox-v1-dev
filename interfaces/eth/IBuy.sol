@@ -12,7 +12,7 @@ interface IBuy {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external;
+    function setCoreContracts() external;
     // =====================================================================================
     //                                          Buying Functions
     // =====================================================================================

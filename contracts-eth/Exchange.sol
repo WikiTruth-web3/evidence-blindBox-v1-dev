@@ -25,8 +25,8 @@ contract ExchangeBase is Exchange03, IExchange {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.Exchange);
+    function setCoreContracts() external onlyManager {
+        _setCoreContracts(CoreContracts.Exchange);
     }
 
     // ========================================================================================================
@@ -104,11 +104,11 @@ contract ExchangeBase is Exchange03, IExchange {
     //                                           Refund function
     // ========================================================================================================
 
-    function setRefundPermit(
+    function setRefundPermitTrue(
         uint256 boxId_,
-        bool permission_
+        Status status_
     ) external onlyProjectContract {
-        _setRefundPermit(boxId_, permission_);
+        _setRefundPermitIsTrue(boxId_, status_);
     }
 
     function requestRefund(uint256 boxId_) external {

@@ -28,8 +28,8 @@ contract FundManager is FundManager03, IFundManager {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.FundManager);
+    function setCoreContracts() external onlyManager {
+        _setCoreContracts(CoreContracts.FundManager);
     }
 
     // ====================================================================================================================

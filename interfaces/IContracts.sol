@@ -6,11 +6,16 @@ enum CoreContracts {
     BlindBox,
     Exchange,
     FundManager,
-    FundManagerVirtual,
     UserManager
 }
 
 enum PeripheralContracts {
-    SiweAuth,
-    Forwarder
+    Buy,
+    // Corss Chain Contracts
+    BuyExecutor, 
+    FundManagerVirtual,
+    Forwarder,
+    SwapContract,
+    Quoter
+
 }

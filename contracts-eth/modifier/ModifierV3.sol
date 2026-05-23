@@ -30,17 +30,6 @@ contract ModifierV2 is ProxyUpgrade {
     }
 
     // =====================================================================================
-    
-    modifier onlyDAO() {
-        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
-        _;
-    }
-
-    modifier onlyAdminDAO() {
-        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != admin())
-            revert NotAdminOrDAO();
-        _;
-    }
 
     modifier onlyManager() {
         if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {

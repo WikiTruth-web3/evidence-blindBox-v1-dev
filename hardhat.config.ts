@@ -103,18 +103,18 @@ const config: HardhatUserConfig = {
     spacing: 2,           // JSON 缩进格数
     format: "json",       // 导出格式，支持 "json" 或 "minimal" (极简模式)
   },
-  // paths: {
-  //   sources: "./contracts-eth", 
-  //   tests: "./test",
-  //   cache: "./cache/contracts-eth",
-  //   artifacts: "./artifacts"
-  // },
   paths: {
-    sources: "./contracts", 
+    sources: "./contracts-eth", 
     tests: "./test",
-    cache: "./cache/contracts",
-    artifacts: "./artifacts/contracts"
+    cache: "./cache/contracts-eth",
+    artifacts: "./artifacts"
   },
+  // paths: {
+  //   sources: "./contracts", 
+  //   tests: "./test",
+  //   cache: "./cache/contracts",
+  //   artifacts: "./artifacts/contracts"
+  // },
   
   mocha: {
     timeout: 40000

@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.24;
 
+import {Status} from "./IBlindBox.sol";
+
 interface ExchangeEvents {
     event BoxListed(
         uint256 indexed boxId,
@@ -35,7 +37,7 @@ interface IExchange {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external;
+    function setCoreContracts() external;
 
     // =====================================================================================
     //                                          Refund Functions
@@ -43,10 +45,10 @@ interface IExchange {
     /**
      * @notice Set refund permit status
      * @param boxId_ Box ID
-     * @param permission_ Refund permit status
+     * @param status_ Refund permit status
      * @dev Only callable by project contracts
      */
-    function setRefundPermit(uint256 boxId_, bool permission_) external;
+    function setRefundPermitTrue(uint256 boxId_, Status status_) external;
 
     // =====================================================================================
     //                                          Buying Functions

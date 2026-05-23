@@ -2,11 +2,9 @@
 
 pragma solidity ^0.8.24;
 
-import {ModifierV2} from "./modifier/ModifierV2.sol";
 import {IBuyExecutor} from "@interfaces/eth/IBuyExecutor.sol";
 import {PaymentType} from "@interfaces/eth/IExchange.sol";
-import {IFundManagerCrossChain} from "@interfaces/eth/IFundManagerCrossChain.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {BuyExecutor01} from "./base/BuyExecutor01.sol";
 
 /**
  * @title BuyExecutor
@@ -14,41 +12,17 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  * Invoked only by the authorized backend executor.
  * Interacts with FundManagerCrossChain for payment verification and Exchange for status transitions.
  */
-contract BuyExecutor is ModifierV2, IBuyExecutor {
+contract BuyExecutor is BuyExecutor01, IBuyExecutor {
     error EmptyTxHashes();
     error LengthMismatch();
     error BidPriceTooLow();
 
-    address public executor;
-    IFundManagerCrossChain public fundManagerCrossChain;
+    // ===========================================================================
 
-    event ExecutorChanged(address indexed oldExecutor, address indexed newExecutor);
-    event CrossChainPaymentRecorded(uint256 indexed boxId, bytes32 indexed buyerUserId, uint256 totalAmount);
-
-    modifier onlyExecutor() {
-        if (msg.sender != executor) revert InvalidCaller();
-        _;
+    constructor(address addrManager_, address executor_) BuyExecutor01(addrManager_, executor_) {
     }
 
-    constructor(address addrManager_, address executor_) ModifierV2(addrManager_) {
-        executor = executor_;
-    }
-
-    /**
-     * @notice Set core contract addresses from AddressManager.
-     */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.Exchange);
-    }
-
-    function setExecutor(address executor_) external onlyAdmin {
-        emit ExecutorChanged(executor, executor_);
-        executor = executor_;
-    }
-
-    function setFundManagerCrossChain(address fmcc_) external onlyAdmin {
-        fundManagerCrossChain = IFundManagerCrossChain(fmcc_);
-    }
+    // ===========================================================================
 
     /**
      * @notice Performs a cross-chain purchase.
@@ -57,16 +31,16 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
         uint256 boxId_,
         bytes32 buyerUserId_,
         uint256 amount_,
-        string calldata chainToken_,
+        string calldata chain_,
+        string calldata token_,
         string calldata txHash_
     ) external onlyExecutor {
         // 1. Record payment in FundManagerCrossChain (anti-replay checked inside)
-        fundManagerCrossChain.recordPayment(boxId_, buyerUserId_, amount_, chainToken_, txHash_);
+        FUND_MANAGER_VIRTUAL.recordPayment(boxId_, buyerUserId_, amount_, chain, token_, txHash_);
 
         // 2. Call unified buy function in Exchange (handles status, timing, and ledger checks)
         EXCHANGE.buy(boxId_, buyerUserId_, PaymentType.CrossChain);
 
-        emit CrossChainPaymentRecorded(boxId_, buyerUserId_, amount_);
     }
 
     /**
@@ -76,7 +50,8 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
         uint256 boxId_,
         uint256 price_,
         bytes32 buyerUserId_,
-        string calldata chainToken_,
+        string calldata chain_,
+        string calldata token_,
         uint256[] calldata amounts_,
         string[] calldata txHashes_
     ) external onlyExecutor {
@@ -85,26 +60,16 @@ contract BuyExecutor is ModifierV2, IBuyExecutor {
 
         // 1. Record each individual payment and merge balances
         for (uint256 i = 0; i < txHashes_.length; i++) {
-            fundManagerCrossChain.recordPayment(boxId_, buyerUserId_, amounts_[i], chainToken_, txHashes_[i]);
+            FUND_MANAGER_VIRTUAL.recordPayment(boxId_, buyerUserId_, amounts_[i], chain, token_, txHashes_[i]);
         }
 
         // Retrieve current accumulated virtual balance
-        uint256 balance = fundManagerCrossChain.getVirtualAmount(boxId_, buyerUserId_);
+        uint256 balance = FUND_MANAGER_VIRTUAL.getVirtualAmount(boxId_, buyerUserId_);
 
         // 2. Call unified bid function in Exchange (handles status, timing, high bidder, and price checks)
         uint256 currentRequiredPrice = EXCHANGE.bid(boxId_, buyerUserId_, PaymentType.CrossChain);
         if (price_ < currentRequiredPrice) revert BidPriceTooLow();
 
-        emit CrossChainPaymentRecorded(boxId_, buyerUserId_, balance);
     }
 
-    /**
-     * @notice Clear virtual payments when buyer requests refund chain-off.
-     */
-    function clearVirtualBalance(
-        uint256 boxId_,
-        bytes32 buyerUserId_
-    ) external onlyExecutor {
-        fundManagerCrossChain.clearPayment(boxId_, buyerUserId_);
-    }
 }
