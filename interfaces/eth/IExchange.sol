@@ -14,13 +14,6 @@ interface ExchangeEvents {
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
-    // event CrossChainOrderCompleted(uint256 indexed boxId, bytes32 indexed buyerUserId);
-    // event CrossChainRefundPermitted(uint256 indexed boxId, bytes32 indexed buyerUserId);
-}
-
-enum PaymentType {
-    Native,
-    CrossChain
 }
 
 /**
@@ -57,30 +50,24 @@ interface IExchange {
     /**
      * @notice Buy a box
      * @param boxId_ Box ID
-     * @param buyerUserId_ User ID
-     * @param payType_ Payment type
      * @dev Only callable by project contracts
      */
-    function buy(
-        uint256 boxId_,
-        bytes32 buyerUserId_,
-        PaymentType payType_
-    ) external;
+    function buy(uint256 boxId_) external;
 
     /**
      * @notice Place a bid on an auction
      * @param boxId_ Box ID
-     * @param buyerUserId_ User ID
-     * @param price_ The bid price
-     * @param payType_ Payment type
      * @dev Only callable by project contracts
      */
-    function bid(
-        uint256 boxId_,
-        bytes32 buyerUserId_,
-        uint256 price_,
-        PaymentType payType_
-    ) external;
+    function bid(uint256 boxId_) external;
+
+    /**
+     * @notice Place a bid on an auction
+     * @param boxId_ Box ID
+     * @param siweToken_ SIWE Token
+     * @dev Only callable by project contracts
+     */
+    function calcPayAmount(uint256 boxId_, bytes memory siweToken_) external view returns (uint256);
 
     // =====================================================================================
     //                                          Getter Functions
@@ -141,13 +128,6 @@ interface IExchange {
      * @return Whether box is within refund review deadline
      */
     function isInReviewDeadline(uint256 boxId_) external view returns (bool);
-
-    /**
-     * @notice Get payment type
-     * @param boxId_ Box ID
-     * @return Payment type (Native/CrossChain)
-     */
-    function paymentTypeOf(uint256 boxId_) external view returns (PaymentType);
 
     // =====================================================================================
 }

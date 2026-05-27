@@ -211,8 +211,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     function addToken(address token_) external onlyAdmin {
         if (token_ == address(0)) revert InvalidAddress();
 
-        if (_tokenStatus[token_] == TokenEnum.Active) revert TokenIsActive();
-
         if (_tokenStatus[token_] == TokenEnum.UnExsited) {
             _tokenList.push(token_);
         }
@@ -220,7 +218,6 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     }
 
     function _removeToken(address token_) internal {
-        if (_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
         if (token_ == _settlementToken) revert IsSettlementToken();
         // remove from _tokenList
         _removeTokenFromList(token_);

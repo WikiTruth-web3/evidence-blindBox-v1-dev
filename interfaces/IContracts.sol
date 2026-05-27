@@ -10,12 +10,13 @@ enum CoreContracts {
 }
 
 enum PeripheralContracts {
-    Buy,
-    // Corss Chain Contracts
-    BuyExecutor, 
-    FundManagerVirtual,
+    SiweAuth,
     Forwarder,
-    SwapContract,
+    Dao,
+    ServiceFee,
+    Gavonce,
+    Oracle,
+    SwapRouter,
     Quoter
 
 }

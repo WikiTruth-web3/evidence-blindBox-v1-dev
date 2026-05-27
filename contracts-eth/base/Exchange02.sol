@@ -22,13 +22,11 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     // =======================================================================================================
 
     struct BoxExchengData {
-        string chainToken; // Chain-specific token name
         address _acceptedToken; // If address(0), then it means support settlementToken
         bytes32 _buyerId;
         uint256 _refundRequestDeadline;
         uint256 _refundReviewDeadline;
         bool _refundPermit;
-        PaymentType _paymentType;
     }
 
     mapping(uint256 boxId => BoxExchengData data) internal _boxExchengData;
@@ -127,13 +125,8 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     // =========================================================================================================
     //                                           Funds Functions
     // ========================================================================================================
-        function _processAllocation(uint256 boxId_) internal {
-        if (_boxExchengData[boxId_]._paymentType == PaymentType.Native) {
-            FUND_MANAGER.allocationRewards(boxId_);
-        } else {
-            FUND_MANAGER_CROSS_CHAIN.allocationRewards(boxId_);
-            
-        }
+    function _processAllocation(uint256 boxId_) internal {
+        FUND_MANAGER.allocationRewards(boxId_);
     }
 
 

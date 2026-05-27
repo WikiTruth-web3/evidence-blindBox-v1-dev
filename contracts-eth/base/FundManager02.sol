@@ -67,7 +67,6 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         uint256 amountOut; // settlement token
 
         if (token_ != settlementToken) {
-            totalRate += _slippageProtection;
             
             (amountIn, amountOut) = _swap(
                 boxId_,

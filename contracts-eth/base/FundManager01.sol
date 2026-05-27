@@ -25,16 +25,10 @@ contract FundManager01 is SetCoreContracts, ReentrancyGuard, Pausable {
      */
     uint8 internal _serviceFeeRate;
 
-    /**
-     * @dev Slippage protection:
-     * when swapping, this slippage protection will be applied
-     */
-    uint8 internal _slippageProtection;
 
     // =====================================================================================
     constructor(address addrManager_) SetCoreContracts(addrManager_) {
         _serviceFeeRate = 30; // 30
-        _slippageProtection = 20; // NOTE in mainnet it`s 10
     }
 
     // =====================================================================================
@@ -63,18 +57,6 @@ contract FundManager01 is SetCoreContracts, ReentrancyGuard, Pausable {
         _serviceFeeRate = Rate_;
     }
 
-    /**
-     * @dev Set slippage protection
-     * @param slippageProtection_ The slippage protection rate
-     * Can be set to 0-100
-     */
-    function setSlippageProtection(
-        uint8 slippageProtection_
-    ) external onlyAdminDAO {
-        if (slippageProtection_ > 100) revert InvalidRate();
-        _slippageProtection = slippageProtection_;
-    }
-
     // ==========================================================================================================
     //                                         view get fee rate
     // ==========================================================================================================
@@ -83,7 +65,4 @@ contract FundManager01 is SetCoreContracts, ReentrancyGuard, Pausable {
         return _serviceFeeRate;
     }
 
-    function slippageProtection() external view returns (uint8) {
-        return _slippageProtection;
-    }
 }

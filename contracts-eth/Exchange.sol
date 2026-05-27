@@ -67,37 +67,27 @@ contract ExchangeBase is Exchange03, IExchange {
     // ========================================================================================================
 
     function buy(
-        uint256 boxId_,
-        bytes32 buyerUserId_,
-        PaymentType payType_
-    ) external onlyBuyContract {
-        IBlindBox blindBox = BLIND_BOX;
-        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
-
-        blindBox.setStatus(boxId_, Status.Paid);
-
-        _boxExchengData[boxId_]._buyerId = buyerUserId_;
-        _boxExchengData[boxId_]._paymentType = payType_;
-
-        _setRefundRequestDeadline(boxId_, block.timestamp);
-
-        emit BoxPurchased(boxId_, buyerUserId_);
+        uint256 boxId_
+    ) external {
+        _buy(boxId_);
     }
 
     function bid(
-        uint256 boxId_,
-        bytes32 buyerId_,
-        PaymentType payType_
-    ) external onlyBuyContract returns(uint256) {
-        if (buyerId_ == _buyerIdOf(boxId_)) revert IsBuyer();
+        uint256 boxId_
+    ) external {
+        _bid(boxId_);
+    }
 
-        uint256 currentRequiredPrice = _bidPrice(boxId_);
+    function calcPayAmount(
+        uint256 boxId_
+    ) public view returns (uint256) {
+        // Use SiweContext get sender
+        // address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
+        address sender = msg.sender;
+        bytes32 userId = USER_MANAGER.getUserId(sender);
+        uint256 price = BLIND_BOX.getPrice(boxId_);
 
-        _boxExchengData[boxId_]._buyerId = buyerId_;
-        _boxExchengData[boxId_]._paymentType = payType_;
-
-        emit BidPlaced(boxId_, buyerId_);
-        return currentRequiredPrice;
+        return _calcPayAmount(boxId_, userId, price);
     }
 
     // ========================================================================================================

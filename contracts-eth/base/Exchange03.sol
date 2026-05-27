@@ -22,6 +22,24 @@ contract Exchange03 is Exchange02 {
     // ========================================================================================================
     //                                          Buying related functions
     // ========================================================================================================
+    function _buy(uint256 boxId_) external {
+        IBlindBox blindBox = BLIND_BOX;
+        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
+        address sender = msg.sender;
+        bytes32 userId = USER_MANAGER.getUserId(sender);
+
+        uint256 payAmount = blindBox.getPrice(boxId_);
+
+
+        blindBox.setStatus(boxId_, Status.Paid);
+
+        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _setRefundRequestDeadline(boxId_, block.timestamp);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
+
+        emit BoxPurchased(boxId_, buyerUserId_);
+
+    }
 
     /**
      * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
@@ -45,6 +63,48 @@ contract Exchange03 is Exchange02 {
 
         return price;
     }
+
+    function _bid(
+        uint256 boxId_
+    ) internal {
+        address sender = msg.sender;
+        bytes32 userId = USER_MANAGER.getUserId(sender);
+        if (buyerId_ == _buyerIdOf(boxId_)) revert IsBuyer();
+
+        uint256 currentPrice = _bidPrice(boxId_);
+        uint256 payAmount = _calcPayAmount(boxId_, userId, currentPrice);
+
+        _boxExchengData[boxId_]._buyerId = buyerId_;
+        _setRefundRequestDeadline(boxId_, block.timestamp);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
+
+        emit BidPlaced(boxId_, buyerId_);
+    }
+
+    /**
+     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
+     * @param boxId_ Box ID
+     * Need to check: deadline、status、buyer.
+     * Bid will modify: buyer、price、deadline.
+     * Bid also needs to calculate, and pay: payAmount
+     */
+
+    function _calcPayAmount(
+        uint256 boxId_,
+        bytes32 userId_,
+        uint256 price_
+    ) internal view returns (uint256) {
+        uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(
+            boxId_,
+            userId_
+        );
+        uint256 payAmount = price_ - balance;
+        return payAmount;
+    }
+
+
+    
+
 
     // ========================================================================================================
     //                                           Refund function
