@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {FundsType, RewardType} from "@interfaces/eth/IFundManager.sol";
+import {FundsType} from "@interfaces/eth/IFundManager.sol";
 import {FundManager02} from "./FundManager02.sol";
 
 /**
@@ -61,8 +61,7 @@ contract FundManager03 is FundManager02 {
             amount_
         );
 
-        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
-        _calculateAllocation(boxId_, minterId, settlementToken, amount_);
+        _calculateAllocation(boxId_, settlementToken, amount_);
     }
 
     // ====================================================================================================================
@@ -74,7 +73,6 @@ contract FundManager03 is FundManager02 {
      */
     function _allocationRewards(uint256 boxId_) internal {
         bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
-        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
         address token = EXCHANGE.acceptedToken(boxId_);
 
         uint256 amount = _orderAmounts[boxId_][buyerId];
@@ -82,27 +80,7 @@ contract FundManager03 is FundManager02 {
 
         // Clear the original token order amount
         _orderAmounts[boxId_][buyerId] = 0;
-        _calculateAllocation(boxId_, minterId, token, amount);
-    }
-
-    /**
-     * @dev Allocate rewards
-     * @param boxId_ BlindBox ID
-     */
-    function _allocationRewards(uint256 boxId_, address sender_, uint256 amount_) internal {
-        if(BLIND_BOX.getStatus(boxId_) != Status.Delaying) revert InvalidStatus();
-        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
-        address token = EXCHANGE.acceptedToken(boxId_);
-
-        // NOTE sender pay amount in this contract.
-        IERC20(settlementToken).safeTransferFrom(
-            sender_,
-            address(this),
-            amount_
-        );
-
-        // Clear the original token order amount
-        _calculateAllocation(boxId_, minterId, token, amount);
+        _calculateAllocation(boxId_, token, amount);
     }
 
     // ====================================================================================================================
@@ -110,9 +88,11 @@ contract FundManager03 is FundManager02 {
     /**
      * @dev Withdraw rewards
      * @param token_ Token address
+     * @param virtual_ user virtual address(privacy erc20)
      */
     function _withdrawRewards(
-        address token_
+        address token_,
+        address virtual_
     ) internal nonReentrant whenNotPaused {
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
@@ -124,7 +104,7 @@ contract FundManager03 is FundManager02 {
         // Zero out reward amount
         _rewardAmounts[userId][token_] = 0;
         // Execute safeTransfer
-        IERC20(token_).safeTransfer(sender, amount);
+        IERC20(token_).safeTransfer(virtual_, amount);
 
         emit RewardsWithdraw(userId, token_, amount);
     }

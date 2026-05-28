@@ -3,35 +3,37 @@
 pragma solidity ^0.8.24;
 
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
-// import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 import {Error} from "@interfaces/Error.sol";
 import {Main} from "@interfaces/IContracts.sol";
+/**
+ * @title Modifier
+ * @dev This contract is used to manage modifiers
+ */
 
-contract ModifierV2 is Error{
-    address internal ADMIN;
+contract Modifier is Error {
     IAddressManager internal ADDR_MANAGER;
-
+    address internal ADMIN;
 
     // =======================================================================================================
     constructor(address addrManager_) {
         ADMIN = msg.sender;
         ADDR_MANAGER = IAddressManager(addrManager_);
+    }
 
+    function setAddressManager(address addrManager_) external onlyAdmin {
+        ADDR_MANAGER = IAddressManager(addrManager_);
     }
 
     function setAdmin(address admin_) external onlyAdmin {
         ADMIN = admin_;
     }
 
-    function admin() public view returns (address) {
-        return ADMIN;
-    }
-
-    function _setAddressManager(address addrManager_) internal {
-        ADDR_MANAGER = IAddressManager(addrManager_);
-    }
+    // function admin() external view returns (address) {
+    //     return ADMIN;
+    // }
 
     // =====================================================================================
+
     modifier onlyAdmin() {
         if (msg.sender != ADMIN) revert NotAdmin();
         _;
@@ -43,19 +45,13 @@ contract ModifierV2 is Error{
     }
 
     modifier onlyAdminDAO() {
-        if (
-            msg.sender != ADDR_MANAGER.getMainContract(Main.Dao) && 
-            msg.sender != ADMIN
-        )
+        if (msg.sender != ADDR_MANAGER.getMainContract(Main.Dao) && msg.sender != ADMIN)
             revert NotAdminOrDAO();
         _;
     }
 
     modifier onlyManager() {
-        if (
-            msg.sender != address(ADDR_MANAGER) && 
-            msg.sender != ADMIN
-        ) {
+        if (msg.sender != address(ADDR_MANAGER) && msg.sender != ADMIN) {
             revert InvalidCaller();
         }
         _;

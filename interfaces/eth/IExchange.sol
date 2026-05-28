@@ -30,7 +30,7 @@ interface IExchange {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setCoreContracts() external;
+    function setContracts() external;
 
     // =====================================================================================
     //                                          Refund Functions
@@ -38,10 +38,9 @@ interface IExchange {
     /**
      * @notice Set refund permit status
      * @param boxId_ Box ID
-     * @param status_ Refund permit status
      * @dev Only callable by project contracts
      */
-    function setRefundPermitTrue(uint256 boxId_, Status status_) external;
+    function setRefundPermitTrue(uint256 boxId_) external;
 
     // =====================================================================================
     //                                          Buying Functions
@@ -64,10 +63,9 @@ interface IExchange {
     /**
      * @notice Place a bid on an auction
      * @param boxId_ Box ID
-     * @param siweToken_ SIWE Token
      * @dev Only callable by project contracts
      */
-    function calcPayAmount(uint256 boxId_, bytes memory siweToken_) external view returns (uint256);
+    function calcPayAmount(uint256 boxId_) external view returns (uint256);
 
     // =====================================================================================
     //                                          Getter Functions

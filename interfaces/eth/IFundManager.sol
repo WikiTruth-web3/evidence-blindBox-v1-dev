@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 interface FundManagerEvents {
+
     event OrderAmountPaid(
         uint256 indexed boxId,
         bytes32 indexed userId,
@@ -37,6 +38,11 @@ interface FundManagerEvents {
     );
 }
 
+enum FundsType {
+    Order,
+    Refund
+}
+
 /**
  * @title IFundManager
  * @notice FundManager contract interface, defining all externally exposed functions and events
@@ -51,7 +57,7 @@ interface IFundManager {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setCoreContracts() external;
+    function setContracts() external;
 
     // =====================================================================================
     //                                          Payment Functions (Project Contracts Only)
@@ -92,16 +98,6 @@ interface IFundManager {
      */
     function allocationRewards(uint256 boxId_) external;
 
-
-    /**
-     * @notice Allocate rewards
-     * @param boxId_ BlindBox ID
-     * @param sender_ who send the transaction
-     * @param amount_ Amount to pay
-     * @dev Only callable by project contracts
-     */
-    function allocationRewards(uint256 boxId_, address sender_, uint256 amount_) external;
-
     // =====================================================================================
     //                                          Withdrawal Functions
     // =====================================================================================
@@ -110,27 +106,32 @@ interface IFundManager {
      * @notice Withdraw order amounts (for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
+     * @param virtual_ user virtual address(privacy erc20)
      */
     function withdrawOrderAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address virtual_
     ) external;
 
     /**
      * @notice Withdraw refund amounts
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
+     * @param virtual_ user virtual address(privacy erc20)
      */
     function withdrawRefundAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address virtual_
     ) external;
 
     /**
      * @notice Withdraw rewards
      * @param token_ Token address
+     * @param virtual_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_) external;
+    function withdrawRewards(address token_, address virtual_) external;
 
     // =====================================================================================
     //                                          Getter Functions
@@ -142,32 +143,20 @@ interface IFundManager {
      * @param userId_ User ID
      * @return Order amount
      */
-    function restrictedGetOrderAmounts(
+    function orderAmounts(
         uint256 boxId_,
         bytes32 userId_
     ) external view returns (uint256);
 
     /**
-     * @notice Get order amount (for project contracts)
-     * @param boxId_ BlindBox ID
-     * @param user_ User address
-     * @return Order amount
-     * @dev Only callable by project contracts
-     */
-    function orderAmounts(
-        uint256 boxId_,
-        address user_
-    ) external view returns (uint256);
-
-    /**
      * @notice Get reward amount
+     * @param userId_ User Id
      * @param token_ Token address
-     * @param user_ User address
      * @return reward amount
      */
     function rewardAmounts(
-        address token_,
-        address user_
+        bytes32 userId_,
+        address token_
     ) external view returns (uint256);
 
     /**

@@ -16,7 +16,7 @@ interface IForwarder {
     /**
      * @notice Initialize contract references
      */
-    function setAddress() external;
+    function setContracts() external;
 
     // =====================================================================================
     //                                  Management Functions

@@ -5,8 +5,8 @@ pragma solidity ^0.8.24;
 import {Error} from "@interfaces/Error.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {IUserManager} from "@interfaces/eth/IUserManager.sol";
-import {ModifierV2} from "./modifier/ModifierV2.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
+import {SetContracts} from "./modifier/SetContracts.sol";
 
 /**
  * @title UserManager
@@ -15,18 +15,18 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  * At the same time, you can use the user ID to query user information, so as to realize the rapid lookup of the index protocol!
  */
 
-contract UserManager is ModifierV2, IUserManager {
+contract UserManager is SetContracts, IUserManager {
     // =====================================================================================
 
     mapping(address => bool) internal _blacklist;
 
     // =======================================================================================================
-    constructor(address addrManager_) ModifierV2(addrManager_) {}
+    constructor(address addrManager_) SetContracts(addrManager_) {}
 
     // =====================================================================================
 
-    function setCoreContracts() external onlyManager {
-        _setCoreContracts(CoreContracts.UserManager);
+    function setContracts() external onlyManager {
+        _setContracts(Main.UserManager);
     }
 
     // =====================================================================================

@@ -4,9 +4,8 @@
 pragma solidity ^0.8.24;
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {PaymentType} from "@interfaces/eth/IExchange.sol";
-
 import {Exchange02} from "./Exchange02.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange03 contract
@@ -22,7 +21,7 @@ contract Exchange03 is Exchange02 {
     // ========================================================================================================
     //                                          Buying related functions
     // ========================================================================================================
-    function _buy(uint256 boxId_) external {
+    function _buy(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
         address sender = msg.sender;
@@ -33,11 +32,11 @@ contract Exchange03 is Exchange02 {
 
         blindBox.setStatus(boxId_, Status.Paid);
 
-        _boxExchengData[boxId_]._buyerId = buyerUserId_;
+        _boxExchengData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp);
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
-        emit BoxPurchased(boxId_, buyerUserId_);
+        emit BoxPurchased(boxId_, userId);
 
     }
 
@@ -69,16 +68,16 @@ contract Exchange03 is Exchange02 {
     ) internal {
         address sender = msg.sender;
         bytes32 userId = USER_MANAGER.getUserId(sender);
-        if (buyerId_ == _buyerIdOf(boxId_)) revert IsBuyer();
+        if (userId == _buyerIdOf(boxId_)) revert InvalidCaller();
 
         uint256 currentPrice = _bidPrice(boxId_);
         uint256 payAmount = _calcPayAmount(boxId_, userId, currentPrice);
 
-        _boxExchengData[boxId_]._buyerId = buyerId_;
+        _boxExchengData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp);
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
-        emit BidPlaced(boxId_, buyerId_);
+        emit BidPlaced(boxId_, userId);
     }
 
     /**
@@ -94,17 +93,13 @@ contract Exchange03 is Exchange02 {
         bytes32 userId_,
         uint256 price_
     ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(
+        uint256 balance = FUND_MANAGER.orderAmounts(
             boxId_,
             userId_
         );
         uint256 payAmount = price_ - balance;
         return payAmount;
     }
-
-
-    
-
 
     // ========================================================================================================
     //                                           Refund function
@@ -132,7 +127,7 @@ contract Exchange03 is Exchange02 {
             emit ReviewDeadlineChanged(boxId_, deadline);
         } else {
             blindBox.setStatus(boxId_, Status.Delaying);
-            _processAllocation(boxId_);
+            FUND_MANAGER.allocationRewards(boxId_);
         }
     }
 
@@ -149,7 +144,7 @@ contract Exchange03 is Exchange02 {
             revert InvalidStatus();
 
         blindBox.setStatus(boxId_, Status.Delaying);
-        _processAllocation(boxId_);
+        FUND_MANAGER.allocationRewards(boxId_);
     }
 
     /**
@@ -171,7 +166,7 @@ contract Exchange03 is Exchange02 {
             bytes32 userId = USER_MANAGER.getUserId(msg.sender);
             if (
                 userId != blindBox.minterIdOf(boxId_) &&
-                msg.sender != ADDR_MANAGER.dao() // The dao must be a contract, so need not use msg.sender
+                msg.sender != ADDR_MANAGER.getMainContract(Main.Dao) // The dao must be a contract, so need not use msg.sender
             ) {
                 revert InvalidCaller();
             }
@@ -179,7 +174,6 @@ contract Exchange03 is Exchange02 {
         // If it exceeds the deadline, then it means anyone can call this function.
         _boxExchengData[boxId_]._refundPermit = true;
         blindBox.setStatus(boxId_, Status.Published);
-
         emit RefundPermitChanged(boxId_, true);
 
     }
@@ -189,7 +183,7 @@ contract Exchange03 is Exchange02 {
      */
     function _refuseRefund(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
-        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
+        if (msg.sender != ADDR_MANAGER.getMainContract(Main.Dao)) revert NotDAO();
         // canRefuse?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
@@ -197,11 +191,10 @@ contract Exchange03 is Exchange02 {
         if (_isInReviewDeadline(boxId_)) {
             // Check role: DAO
             blindBox.setStatus(boxId_, Status.Delaying);
-            _processAllocation(boxId_);
+            FUND_MANAGER.allocationRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
             blindBox.setStatus(boxId_, Status.Published);
-
             emit RefundPermitChanged(boxId_, true);
         }
     }

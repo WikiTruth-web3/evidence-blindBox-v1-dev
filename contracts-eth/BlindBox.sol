@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {BlindBox03} from "./base/BlindBox03.sol";
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice BlindBox contract
@@ -21,8 +21,8 @@ contract BlindBox is BlindBox03, IBlindBox {
      * @notice Set the contract address
      * @dev Get and set the related contract addresses from AddressManager
      */
-    function setCoreContracts() external onlyManager {
-        _setCoreContracts(CoreContracts.BlindBox);
+    function setContracts() external onlyManager {
+        _setContracts(Main.BlindBox);
     }
 
     // ==========================================================================================================
@@ -171,7 +171,7 @@ contract BlindBox is BlindBox03, IBlindBox {
 
     function minterIdOf(
         uint256 boxId_
-    ) external view onlyProjectContract returns (bytes32) {
+    ) external view returns (bytes32) {
         return _minterIdOf(boxId_);
     }
 

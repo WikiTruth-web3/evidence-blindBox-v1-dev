@@ -4,9 +4,9 @@
 pragma solidity ^0.8.24;
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {IExchange, PaymentType} from "@interfaces/eth/IExchange.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
 /**
  *  @notice Exchange contract
@@ -14,7 +14,7 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract ExchangeBase is Exchange03, IExchange {
+contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
     constructor(address addrManager_) Exchange03(addrManager_) {}
@@ -25,8 +25,8 @@ contract ExchangeBase is Exchange03, IExchange {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setCoreContracts() external onlyManager {
-        _setCoreContracts(CoreContracts.Exchange);
+    function setContracts() external onlyManager {
+        _setContracts(Main.Exchange);
     }
 
     // ========================================================================================================
@@ -95,10 +95,9 @@ contract ExchangeBase is Exchange03, IExchange {
     // ========================================================================================================
 
     function setRefundPermitTrue(
-        uint256 boxId_,
-        Status status_
+        uint256 boxId_
     ) external onlyProjectContract {
-        _setRefundPermitIsTrue(boxId_, status_);
+        _setRefundPermitTrue(boxId_);
     }
 
     function requestRefund(uint256 boxId_) external {
@@ -169,7 +168,4 @@ contract ExchangeBase is Exchange03, IExchange {
         return _isInReviewDeadline(boxId_);
     }
 
-    function paymentTypeOf(uint256 boxId_) external view returns (PaymentType) {
-        return _boxExchengData[boxId_]._paymentType;
-    }
 }

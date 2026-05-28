@@ -11,15 +11,15 @@ pragma solidity ^0.8.24;
 // import {IExchange} from "@interfaces/interfaces/IExchange.sol";
 // import {IAddressManager} from "@interfaces/interfaces/IAddressManager.sol";
 
-import {SetCoreContracts} from "../modifier/SetCoreContracts.sol";
+import {SetContracts} from "../modifier/SetContracts.sol";
 
 /**
  *  @title Exchange01
  *  @dev This contract is used to manage the exchange
- *  @dev Inherits SetCoreContracts to support modifiers
+ *  @dev Inherits SetContracts to support modifiers
  */
 
-contract Exchange01 is SetCoreContracts {
+contract Exchange01 is SetContracts {
     error NotBuyContract();
     
     uint256 internal _refundRequestPeriod;
@@ -27,26 +27,15 @@ contract Exchange01 is SetCoreContracts {
 
     uint8 internal _bidIncrementRate;
 
-    address internal BUY_CONTRACT;
-    address internal BUY_EXECUTOR_CONTRACT;
-
     // ========================================================================================================
 
-    constructor(address addrManager_) SetCoreContracts(addrManager_) {
+    constructor(address addrManager_) SetContracts(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
         _refundReviewPeriod = 15 days;
     }
 
     // ========================================================================================================
-
-    modifier onlyBuyContract {
-        if (
-            msg.sender != BUY_CONTRACT &&
-            msg.sender != BUY_EXECUTOR_CONTRACT
-        ) revert NotBuyContract();
-        _;
-    }
 
     // =====================================================================================
     //                                      Basic Parameter Settings

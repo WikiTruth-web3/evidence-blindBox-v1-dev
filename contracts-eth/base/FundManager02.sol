@@ -5,15 +5,14 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// import {IBlindBox} from "@interfaces/interfaces/IBlindBox.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
-    FundsType,
-    RewardType
+    FundsType
 } from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 
-import {I_Swap} from "../dex/interfaceSwap.sol";
+// import {I_Swap} from "../dex/interfaceSwap.sol";
 
 import {FundManager01} from "./FundManager01.sol";
 
@@ -25,6 +24,7 @@ import {FundManager01} from "./FundManager01.sol";
 
 contract FundManager02 is FundManager01, FundManagerEvents {
     using SafeERC20 for IERC20;
+    address internal DAO_FUND_MANAGER;
 
     // ====================================================================================================================
     /// @dev Total reward amounts
@@ -48,107 +48,36 @@ contract FundManager02 is FundManager01, FundManagerEvents {
     /**
      * @dev Internal method: Calculate allocation
      * @param boxId_ BlindBox ID
-     * @param minterId_ Minter userId
      * @param amount_ Amount
      * @param token_ Token address
      */
     function _calculateAllocation(
         uint256 boxId_,
-        bytes32 minterId_,
         address token_,
         uint256 amount_
     ) internal {
+        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
 
-        uint8 totalRate = _serviceFeeRate;
-
-        address settlementToken = ADDR_MANAGER.settlementToken();
-
-        uint256 amountIn = (amount_ * totalRate) / 1000; // accepted token
-        uint256 amountOut; // settlement token
-
-        if (token_ != settlementToken) {
-            
-            (amountIn, amountOut) = _swap(
-                boxId_,
-                token_,
-                settlementToken,
-                amount_,
-                totalRate
-            );
-        } else {
-            // If token is settlement token, calculate allocation directly, and amountOut and amountIn are equal
-            amountOut = amountIn;
-        }
+        uint256 serviceFee = (amount_ * _serviceFeeRate) / 1000; // accepted token
 
         unchecked {
             // Update minter rewards (using original token)
-            _rewardAmounts[minterId_][token_] += (amount_ - amountIn);
+            _rewardAmounts[minterId][token_] += (amount_ - serviceFee );
             emit RewardsAdded(
                 boxId_,
                 token_,
-                (amount_ - amountIn)
+                (amount_ - serviceFee )
             );
 
             // Directly assign the service fee to the DAO fund manager contract
-            IERC20(settlementToken).safeTransfer(
-                ADDR_MANAGER.daoFundManager(),
-                (amountOut)
+            IERC20(token_).safeTransfer(
+                DAO_FUND_MANAGER,
+                (serviceFee )
             );
 
             // Record total reward amount
             _totalRewardAmounts[token_] += amount_;
         }
-    }
-
-    /**
-     * @dev Calculate how much tokenIn is needed to swap and how much tokenOut can be swapped
-     * @param boxId_ BlindBox ID
-     * @param tokenIn_ Token address (the token to be swapped)
-     * @param tokenOut_ Token address (the token to be swapped to)
-     * @param amount_ Amount
-     * @param totalRate_ Total rate
-     * @return amountIn_ Amount of tokenIn_ needed to swap
-     * @return amountOut_ Amount of tokenOut_ can be swapped
-     */
-    function _swap(
-        uint256 boxId_,
-        address tokenIn_,
-        address tokenOut_,
-        uint256 amount_,
-        uint8 totalRate_
-    ) internal returns (uint256, uint256) {
-        address swapContract = ADDR_MANAGER.getPeriphContr(PeripheralContracts.SwapContract);
-
-        // Authorize the maximum possible amount of tokens to SwapRouter
-        if (
-            IERC20(tokenIn_).allowance(address(this), swapContract) <
-            amount_
-        ) {
-            _approveToken(tokenIn_, swapContract);
-        }
-        /**
-         * @dev Calculate how much tokenOut can be swapped with amountIn
-         */
-        uint256 amountOut = I_Swap(swapContract).getSwapAmountOut(
-            tokenIn_,
-            tokenOut_,
-            amount_
-        );
-        // Reset the price of BlindBox
-        BLIND_BOX.setPrice(boxId_, amountOut);
-
-        // Calculate the amount of funds used to allocate to other roles
-        // Include service fee, seller fee, completer fee
-        amountOut = (amountOut * totalRate_) / 1000;
-
-        // Calculate the amount of funds used to swap
-        uint256 amountIn = I_Swap(swapContract).swapForExact(
-            tokenIn_,
-            tokenOut_,
-            amountOut
-        );
-
-        return (amountIn, amountOut);
     }
 
     // Fund Deposit Functions
@@ -164,17 +93,18 @@ contract FundManager02 is FundManager01, FundManagerEvents {
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param type_ Type of withdrawal, either 0(order) or 1(refund)
+     * @param virtual_ user virtual address(privacy erc20)
+     * @param type_ Type of withdrawal, order or refund
      */
     function _withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_,
+        address virtual_,
         FundsType type_
     ) internal nonReentrant whenNotPaused {
         if (list_.length == 0) revert EmptyList();
         uint256 amount;
         IExchange exchange = EXCHANGE;
-        IBlindBox blindBox =BLIND_BOX;
         // erc2771 - msg.sender is the real caller
         address sender = msg.sender;
         bytes32 userId = USER_MANAGER.getUserId(sender);
@@ -212,9 +142,13 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         }
 
         // Execute refund
-        IERC20(token_).safeTransfer(sender, amount);
+        IERC20(token_).safeTransfer(virtual_, amount);
 
-        return amount;
+        if (type_ == FundsType.Order) {
+            emit OrderAmountWithdraw(list_, token_, userId, amount);
+        } else {
+            emit RefundAmountWithdraw(list_, token_, userId, amount);
+        }
 
     }
     // ===================================================================================

@@ -8,7 +8,7 @@ pragma solidity ^0.8.24;
 // } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {ExchangeEvents, PaymentType} from "@interfaces/eth/IExchange.sol";
+import {ExchangeEvents} from "@interfaces/eth/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 // import {SiweContext} from "@siwe/SiweContext.sol";
 
@@ -113,11 +113,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         emit RequestDeadlineChanged(boxId_, deadline);
     }
 
-    function _setRefundPermitTrue(uint256 boxId_, Status status_) internal {
-        if (
-            status_ != Status.Published &&
-            status_ != Status.Blacklisted
-        ) revert InvalidStatus();
+    function _setRefundPermitTrue(uint256 boxId_) internal {
         _boxExchengData[boxId_]._refundPermit = true;
         emit RefundPermitChanged(boxId_, true);
     }
@@ -125,9 +121,9 @@ contract Exchange02 is Exchange01, ExchangeEvents {
     // =========================================================================================================
     //                                           Funds Functions
     // ========================================================================================================
-    function _processAllocation(uint256 boxId_) internal {
-        FUND_MANAGER.allocationRewards(boxId_);
-    }
+    // function _processAllocation(uint256 boxId_) internal {
+    //     FUND_MANAGER.allocationRewards(boxId_);
+    // }
 
 
     // ========================================================================================================

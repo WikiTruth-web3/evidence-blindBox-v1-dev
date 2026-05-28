@@ -77,7 +77,7 @@ contract BlindBox03 is BlindBox02 {
         bytes32 userId = USER_MANAGER.getUserId(msg.sender);
 
         if (
-            status <= 2 // Storing\Selling\Auctioning
+            status <= Status.Auctioning // Storing\Selling\Auctioning
         ) {
             // Role verification is handled by calling the function.
             // Since this is a view function, getUserId might not work if it needs to register.
@@ -192,12 +192,12 @@ contract BlindBox03 is BlindBox02 {
 
         _checkIsBlacklisted(boxId_);
 
+        _basicData[boxId_]._status = Status.Blacklisted;
+
         // If the Box has a buyer, then set RefundPermit to true
         if (EXCHANGE.buyerIdOf(boxId_) != bytes32(0)) {
-            EXCHANGE.setRefundPermit(boxId_, true);
+            EXCHANGE.setRefundPermitTrue(boxId_);
         }
-
-        _basicData[boxId_]._status = Status.Blacklisted;
 
         emit BoxStatusChanged(boxId_, Status.Blacklisted);
     }

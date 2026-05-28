@@ -4,13 +4,9 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
-import {
-    IFundManager,
-    FundsType,
-    RewardType
-} from "@interfaces/eth/IFundManager.sol";
+import {IFundManager,FundsType} from "@interfaces/eth/IFundManager.sol";
 import {FundManager03} from "./base/FundManager03.sol";
 /**
  * @title FundManager
@@ -28,8 +24,8 @@ contract FundManager is FundManager03, IFundManager {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setCoreContracts() external onlyManager {
-        _setCoreContracts(CoreContracts.FundManager);
+    function setContracts() external onlyManager {
+        _setContracts(Main.FundManager);
     }
 
     // ====================================================================================================================
@@ -75,44 +71,34 @@ contract FundManager is FundManager03, IFundManager {
         _allocationRewards(boxId_);
     }
 
-        /**
-     * @dev Allocate rewards
-     * @param boxId_ BlindBox ID
-     * @param sender_ 
-     * @param amount_ 
-     */
-    function allocationRewards(uint256 boxId_, address sender_, uint256 amount_) external onlyProjectContract {
-        _allocationRewards(boxId_, sender_, amount_);
-    }
-
     // ====================================================================================================================
     // Withdrawal Functions
     /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
+     * @param virtual_ user virtual address(privacy erc20)
      */
     function withdrawOrderAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address virtual_
     ) external {
-        uint256 amount = _withdrawOrderAmounts(token_, list_, "order");
-
-        emit OrderAmountWithdraw(list_, token_, userId, amount);
-
+        _withdrawOrderAmounts(token_, list_, virtual_, FundsType.Order);
     }
 
     /**
      * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
+     * @param virtual_ user virtual address(privacy erc20)
      */
     function withdrawRefundAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address virtual_
     ) external {
-        uint256 amount = _withdrawOrderAmounts(token_, list_, "refund");
-        emit RefundAmountWithdraw(list_, token_, userId, amount);
+        _withdrawOrderAmounts(token_, list_, virtual_, FundsType.Refund);
 
     }
 
@@ -121,9 +107,10 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Withdraw rewards
      * @param token_ Token address
+     * @param virtual_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_) external {
-        _withdrawRewards(token_);
+    function withdrawRewards(address token_, address virtual_) external {
+        _withdrawRewards(token_, virtual_);
     }
 
     // ====================================================================================================================
@@ -136,38 +123,24 @@ contract FundManager is FundManager03, IFundManager {
      * @param userId_ User ID
      * @return Order amount
      */
-    function restrictedGetOrderAmounts(
+    function orderAmounts(
         uint256 boxId_,
         bytes32 userId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view returns (uint256) {
         return _orderAmounts[boxId_][userId_];
     }
 
-    /**
-     * @dev Get order amount
-     * @param boxId_ BlindBox ID
-     * @param user_ User address NOTE in sapphire is SIWE Token
+        /**
+     * @dev Get reward amount
+     * @param userId_ User ID
+     * @param token_ BlindBox ID
      * @return Order amount
      */
-    function orderAmounts(
-        uint256 boxId_,
-        address user_
+    function rewardAmounts(
+        bytes32 userId_,
+        address token_
     ) external view returns (uint256) {
-        bytes32 userId = USER_MANAGER.getUserId(user_);
-        return _orderAmounts[boxId_][userId];
+        return _rewardAmounts[userId_][token_];
     }
 
-    /**
-     * @dev Get reward amount
-     * @param token_ Token address
-     * @param user_ User address NOTE in sapphire is SIWE Token
-     * @return user reward amount
-     */
-    function rewardAmounts(
-        address token_,
-        address user_
-    ) external view returns (uint256) {
-        bytes32 userId = USER_MANAGER.getUserId(user_);
-        return _rewardAmounts[userId][token_];
-    }
 }

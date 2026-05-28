@@ -2,21 +2,17 @@
 
 pragma solidity ^0.8.24;
 
-enum CoreContracts {
-    BlindBox,
-    Exchange,
-    FundManager,
-    UserManager
-}
-
-enum PeripheralContracts {
-    SiweAuth,
+enum Main {
+    BlindBox, // 0
+    Exchange,  // 1
+    FundManager, // 2
+    UserManager,
+    // ---------------
+    SiweAuth, // 4
     Forwarder,
+    // -----
+    Staking, // 6
     Dao,
-    ServiceFee,
-    Gavonce,
-    Oracle,
-    SwapRouter,
-    Quoter
-
+    DaoFundManager,
+    Governance
 }

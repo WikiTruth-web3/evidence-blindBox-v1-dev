@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.24;
 
-import {CoreContracts, PeripheralContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
 
 interface AddressManagerEvents {
@@ -27,31 +27,24 @@ interface IAddressManager {
      * @param name_ Core contract name
      * @return Core contract address
      */
-    function getCoreContract(CoreContracts name_) external view returns (address);
-
-    /**
-     * @notice Get peripheral contract address
-     * @param name_ Peripheral contract name
-     * @return Peripheral contract address
-     */
-    function getPeriphContr(PeripheralContracts name_) external view returns (address);
+    function getMainContract(Main name_) external view returns (address);
 
     /**
      * @notice Get contract address
      * @param _name Contract name
      * @return Contract address
      */
-    function getSpreadContracts(string memory _name) external view returns (address);
+    function getSpreadContract(string memory _name) external view returns (address);
 
     // =====================================================================================
     //                                          Address Management Functions (Admin Only)
     // =====================================================================================
 
     /**
-     * @notice Set all contract addresses
+     * @notice set all contract addresses
      * @dev Only callable by admin, calls setAddress() on all project contracts
      */
-    function setCoreContractsToAll() external;
+    function setAllContracts() external;
 
     // =====================================================================================
     //                                          Token Management Functions (Admin Only)

@@ -6,11 +6,12 @@ import {IUserManager} from "@interfaces/eth/IUserManager.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {IFundManager} from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IForwarder} from "@interfaces/sapphire/IForwarder.sol";
 import {Error} from "@interfaces/Error.sol";
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
-import {CoreContracts, PeripheralContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
 
-import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
+// import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
 
 
 /**
@@ -18,24 +19,20 @@ import {ProxyUpgrade} from "./proxy/ProxyUpgrade.sol";
  * @dev Address management contract, also responsible for token registration
  */
 
-contract AddressManager is ProxyUpgrade, IAddressManager {
-    error TokenIsActive();
+contract AddressManager is IAddressManager, Error {
     error TokenIsNotActive();
     error InvalidAddress();
     error RemoveError();
-    error InvalidIndex();
     error IsSettlementToken();
-    error AddressAlreadyExists();
     /**
      * @dev The admin is managed by the ProxyUpgrade contract
      * The variable will be re-enabled in the production environment
      */
-    // address public admin;
+    address public admin;
 
-    //--------------------------core contracts------------------------------
+    //--------------------------contracts------------------------------
     
-    mapping (CoreContracts => address) internal _coreContracts;
-    mapping (PeripheralContracts => address) internal _peripheralContracts;
+    mapping (Main => address) internal _mainContracts;
     mapping (bytes32 key => address) internal _spreadContracts;
 
     // Project contract addresses
@@ -64,29 +61,28 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     }
     mapping(address token => TokenEnum) internal _tokenStatus;
 
-    //--------------------------other contracts------------------------------
 
     // =======================================================================================================
     constructor() {
-        // admin = msg.sender;
+        admin = msg.sender;
     }
 
     // =====================================================================================
 
-    // modifier onlyAdmin() {
-    //     if (msg.sender != admin) revert NotAdmin();
-    //     _;
-    // }
+    modifier onlyAdmin() {
+        if (msg.sender != admin) revert NotAdmin();
+        _;
+    }
 
     /**
      * @dev Set admin
      * The admin is managed by the ProxyUpgrade contract
      * The function will be re-enabled in the production environment
      */
-    // function setAdmin(address newAdmin_) external onlyAdmin {
-    //     if (newAdmin_ == address(0)) revert InvalidAddress();
-    //     admin = newAdmin_;
-    // }
+    function setAdmin(address newAdmin_) external onlyAdmin {
+        if (newAdmin_ == address(0)) revert InvalidAddress();
+        admin = newAdmin_;
+    }
 
     // ======================================= set contracts function ==============================================
 
@@ -101,18 +97,11 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      * @param name_ Contract name
      * @param addr_ Contract address
      */
-    function setCoreContract(CoreContracts name_, address addr_) external onlyAdmin {
-        address current = _coreContracts[name_];
-        _OldNew(current, new_);
+    function setMainContract(Main name_, address addr_) external onlyAdmin {
+        address current = _mainContracts[name_];
+        _OldNew(current, addr_);
         
-        _coreContracts[name_] = addr_;
-    }
-
-    function setPeripheralContract(PeripheralContracts name_, address addr_) external onlyAdmin {
-        address current = _peripheralContracts[name_];
-        _OldNew(current, new_);
-
-        _peripheralContracts[name_] = addr_;
+        _mainContracts[name_] = addr_;
     }
 
     /**
@@ -122,9 +111,9 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
      * @param addr_ Contract address
      */
     function setSpreadContract(string memory name_, address addr_) external onlyAdmin {
-        bytes32 key = keccak256(bytes(name));
+        bytes32 key = keccak256(bytes(name_));
         address current = _spreadContracts[key];
-        _OldNew(current, new_);
+        _OldNew(current, addr_);
 
         _spreadContracts[key] = addr_;
 
@@ -132,20 +121,14 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     // ==========================================================================================
 
-    function removeCoreContract(CoreContracts name_) external onlyAdmin {
-        address current = _coreContracts[name_];
-        _coreContracts[name_] = address(0);
-        _isProjectContract[current] = false;
-    }
-
-    function removePeripheralContract(PeripheralContracts name_) external onlyAdmin {
-        address current = _peripheralContracts[name_];
-        _peripheralContracts[name_] = address(0);
+    function removeMainContract(Main name_) external onlyAdmin {
+        address current = _mainContracts[name_];
+        _mainContracts[name_] = address(0);
         _isProjectContract[current] = false;
     }
 
     function removeSpreadContract(string memory name_) external onlyAdmin {
-        bytes32 key = keccak256(bytes(name));
+        bytes32 key = keccak256(bytes(name_));
         address current = _spreadContracts[key];
         _spreadContracts[key] = address(0);
         _isProjectContract[current] = false;
@@ -153,20 +136,17 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
     // =================================================================================
 
-    function _checkZeroAddress(address addr_) internal view returns (address) {
+    function _checkZeroAddress(address addr_) internal pure returns (address) {
         if (addr_ == address(0)) revert ZeroAddress();
         return addr_;
     }
-    function getCoreContract(CoreContracts name_) external view returns (address) {
-        address current = _coreContracts[name_];
+    function getMainContract(Main name_) external view returns (address) {
+        address current = _mainContracts[name_];
         return _checkZeroAddress(current);
     }
-    function getPeriphContr(PeripheralContracts name_) external view returns (address) {
-        address current = _peripheralContracts[name_];
-        return _checkZeroAddress(current);
-    }
+
     function getSpreadContract(string memory name_) external view returns (address) {
-        bytes32 key = keccak256(bytes(name));
+        bytes32 key = keccak256(bytes(name_));
         address current = _spreadContracts[key];
         return _checkZeroAddress(current);
     }
@@ -175,15 +155,15 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
 
 
         /**
-     * @notice (init step: 4)
+     * @notice (init )
      * Set all contract addresses
      */
-    function setCoreContractsToAll() external onlyAdmin {
-        IExchange(exchange).setCoreContracts();
-        IFundManager(fundManager).setCoreContracts();
-        IBlindBox(blindBox).setCoreContracts();
-        IUserManager(userManager).setCoreContracts();
-        // IForwarder(forwarder).setCoreContracts();
+    function setAllContracts() external onlyAdmin {
+        IExchange(_mainContracts[Main.Exchange]).setContracts();
+        IFundManager(_mainContracts[Main.FundManager]).setContracts();
+        IBlindBox(_mainContracts[Main.BlindBox]).setContracts();
+        IUserManager(_mainContracts[Main.UserManager]).setContracts();
+        IForwarder(_mainContracts[Main.Forwarder]).setContracts();
     }
 
     // =================================================================================
@@ -260,8 +240,8 @@ contract AddressManager is ProxyUpgrade, IAddressManager {
     }
 
     function checkTokenSupported(address token_) external view {
-        if(token_ == address(0)) revert InvalidToken();
-        if(_tokenStatus[token_] != TokenEnum.Active) revert TokenUnSupported();
+        if(token_ == address(0)) revert ZeroAddress();
+        if(_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
     }
 
     /**
