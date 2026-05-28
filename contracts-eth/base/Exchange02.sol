@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.24;
 
-// import {
-//     ERC2771Context
-// } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import {
+    ERC2771Context
+} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
 import {ExchangeEvents} from "@interfaces/eth/IExchange.sol";
@@ -18,7 +18,7 @@ import {Exchange01} from "./Exchange01.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange02 is Exchange01, ExchangeEvents {
+contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     // =======================================================================================================
 
     struct BoxExchengData {
@@ -33,7 +33,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
 
     // ========================================================================================================
 
-    constructor(address addrManager_) Exchange01(addrManager_) {}
+    constructor(address addrManager_, address trustedForwarder_) Exchange01(addrManager_) ERC2771Context(trustedForwarder_) {}
 
     // ========================================================================================================
     //                                           Checker functions
@@ -79,8 +79,7 @@ contract Exchange02 is Exchange01, ExchangeEvents {
         if (BlindBox.getStatus(boxId_) != Status.Storing)
             revert InvalidStatus();
         // erc2771 - _msgSender() is the real caller
-        // address sender = _msgSender();
-        address sender = msg.sender;
+        address sender = _msgSender();
 
         bytes32 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();

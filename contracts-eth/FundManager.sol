@@ -18,7 +18,7 @@ contract FundManager is FundManager03, IFundManager {
     using SafeERC20 for IERC20;
     // ====================================================================================================================
 
-    constructor(address addrManager_) FundManager03(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) FundManager03(addrManager_, trustForwarder_) {}
 
     /**
      * @notice Set contract addresses

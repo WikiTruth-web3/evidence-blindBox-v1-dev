@@ -4,7 +4,9 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
+import {
+    ERC2771Context
+} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
@@ -22,7 +24,7 @@ import {FundManager01} from "./FundManager01.sol";
  * Inherits IFundManager interface to ensure consistency between interface and implementation
  */
 
-contract FundManager02 is FundManager01, FundManagerEvents {
+contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
     using SafeERC20 for IERC20;
     address internal DAO_FUND_MANAGER;
 
@@ -40,7 +42,7 @@ contract FundManager02 is FundManager01, FundManagerEvents {
 
     // ====================================================================================================================
 
-    constructor(address addrManager_) FundManager01(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) FundManager01(addrManager_) ERC2771Context(trustForwarder_) {}
 
     // ====================================================================================================================
     // Reward Allocation Functions
@@ -105,8 +107,8 @@ contract FundManager02 is FundManager01, FundManagerEvents {
         if (list_.length == 0) revert EmptyList();
         uint256 amount;
         IExchange exchange = EXCHANGE;
-        // erc2771 - msg.sender is the real caller
-        address sender = msg.sender;
+        // erc2771 - _msgSender() is the real caller
+        address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
 
         // Process refunds for each box

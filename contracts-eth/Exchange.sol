@@ -17,7 +17,7 @@ import {Main} from "@interfaces/IContracts.sol";
 contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
-    constructor(address addrManager_) Exchange03(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) Exchange03(addrManager_, trustForwarder_) {}
 
     // ==========================================================================================================
 

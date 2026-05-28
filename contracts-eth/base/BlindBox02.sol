@@ -4,7 +4,9 @@ pragma solidity ^0.8.24;
 
 import {BlindBox01} from "./BlindBox01.sol";
 import {BlindBoxEvents, Status} from "@interfaces/eth/IBlindBox.sol";
-
+import {
+    ERC2771Context
+} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 /**
  *  @notice BlindBox contract
  *  Implement basic BlindBox functions, including mint, publish, blacklist, etc.
@@ -12,7 +14,7 @@ import {BlindBoxEvents, Status} from "@interfaces/eth/IBlindBox.sol";
  *  @dev Inherits IBlindBox interface to ensure consistency between interface and implementation
  */
 
-contract BlindBox02 is BlindBox01, BlindBoxEvents {
+contract BlindBox02 is BlindBox01, BlindBoxEvents, ERC2771Context {
     struct BasicData {
         Status _status;
         uint256 _price;
@@ -29,7 +31,7 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents {
     mapping(uint256 boxId => SecretData) internal _secretData;
 
     // ==================================================================================================
-    constructor(address addrManager_) BlindBox01(addrManager_) {}
+    constructor(address addrManager_, address trustedForwarder_) BlindBox01(addrManager_) ERC2771Context(trustedForwarder_){}
 
     // ==========================================================================================================
     //                                                 mint Functions
@@ -53,8 +55,8 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents {
     ) internal returns (uint256) {
         uint256 boxId = _nextBoxId;
 
-        // erc2771 - msg.sender is the real caller
-        address sender = msg.sender;
+        // erc2771 - _msgSender() is the real caller
+        address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
 
         _basicData[boxId] = BasicData({
@@ -133,12 +135,12 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents {
 
     // ==========================================================================================================
     function _checkMinter(uint256 boxId_) internal view {
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _secretData[boxId_]._minterId) revert NotMinter();
     }
 
     function _checkBuyer(uint256 boxId_) internal view {
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
     }
 

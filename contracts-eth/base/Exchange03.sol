@@ -16,7 +16,7 @@ import {Main} from "@interfaces/IContracts.sol";
 contract Exchange03 is Exchange02 {
     // ========================================================================================================
 
-    constructor(address addrManager_) Exchange02(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) Exchange02(addrManager_, trustForwarder_) {}
 
     // ========================================================================================================
     //                                          Buying related functions
@@ -24,7 +24,7 @@ contract Exchange03 is Exchange02 {
     function _buy(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
-        address sender = msg.sender;
+        address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
 
         uint256 payAmount = blindBox.getPrice(boxId_);
@@ -66,7 +66,7 @@ contract Exchange03 is Exchange02 {
     function _bid(
         uint256 boxId_
     ) internal {
-        address sender = msg.sender;
+        address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
         if (userId == _buyerIdOf(boxId_)) revert InvalidCaller();
 
@@ -115,8 +115,8 @@ contract Exchange03 is Exchange02 {
         IBlindBox blindBox = BLIND_BOX;
         // canRequestRefund?
         if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
-        // erc2771 - msg.sender is the real caller
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        // erc2771 - _msgSender() is the real caller
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
 
         if (_isInRequestRefundDeadline(boxId_)) {
@@ -135,8 +135,8 @@ contract Exchange03 is Exchange02 {
      * @notice Cancel refund function, after canceling refund, the box status becomes Sold
      */
     function _cancelRefund(uint256 boxId_) internal {
-        // erc2771 - msg.sender is the real caller
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        // erc2771 - _msgSender() is the real caller
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
 
         IBlindBox blindBox = BLIND_BOX;
@@ -161,12 +161,13 @@ contract Exchange03 is Exchange02 {
             revert InvalidStatus();
 
         if (_isInReviewDeadline(boxId_)) {
-            // erc2771 - msg.sender is the real caller
+            // erc2771 - _msgSender() is the real caller
+            address sender = _msgSender();
             // Check role: minter、DAO
-            bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+            bytes32 userId = USER_MANAGER.getUserId(sender);
             if (
                 userId != blindBox.minterIdOf(boxId_) &&
-                msg.sender != ADDR_MANAGER.getMainContract(Main.Dao) // The dao must be a contract, so need not use msg.sender
+                sender != ADDR_MANAGER.getMainContract(Main.Dao) // The dao must be a contract, so need not use _msgSender()
             ) {
                 revert InvalidCaller();
             }
@@ -183,7 +184,8 @@ contract Exchange03 is Exchange02 {
      */
     function _refuseRefund(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
-        if (msg.sender != ADDR_MANAGER.getMainContract(Main.Dao)) revert NotDAO();
+
+        if (_msgSender() != ADDR_MANAGER.getMainContract(Main.Dao)) revert NotDAO();
         // canRefuse?
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();

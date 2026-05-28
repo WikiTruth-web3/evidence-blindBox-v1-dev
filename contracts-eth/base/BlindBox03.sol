@@ -12,7 +12,7 @@ import {Status} from "@interfaces/eth/IBlindBox.sol";
 
 contract BlindBox03 is BlindBox02 {
     // ==================================================================================================
-    constructor(address addrManager_) BlindBox02(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) BlindBox02(addrManager_, trustForwarder_) {}
 
     //==================================================================================================
     //                                      Get Info Functions
@@ -74,7 +74,7 @@ contract BlindBox03 is BlindBox02 {
         uint256 boxId_
     ) internal view returns (bytes memory) {
         Status status = _getStatus(boxId_);
-        bytes32 userId = USER_MANAGER.getUserId(msg.sender);
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
 
         if (
             status <= Status.Auctioning // Storing\Selling\Auctioning
@@ -175,7 +175,7 @@ contract BlindBox03 is BlindBox02 {
     function _delay(uint256 boxId_) internal {
         uint256 amount = _basicData[boxId_]._price;
 
-        FUND_MANAGER.payDelayFee(boxId_, msg.sender, amount); // erc2771
+        FUND_MANAGER.payDelayFee(boxId_, _msgSender(), amount); // erc2771
 
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);

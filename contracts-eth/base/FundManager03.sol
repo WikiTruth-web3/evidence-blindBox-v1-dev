@@ -17,7 +17,7 @@ contract FundManager03 is FundManager02 {
     using SafeERC20 for IERC20;
     // ====================================================================================================================
 
-    constructor(address addrManager_) FundManager02(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) FundManager02(addrManager_, trustForwarder_) {}
 
     // ====================================================================================================================
 
@@ -94,8 +94,8 @@ contract FundManager03 is FundManager02 {
         address token_,
         address virtual_
     ) internal nonReentrant whenNotPaused {
-        // erc2771 - msg.sender is the real caller
-        address sender = msg.sender;
+        // erc2771 - _msgSender() is the real caller
+        address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
         uint256 amount = _rewardAmounts[userId][token_];
         if (amount == 0) {

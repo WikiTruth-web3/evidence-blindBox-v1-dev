@@ -15,7 +15,7 @@ import {Main} from "@interfaces/IContracts.sol";
 
 contract BlindBox is BlindBox03, IBlindBox {
     // ==================================================================================================
-    constructor(address addrManager_) BlindBox03(addrManager_) {}
+    constructor(address addrManager_, address trustForwarder_) BlindBox03(addrManager_, trustForwarder_) {}
 
     /**
      * @notice Set the contract address
