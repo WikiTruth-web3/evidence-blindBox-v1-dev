@@ -13,6 +13,6 @@ enum Main {
     // -----
     Staking, // 6
     Dao,
-    DaoFundManager,
+    DaoTreasury,
     Governance
 }

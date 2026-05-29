@@ -158,8 +158,4 @@ if (!ADDR_MANAGER.isProjectContract(msg.sender)) {
 }
 ```
 
-### 4. DEX（uniswa-v3）集成
-
-只需要使用 uniswap-v3 和 quoter 即可
-
 ---

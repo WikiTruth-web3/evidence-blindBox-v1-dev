@@ -147,23 +147,23 @@ interface IFundManager {
     /**
      * @notice Get order amount
      * @param boxId_ BlindBox ID
-     * @param siweToken_ User SIWE token
+     * @param userId_ User ID
      * @return Order amount
      */
     function orderAmounts(
         uint256 boxId_,
-        bytes memory siweToken_
+        bytes32 userId_
     ) external view returns (uint256);
 
     /**
      * @notice Get reward amount
      * @param token_ Token address
-     * @param siweToken_ User SIWE token
+     * @param userId_ User ID
      * @return reward amount
      */
     function rewardAmounts(
         address token_,
-        bytes memory siweToken_
+        bytes32 userId_
     ) external view returns (uint256);
 
     /**
