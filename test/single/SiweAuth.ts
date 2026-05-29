@@ -5,7 +5,6 @@ import { ethers } from 'hardhat';
 // import { Signer } from 'ethers';
 // import { SiweMessage } from 'siwe';
 import '@nomicfoundation/hardhat-chai-matchers';
-// import { user_evm_WikiTruth } from "../WikiTruth_account";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 // import { NETWORKS } from '@oasisprotocol/sapphire-paratime';
 import { 

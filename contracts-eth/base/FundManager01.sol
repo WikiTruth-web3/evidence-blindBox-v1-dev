@@ -6,18 +6,31 @@ import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "../abstract/Pausable.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
-import {SetContracts} from "../modifier/SetContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
+import {Modifier} from "../modifier/Modifier.sol";
+
+// import {SetContracts} from "../modifier/SetContracts.sol";
 
 /**
  * @title FundManager01
  * @dev Fund management contract that supports multiple tokens
  */
 
-contract FundManager01 is SetContracts, ReentrancyGuard, Pausable {
+contract FundManager01 is Modifier, ReentrancyGuard, Pausable {
     event BuyerRefundRateAdded(uint256 boxId, uint8 rate);
     event DaoFeeRateAdded(uint256 boxId, uint8 rate);
     // =====================================================================================
+    IBlindBox internal BLIND_BOX;
+    IUserManager internal USER_MANAGER;
+    IExchange internal EXCHANGE;
+    // IFundManager internal FUND_MANAGER;
+    address internal DAO_TREASURY;
 
     // rate / 1000 = %
     /**
@@ -28,9 +41,40 @@ contract FundManager01 is SetContracts, ReentrancyGuard, Pausable {
 
 
     // =====================================================================================
-    constructor(address addrManager_) SetContracts(addrManager_) {
+    constructor(address addrManager_) Modifier(addrManager_) {
         _serviceFeeRate = 30; // 30
         _helperFeeRate = 10; // 10
+    }
+
+    // =====================================================================================
+    function _setContracts() internal {
+        IAddressManager addrMgr = ADDR_MANAGER;
+
+        address blindBox = addrMgr.getMainContract(Main.BlindBox);
+        if (blindBox != address(BLIND_BOX)) {
+            BLIND_BOX = IBlindBox(blindBox);
+        }
+
+        address exchange = addrMgr.getMainContract(Main.Exchange);
+        if (exchange != address(EXCHANGE)) {
+            EXCHANGE = IExchange(exchange);
+        }
+
+        // address fundManager = addrMgr.getMainContract(Main.FundManager);
+        // if (fundManager != address(FUND_MANAGER) ) {
+        //     FUND_MANAGER = IFundManager(fundManager);
+        // }
+
+        address userManager = addrMgr.getMainContract(Main.UserManager);
+        if (userManager != address(USER_MANAGER) ) {
+            USER_MANAGER = IUserManager(userManager);
+        }
+
+        address daoTreasury = addrMgr.getMainContract(Main.DaoTreasury);
+        if (daoTreasury != DAO_TREASURY ) {
+            DAO_TREASURY = daoTreasury;
+        }
+
     }
 
     // =====================================================================================

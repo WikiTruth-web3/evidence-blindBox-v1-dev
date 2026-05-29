@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./fixtures/Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -14,7 +14,7 @@ describe("交易测试-多代币测试", function () {
   it("15- minter 使用testToken出售", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_treasury,
       fundManager, exchange,fundManager_buyer2,fundManager_buyer, fundManager_minter,
     } = await loadFixture(deployBlindBoxFixture);
 
@@ -45,7 +45,7 @@ describe("交易测试-多代币测试", function () {
     // TODO 
     // 在Fixture中，设置officialToken与testToken的兑换比例为10:1，
     // 所以：原本按比例收取210的testToken，兑换后获得2092（被滑点和手续费扣除后的）的officialToken
-    const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_fund_manager.address);
+    const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_treasury.address);
     console.log("Swap5-01-balanceDao_fund_manager1:", balanceDao_fund_manager1);
     const incomeMinter = await fundManager.rewardAmounts(wBTC.target,minter.address);
     console.log("Swap5-01-incomeMinter:", incomeMinter);
@@ -62,7 +62,7 @@ describe("交易测试-多代币测试", function () {
   it("15- seller 使用testToken出售", async function () {
     const { 
       exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
-      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_fund_manager,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_treasury,
       fundManager, exchange, exchange_seller, fundManager_buyer2,fundManager_buyer, fundManager_minter,
     } = await loadFixture(deployBlindBoxFixture);
 

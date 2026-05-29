@@ -12,7 +12,6 @@ import {
     // getCurrentNetwork,
     type TestAccounts
 } from '../../utils';
-// import { user_evm_WikiTruth } from "../WikiTruth_account";
 
 /**
  * 在localnet 本地测试ERC20Secret合约

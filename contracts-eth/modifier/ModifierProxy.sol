@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
 import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
 import {ProxyUpgrade} from "../proxy/ProxyUpgrade.sol";
 
-contract ModifierV3 is ProxyUpgrade {
+contract ModifierProxy is ProxyUpgrade {
     // address internal ADMIN;
     IAddressManager internal ADDR_MANAGER;
 

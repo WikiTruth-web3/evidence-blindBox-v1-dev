@@ -25,12 +25,12 @@ interface IForwarder {
     /**
      * @notice Set target contract whitelist status
      */
-    function setTargetStatus(address target_, bool status_) external;
+    // function setTargetStatus(address target_, bool status_) external;
 
     /**
      * @notice Set gas limit per transaction
      */
-    function setMaxGasLimit(uint256 maxGasLimit_) external;
+    // function setMaxGasLimit(uint256 maxGasLimit_) external;
 
     /**
      * @notice pause status
@@ -46,7 +46,7 @@ interface IForwarder {
     //                                     Getters
     // =====================================================================================
 
-    function isTargetWhitelisted(address target_) external view returns (bool);
+    // function isTargetWhitelisted(address target_) external view returns (bool);
 
-    function getMaxGasLimit() external view returns (uint256);
+    // function getMaxGasLimit() external view returns (uint256);
 }

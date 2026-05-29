@@ -3,15 +3,16 @@
 
 pragma solidity ^0.8.24;
 
-// import "@openzeppelin/contracts/utils/Context.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
-// import {IUserManager} from "@interfaces/interfaces/IUserManager.sol";
-// import {IBlindBox} from "@interfaces/interfaces/IBlindBox.sol";
-// import {IFundManager} from "@interfaces/interfaces/IFundManager.sol";
-// import {IExchange} from "@interfaces/interfaces/IExchange.sol";
-// import {IAddressManager} from "@interfaces/interfaces/IAddressManager.sol";
+import {Main} from "@interfaces/IContracts.sol";
+import {Modifier} from "../modifier/Modifier.sol";
 
-import {SetContracts} from "../modifier/SetContracts.sol";
+// import {SetContracts} from "../modifier/SetContracts.sol";
 
 /**
  *  @title Exchange01
@@ -19,9 +20,13 @@ import {SetContracts} from "../modifier/SetContracts.sol";
  *  @dev Inherits SetContracts to support modifiers
  */
 
-contract Exchange01 is SetContracts {
+contract Exchange01 is Modifier {
     error NotBuyContract();
-    
+    IBlindBox internal BLIND_BOX;
+    IUserManager internal USER_MANAGER;
+    // IExchange internal EXCHANGE;
+    IFundManager internal FUND_MANAGER;
+
     uint256 internal _refundRequestPeriod;
     uint256 internal _arbitrationPeriod;
 
@@ -29,13 +34,37 @@ contract Exchange01 is SetContracts {
 
     // ========================================================================================================
 
-    constructor(address addrManager_) SetContracts(addrManager_) {
+    constructor(address addrManager_) Modifier(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
         _arbitrationPeriod = 15 days;
     }
 
     // ========================================================================================================
+    function _setContracts() internal {
+        IAddressManager addrMgr = ADDR_MANAGER;
+
+        address blindBox = addrMgr.getMainContract(Main.BlindBox);
+        if (blindBox != address(BLIND_BOX)) {
+            BLIND_BOX = IBlindBox(blindBox);
+        }
+
+        // address exchange = addrMgr.getMainContract(Main.Exchange);
+        // if (exchange != address(EXCHANGE)) {
+        //     EXCHANGE = IExchange(exchange);
+        // }
+
+        address fundManager = addrMgr.getMainContract(Main.FundManager);
+        if (fundManager != address(FUND_MANAGER) ) {
+            FUND_MANAGER = IFundManager(fundManager);
+        }
+
+        address userManager = addrMgr.getMainContract(Main.UserManager);
+        if (userManager != address(USER_MANAGER) ) {
+            USER_MANAGER = IUserManager(userManager);
+        }
+
+    }
 
     // =====================================================================================
     //                                      Basic Parameter Settings

@@ -11,8 +11,7 @@ enum Main {
     SiweAuth, // 4
     Forwarder,
     // -----
-    Staking, // 6
-    Dao,
+    Dao, // 6
     DaoTreasury,
     Governance
 }

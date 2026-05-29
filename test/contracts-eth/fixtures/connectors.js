@@ -8,7 +8,7 @@ async function createConnectors(signers, contracts) {
   const {
     admin, admin2, dao, governance, minter, 
     seller, buyer, buyer2, completer, other, 
-    other2, dao_fund_manager, forwarder,
+    other2, dao_treasury, forwarder,
     siweAuth, // 替代SiweAuth 合约，因为eth版本不使用SiweAuth
   } = signers;
 
@@ -62,7 +62,7 @@ async function createConnectors(signers, contracts) {
     buyer: fundManager.connect(buyer),
     buyer2: fundManager.connect(buyer2),
     dao: fundManager.connect(dao),
-    dao_fund_manager: fundManager.connect(dao_fund_manager),
+    dao_treasury: fundManager.connect(dao_treasury),
     completer: fundManager.connect(completer)
   };
 

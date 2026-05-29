@@ -11,8 +11,8 @@ import {Main} from "@interfaces/IContracts.sol";
  */
 
 contract Modifier is Error {
-    IAddressManager internal ADDR_MANAGER;
     address internal ADMIN;
+    IAddressManager internal ADDR_MANAGER;
 
     // =======================================================================================================
     constructor(address addrManager_) {
@@ -28,9 +28,9 @@ contract Modifier is Error {
         ADMIN = admin_;
     }
 
-    // function admin() external view returns (address) {
-    //     return ADMIN;
-    // }
+    function admin() external view returns (address) {
+        return ADMIN;
+    }
 
     // =====================================================================================
 

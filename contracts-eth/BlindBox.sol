@@ -22,7 +22,7 @@ contract BlindBox is BlindBox03, IBlindBox {
      * @dev Get and set the related contract addresses from AddressManager
      */
     function setContracts() external onlyManager {
-        _setContracts(Main.BlindBox);
+        _setContracts();
     }
 
     // ==========================================================================================================
@@ -95,8 +95,6 @@ contract BlindBox is BlindBox03, IBlindBox {
 
     // Safe payment, NFT must not be public and invalid
     function delay(uint256 boxId_) external {
-        _isStatus(boxId_, Status.Delaying);
-        _isInWindowPeriod(boxId_);
         _delay(boxId_);
     }
 

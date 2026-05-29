@@ -27,7 +27,6 @@ import {FundManager01} from "./FundManager01.sol";
 
 contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
     using SafeERC20 for IERC20;
-    address internal DAO_TREASURY;
 
     // ====================================================================================================================
     /// @dev Total reward amounts

@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 
 describe("FundManager_FeeRate", function () {
 
@@ -12,7 +12,7 @@ describe("FundManager_FeeRate", function () {
     const { 
       admin, admin2, dao, minter, seller, buyer, completer, other, other2,
       fundManager_DAO,blindBox_DAO,blindBox_minter, exchange_DAO, exchange_minter,
-      fundManager, exchange, dao_fund_manager,
+      fundManager, exchange, dao_treasury,
     } = await loadFixture(deployBlindBoxFixture);
     
     await fundManager_DAO.setServiceFeeRate(10);
@@ -42,7 +42,7 @@ describe("FundManager_FeeRate", function () {
       blindBox, exchange, fundManager, 
       DAY, MONTH, YEAR,
       exchange_minter,exchange_DAO, exchange_buyer, blindBox_buyer, exchange_completer,
-      address_zero,dao_fund_manager,userManager_buyer, userManager_completer
+      address_zero,dao_treasury,userManager_buyer, userManager_completer
     } = await loadFixture(deployBlindBoxFixture);
 
     // 时间增加360天
@@ -68,7 +68,7 @@ describe("FundManager_FeeRate", function () {
     const incomeMinter = await fundManager.rewardAmounts( settlementToken.target,minter.address);
     expect(incomeMinter).to.equal(1940); // 2000-2000*3%*2 = 1940
     // 检查1号的DAO收入（服务费）
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(60);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(60);
 
     // ========================== 完成2 ==========================
     await exchange_completer.completeOrder(2);
@@ -95,7 +95,7 @@ describe("FundManager_FeeRate", function () {
 
     // ============================ 一共成交5000，1号2000+2000，2号1000 ===================================
     // 费率为 3% ， 1000*3% = 30*5=150
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(150);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(150);
 
 
   });

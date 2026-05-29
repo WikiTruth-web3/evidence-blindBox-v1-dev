@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./fixtures/Fixture.js");
 const { FundsType, RewardType, Status } = require("./helpers");
 
 // npx hardhat test test/contracts-eth/EmitTest.js
@@ -167,7 +167,7 @@ describe("Exchange 交易流程事件测试", function () {
     const tx3 = fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1]);
     await expect(tx3)
       .to.emit(fundManager, "OrderAmountWithdraw")
-      .withArgs([1], settlementToken.target, anyValue, 5000, FundsType.Order);
+      .withArgs([1], settlementToken.target, anyValue, 5000);
 
 
   });
@@ -191,7 +191,7 @@ describe("Exchange 交易流程事件测试", function () {
     await expect(requestTx)
       .to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Refunding)
-      .and.to.emit(exchange, "ReviewDeadlineChanged")
+      .and.to.emit(exchange, "ArbitrationDeadineChanged")
       .withArgs(1, anyValue);
 
     const agreeTx = exchange_minter.agreeRefund(1);
@@ -204,8 +204,8 @@ describe("Exchange 交易流程事件测试", function () {
     // buyer 提取退款
     const withdrawTx = fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1]);
     await expect(withdrawTx)
-      .to.emit(fundManager, "OrderAmountWithdraw")
-      .withArgs([1], settlementToken.target, anyValue, 2000, FundsType.Refund);
+      .to.emit(fundManager, "RefundAmountWithdraw")
+      .withArgs([1], settlementToken.target, anyValue, 2000);
 
   });
 
@@ -234,7 +234,7 @@ describe("Exchange 交易流程事件测试", function () {
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Delaying)
       .and.to.emit(fundManager, "RewardsAdded")
-      .withArgs(1, settlementToken.target, 2000, RewardType.Total);
+      .withArgs(1, anyValue);
 
     // completer 提取奖励
     const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target);
@@ -275,7 +275,7 @@ describe("Exchange 交易流程事件测试", function () {
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Delaying)
       .and.to.emit(fundManager, "RewardsAdded")
-      .withArgs(1, wBTC.target, 2000, RewardType.Total);
+      .withArgs(1, anyValue);
 
     // completer 提取奖励
     const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target);

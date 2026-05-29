@@ -89,18 +89,18 @@ contract AddressManager is IAddressManager, Error {
     /**
      * @dev Set addresses
      * @notice NOTE(init step: 1)
-     * @param name_ Contract name
+     * @param enum_ Contract name
      * @param addr_ Contract address
      */
-    function setMainContract(Main name_, address addr_) external {
-        _setMainContract(name_, addr_);
+    function setMainContract(Main enum_, address addr_) external {
+        _setMainContract(enum_, addr_);
     }
 
-    function _setMainContract(Main name_, address addr_) internal onlyAdmin {
-        address current = _mainContracts[name_];
+    function _setMainContract(Main enum_, address addr_) internal onlyAdmin {
+        address current = _mainContracts[enum_];
         _OldNew(current, addr_);
         
-        _mainContracts[name_] = addr_;
+        _mainContracts[enum_] = addr_;
     }
 
     /**
@@ -116,15 +116,16 @@ contract AddressManager is IAddressManager, Error {
         _spreadContracts[key] = addr_;
     }
     function _OldNew(address old_, address new_) internal {
-        if (new_ == address(0) || new_ == old_) revert InvalidAddress();
-        _isProjectContract[new_] = true;
-        _isProjectContract[old_] = false;
+        if (new_ != address(0) && new_ != old_) {
+            _isProjectContract[new_] = true;
+            _isProjectContract[old_] = false;
+        }
     }
     // ==========================================================================================
 
-    function removeMainContract(Main name_) external onlyAdmin {
-        address current = _mainContracts[name_];
-        _mainContracts[name_] = address(0);
+    function removeMainContract(Main enum_) external onlyAdmin {
+        address current = _mainContracts[enum_];
+        _mainContracts[enum_] = address(0);
         _isProjectContract[current] = false;
     }
 
@@ -211,8 +212,8 @@ contract AddressManager is IAddressManager, Error {
     //                                        getters Token  
     // ====================================================================================================
 
-    function getMainContract(Main name_) external view returns (address) {
-        address current = _mainContracts[name_];
+    function getMainContract(Main enum_) external view returns (address) {
+        address current = _mainContracts[enum_];
         if (current == address(0)) revert ZeroAddress();
         return current;
     }

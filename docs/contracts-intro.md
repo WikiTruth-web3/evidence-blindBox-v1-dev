@@ -9,7 +9,6 @@
   - 信息盒子创建和管理
   - **关键信息加密存储**（利用 Sapphire 加密功能）
   - 保密费管理
-  - NFT 铸造集成
   - 与 Exchange、FundManager 交互
 
 ### 2. Exchange（交易合约）
@@ -25,15 +24,13 @@
 
 - **作用**：管理资金分配和提取
 - **功能**：
-  - 奖励分配（minter、helper）
+  - 奖励分配（minter、seller、completer）
   - 资金提取（支持多代币）
-  - DEX 集成（通过 SwapRouter 兑换代币）
-  - 滑点保护
   - 保密费结算
 
 > 详细的业务流程见：[核心业务流程.md](./核心业务流程.md)。
 
-## 🔑 辅助合约说明
+## 🔑 非核心业务合约
 
 ### 1. AddressManager（地址管理合约）
 
@@ -42,7 +39,6 @@
   - 管理核心合约地址（Exchange、FundManager、BlindBox、SiweAuth 等）
   - 管理支持的隐私代币白名单
   - 管理项目合约授权（`_isProjectContract` mapping）
-  - 管理 DEX 相关地址（SwapRouter、Quoter）
   - 管理保留地址列表
 
 ### 2. SiweAuth（SIWE 身份验证合约）⭐ Sapphire 特有
@@ -62,7 +58,7 @@
   - **加密存储用户 ID 映射**（利用 Sapphire TEE）
   - 黑名单管理
   - 通过 AddressManager 进行权限控制
-  - 与 SiweAuth 集成
+  - 与 SiweAuth 集成 (sapphire 隐私合约独有)
 
 ### 4. Forwarder（元交易）
 
@@ -85,7 +81,7 @@ import "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 bytes memory encryptedKey = Sapphire.encrypt(...);
 ```
 
-### 3. SIWE 身份验证
+### 2. SIWE 身份验证
 
 ```solidity
 // 使用 SIWE 令牌进行身份验证
@@ -93,22 +89,19 @@ bytes memory siweToken = ...;
 address user = ISiweAuth(SIWE_AUTH).getMsgSender(siweToken);
 ```
 
-### 4. 加密用户 ID
+### 3. 加密用户 ID
 
 - 用户地址到 ID 的映射加密存储
 - 保护用户隐私，防止链上追踪
 
-## 🚀 部署指南
+### 4. ERC2771 元交易
 
-### 部署顺序
+- 支持代理支付 gas 费
+- 实现链上隐身交易
 
-1. **AddressManager**（最先部署）,其它合约依赖 AddressManager
+### 5. PrivacyERC20
 
-2. **配置合约地址**
-   ```bash
-   # 调用 AddressManager.setAddressList() 设置所有地址
-   # 调用 AddressManager.setAllAddress() 通知所有合约更新地址
-   ```
+- 采用PrivacyERC20合约，实现链上资金不可追踪
 
 ## 🔧 开发注意事项
 

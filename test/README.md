@@ -1,6 +1,6 @@
-# WikiTruth 测试套件
+# Evidence Market 测试套件
 
-WikiTruth 项目包含两个版本的合约和对应的测试套件:
+Evidence Market 项目包含两个版本的合约和对应的测试套件:
 
 ## 📁 项目结构
 
@@ -9,13 +9,6 @@ test/
 ├── contracts-eth/                   # eth 版本测试 (JavaScript)
 │   ├── *.js                   # 测试文件
 │   └── fixtures/              # 测试固件
-│
-├── utils/                     # 工具函数 (TypeScript)
-│   ├── common.ts             # 通用工具
-│   ├── getAccount.ts         # 账户管理
-│   ├── getSiweAuth.ts        # SIWE 认证
-│   ├── connectContracts.ts  # 合约连接
-│   └── index.ts             # 导出索引
 │
 ├── single/                    # 单独测试
 │   ├── SiweAuth.ts           # SiweAuth 合约测试
@@ -62,7 +55,6 @@ npx hardhat test test/contracts-eth/Exchange.js
 | BlindBox 基本功能    | ✅       | ✅            |
 | Exchange 交易功能    | ✅       | ✅            |
 | FundManager 资金管理 | ✅       | ✅            |
-| TruthNFT NFT 功能    | ✅       | ✅            |
 | UserManager 用户管理 | ✅       | ✅            |
 | SiweAuth 认证        | ❌       | ✅            |
 | Sapphire 加密        | ❌       | ✅ (隐式)     |

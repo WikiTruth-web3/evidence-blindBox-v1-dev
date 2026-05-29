@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./fixtures/Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -15,7 +15,7 @@ describe("交易测试-多角色参与交易过程", function () {
     const { admin, dao, minter, seller, buyer, settlementToken, completer, blindBox, 
       exchange, fundManager ,bytes_mint, bytes_deliver, bytes32_1 , address_zero,
       userManager_completer,
-      fundManager_completer,fundManager_DAO,dao_fund_manager, fundManager_dao_fund_manager,
+      fundManager_completer,fundManager_DAO,dao_treasury, fundManager_dao_treasury,
       exchange_seller,exchange_DAO,exchange_buyer,exchange_completer, fundManager_buyer,fundManager_minter,
     } = await loadFixture(deployBlindBoxFixture);
 
@@ -82,8 +82,8 @@ describe("交易测试-多角色参与交易过程", function () {
     expect(balanceCompleter02-balanceCompleter).to.equal(20);
 
     // ========================== 提取手续费 ==========================
-    // await fundManager_DAO.withdrawServiceFee(dao_fund_manager.address);
-    const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_fund_manager.address);
+    // await fundManager_DAO.withdrawServiceFee(dao_treasury.address);
+    const balanceDao_fund_manager1 = await settlementToken.balanceOf(dao_treasury.address);
     // 两个box，一共60
     expect(balanceDao_fund_manager1).to.equal(60);
 

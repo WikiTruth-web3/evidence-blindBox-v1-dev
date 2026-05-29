@@ -25,8 +25,8 @@ contract Exchange is Exchange03, IExchange {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setContracts() external onlyManager {
-        _setContracts(Main.Exchange);
+    function setContracts() external onlyManager{
+        _setContracts();
     }
 
     // ========================================================================================================

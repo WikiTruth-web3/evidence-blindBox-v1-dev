@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const incrementRate = 200;
 const bidIncrementRate = 110;
 const serviceFeeRate = 30;
-const otherRewardRate = 10;
+const helperFeeRate = 10;
 const slippageProtection = 10;
 
 async function initializeContracts(contracts, connectors, signers) {
@@ -32,19 +32,22 @@ async function initializeContracts(contracts, connectors, signers) {
 
   // 从传入的 signers 中获取需要的签名者
   const {
-    dao, governance, dao_fund_manager, siweAuth, quoter, forwarder
+    dao, governance, dao_treasury, siweAuth, quoter, forwarder
   } = signers;
 
   const addressList = [
-    dao.address,
-    governance.address,
-    dao_fund_manager.address,
-    userManager.target, 
-    siweAuth.address, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
     blindBox.target, 
     exchange.target, 
     fundManager.target, 
-    forwarder.address
+    userManager.target,
+    // ------------------------- 
+    siweAuth.address, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
+    forwarder.address,
+    // --------------------------
+    dao.address,
+    dao_treasury.address,
+    governance.address,
+
   ];
 
   const swapContracts = [ 
@@ -52,9 +55,13 @@ async function initializeContracts(contracts, connectors, signers) {
     quoter.address
   ];
   
-  await addressManager.setAddressList(addressList);
-  await addressManager.setSwapContracts(swapContracts);
-  await addressManager.setAllAddress();
+
+  for (i; i< addressList; i++) {
+    await addressManager.setMainContract(i,addressList[i]);
+  }
+
+
+  await addressManager.setAllContracts();
   // 在tokenConfig中设置
   await addressManager.setSettlementToken(settlementToken.target);
   await addressManager.addToken(wBTC.target);
@@ -65,8 +72,7 @@ async function initializeContracts(contracts, connectors, signers) {
   await exchangeConnectors.dao.setRefundReviewPeriod(30 * 24 * 60 * 60); // 30天
   await exchangeConnectors.dao.setBidIncrementRate(bidIncrementRate);
   await fundManagerConnectors.dao.setServiceFeeRate(serviceFeeRate);
-  await fundManagerConnectors.dao.setHelperRewardRate(otherRewardRate);
-  // await fundManagerConnectors.dao.setSlippageProtection(slippageProtection);
+  await fundManagerConnectors.dao.setHelperFeeRate(helperFeeRate);
 
   // 生成测试用的随机数据
   const testData = generateTestData();
@@ -85,7 +91,7 @@ function generateTestData() {
     bytes_mint: '0x' + randomBytes.toString('hex'),
     bytes32_1: '0x' + crypto.randomBytes(32).toString('hex'),
     bytes32_2: '0x' + crypto.randomBytes(32).toString('hex'),
-    bytes32_buyer: '0x' + crypto.randomBytes(32).toString('hex'),
+    bytes32_3: '0x' + crypto.randomBytes(32).toString('hex'),
     address_zero: '0x0000000000000000000000000000000000000000',
     bytes32_zero: '0x0000000000000000000000000000000000000000000000000000000000000000'
   };
@@ -111,6 +117,6 @@ module.exports = {
   incrementRate,
   bidIncrementRate,
   serviceFeeRate,
-  otherRewardRate,
+  helperFeeRate,
   slippageProtection
 };

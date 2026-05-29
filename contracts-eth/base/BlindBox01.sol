@@ -2,27 +2,60 @@
 
 pragma solidity ^0.8.24;
 
-// import {IUserManager} from "@interfaces/eth/IUserManager.sol";
-// import {IFundManager} from "@interfaces/eth/IFundManager.sol";
-// import {IExchange} from "@interfaces/eth/IExchange.sol";
-// import {
-//     IAddressManager
-// } from "@interfaces/eth/IAddressManager.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IFundManager} from "@interfaces/eth/IFundManager.sol";
+import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
-import {SetContracts} from "../modifier/SetContracts.sol";
+import {Main} from "@interfaces/IContracts.sol";
+import {Modifier} from "../modifier/Modifier.sol";
+
+// import {SetContracts} from "../modifier/SetContracts.sol";
 /**
  *  @notice BlindBox01
  *  This contract defines the basic variables and functions of BlindBox
  */
 
-contract BlindBox01 is SetContracts {
+contract BlindBox01 is Modifier {
+    // IBlindBox internal BLIND_BOX;
+    IUserManager internal USER_MANAGER;
+    IExchange internal EXCHANGE;
+    IFundManager internal FUND_MANAGER;
+
     uint8 internal _incrementRate; // 2.0 * 100
 
     uint256 internal _nextBoxId;
 
     // ==================================================================================================
-    constructor(address addrManager_) SetContracts(addrManager_) {
+    constructor(address addrManager_) Modifier(addrManager_) {
         _incrementRate = 200;
+    }
+    // ========================================================================================================
+
+    function _setContracts() internal {
+        IAddressManager addrMgr = ADDR_MANAGER;
+
+        // address blindBox = addrMgr.getMainContract(Main.BlindBox);
+        // if (blindBox != address(BLIND_BOX)) {
+        //     BLIND_BOX = IBlindBox(blindBox);
+        // }
+
+        address exchange = addrMgr.getMainContract(Main.Exchange);
+        if (exchange != address(EXCHANGE)) {
+            EXCHANGE = IExchange(exchange);
+        }
+
+        address fundManager = addrMgr.getMainContract(Main.FundManager);
+        if (fundManager != address(FUND_MANAGER) ) {
+            FUND_MANAGER = IFundManager(fundManager);
+        }
+
+        address userManager = addrMgr.getMainContract(Main.UserManager);
+        if (userManager != address(USER_MANAGER) ) {
+            USER_MANAGER = IUserManager(userManager);
+        }
+
     }
 
     // ==========================================================================================================

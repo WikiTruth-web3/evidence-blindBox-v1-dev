@@ -36,15 +36,15 @@ describe('Reproduction: Unlisted Domain Login', function () {
         accounts = await getAccount(Number(network.chainId));
         addr1 = accounts.admin;
 
-        // Deploy SiweAuthWikiTruth
-        const contractFactory = await ethers.getContractFactory("contracts/SiweAuthWikiTruth.sol:SiweAuthWikiTruth");
+        // Deploy SiweAuth
+        const contractFactory = await ethers.getContractFactory("contracts/SiweAuth.sol:SiweAuth");
         siweAuthContract = await contractFactory.deploy(
             primaryDomain,
             validDomains
         );
         await siweAuthContract.waitForDeployment();
         contractAddress = await siweAuthContract.getAddress();
-        console.log("✅ SiweAuthWikiTruth deployed at:", contractAddress);
+        console.log("✅ SiweAuth deployed at:", contractAddress);
         
         await sleep(1000);
     });

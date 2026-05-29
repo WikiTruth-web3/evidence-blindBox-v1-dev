@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
 
 describe("AddressManager- 相关测试", function () {
@@ -15,7 +15,7 @@ describe("AddressManager- 相关测试", function () {
       userManager_buyer, userManager_minter, userManager_DAO
     } = await loadFixture(deployBlindBoxFixture);
 
-    const tokenList = [
+    const addressList = [
       blindBox.target, // dao
       exchange.target, // governance
       userManager.target, // daoFundManager
@@ -27,18 +27,20 @@ describe("AddressManager- 相关测试", function () {
       quoter.address, // fundManager
     ]
 
-    await addressManager.setAddressList(tokenList);
+    for (i; i< addressList; i++) {
+      await addressManager.setMainContract(i,addressList[i]);
+    }
 
-    expect(await addressManager.dao()).to.deep.equal(blindBox.target);
-    expect(await addressManager.governance()).to.deep.equal(exchange.target);
-    expect(await addressManager.daoFundManager()).to.deep.equal(userManager.target);
+    expect(await addressManager.getMainContract(0)).to.deep.equal(blindBox.target);
+    expect(await addressManager.getMainContract(1)).to.deep.equal(exchange.target);
+    expect(await addressManager.getMainContract(2)).to.deep.equal(userManager.target);
 
-    expect(await addressManager.userManager()).to.deep.equal(userManager.target);
-    expect(await addressManager.siweAuth()).to.deep.equal(siweAuth.address);
-    expect(await addressManager.blindBox()).to.deep.equal(blindBox.target);
+    expect(await addressManager.getMainContract(3)).to.deep.equal(userManager.target);
+    expect(await addressManager.getMainContract(4)).to.deep.equal(siweAuth.address);
+    expect(await addressManager.getMainContract(5)).to.deep.equal(blindBox.target);
 
-    expect(await addressManager.exchange()).to.deep.equal(wBTC.target);
-    expect(await addressManager.fundManager()).to.deep.equal(wETH.target);
+    expect(await addressManager.getMainContract(6)).to.deep.equal(wBTC.target);
+    expect(await addressManager.getMainContract(7)).to.deep.equal(wETH.target);
     
 
   });  

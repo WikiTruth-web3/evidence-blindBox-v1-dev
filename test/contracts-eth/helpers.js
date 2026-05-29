@@ -2,6 +2,20 @@
 const { expect } = require("chai");
 const { network, ethers } = require("hardhat");
 
+const Main = {
+    BlindBox: 0,
+    Exchange: 1,
+    FundManager: 2,
+    UserManager: 3,
+    // ---------------
+    SiweAuth: 4, // 4
+    Forwarder: 5,
+    // -----
+    Dao: 6, // 6
+    DaoTreasury: 7,
+    Governance:8
+}
+
 // 直接定义Status枚举，与Solidity合约中保持一致
 const Status = {
     Storing: 0,
@@ -22,8 +36,7 @@ const FundsType = {
 const RewardType = {
     Minter: 0,
     Seller: 1,
-    Completer: 2,
-    Total: 3
+    Completer: 2
 };
 
 const TimeHelpers = {

@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture } = require("./Fixture.js");
+const { deployBlindBoxFixture } = require("./fixtures/Fixture.js");
 const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
@@ -22,7 +22,7 @@ describe("交易测试-常规交易测试", function () {
       blindBox, exchange, fundManager, userManager_buyer,
       DAY, MONTH, YEAR,bytes32_zero,
       exchange_minter,exchange_completer, exchange_buyer, blindBox_buyer, 
-      address_zero, userManager_completer ,dao_fund_manager
+      address_zero, userManager_completer ,dao_treasury
     } = await loadFixture(deployBlindBoxFixture);
 
     // 时间增加360天
@@ -106,7 +106,7 @@ describe("交易测试-常规交易测试", function () {
     expect(orderAmounts_1_buyer).to.equal(0);
     const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     // 费率为 3% ， 2000*3% = 60
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(60);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(60);
     expect(incomeMinter).to.equal(1940); // 2000-2000*3%*2
     // expect(blanceOf_daoFund).to.equal(100); // 2000*5%
 
@@ -134,7 +134,7 @@ describe("交易测试-常规交易测试", function () {
     
 
     // ============================ 一共成交5000，1号2000+2000，2号1000 ===================================
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(150);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(150);
 
     expect(await fundManager.rewardAmounts( settlementToken.target,buyer.address)).to.equal(0);
 
@@ -243,7 +243,7 @@ describe("交易测试-常规交易测试", function () {
   it("03-minter拍卖-竞拍--多种角色提取资金", async function () {
     const { admin, dao, minter, buyer, settlementToken, other, blindBox, 
       exchange_minter, exchange_buyer,exchange_DAO,fundManager_buyer,fundManager_minter,
-      dao_fund_manager, fundManager_DAO,fundManager_dao_fund_manager, address_zero,
+      dao_treasury, fundManager_DAO,fundManager_dao_treasury, address_zero,
       fundManager,bytes32_1,bytes_mint ,bytes_deliver} = await loadFixture(deployBlindBoxFixture);
 
     // deadline增加30天的时间,共计60天，支付服务费
@@ -267,7 +267,7 @@ describe("交易测试-常规交易测试", function () {
     const incomeMinter = await fundManager.rewardAmounts(settlementToken.target,minter.address);
     expect(incomeMinter).to.equal(970);
     // 费率为 3% ， 1000*3% = 30
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(30);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(30);
 
     // 查看合约的余额, 已经支付了50的服务费
     const balancefundManager = await settlementToken.balanceOf(fundManager.target);
@@ -291,7 +291,7 @@ describe("交易测试-常规交易测试", function () {
     await expect(fundManager_DAO.withdrawRewards(settlementToken.target)).to.be.reverted;
 
     // ========================== 验证服务费 ==========================
-    expect(await settlementToken.balanceOf(dao_fund_manager.address)).to.equal(30);
+    expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(30);
     // ==================再次提款，应该抛出异常==========
     // 查看合约的余额
     const balancefundManager01 = await settlementToken.balanceOf(fundManager.target);

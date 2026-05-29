@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.24;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Main} from "@interfaces/IContracts.sol";
 
 import {IFundManager,FundsType} from "@interfaces/eth/IFundManager.sol";
@@ -15,7 +13,6 @@ import {FundManager03} from "./base/FundManager03.sol";
  */
 
 contract FundManager is FundManager03, IFundManager {
-    using SafeERC20 for IERC20;
     // ====================================================================================================================
 
     constructor(address addrManager_, address trustForwarder_) FundManager03(addrManager_, trustForwarder_) {}
@@ -24,8 +21,8 @@ contract FundManager is FundManager03, IFundManager {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setContracts() external onlyManager {
-        _setContracts(Main.FundManager);
+    function setContracts() external onlyManager{
+        _setContracts();
     }
 
     // ====================================================================================================================

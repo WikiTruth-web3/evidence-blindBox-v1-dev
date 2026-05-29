@@ -6,10 +6,10 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 
 // 导入模块化的配置
-const { deployContracts } = require("./fixtures/contracts");
-const { createConnectors } = require("./fixtures/connectors");
-const { configureTokens } = require("./fixtures/tokenConfig");
-const { initializeContracts } = require("./fixtures/initialization");
+const { deployContracts } = require("./contracts");
+const { createConnectors } = require("./connectors");
+const { configureTokens } = require("./tokenConfig");
+const { initializeContracts } = require("./initialization");
 
 async function deployBlindBoxFixture() {
   // 1. 部署所有合约
@@ -52,7 +52,7 @@ async function deployBlindBoxFixture() {
     exchange_other: connectors.exchangeConnectors.other,
     exchange_completer: connectors.exchangeConnectors.completer,
     
-    fundManager_dao_fund_manager: connectors.fundManagerConnectors.dao_fund_manager,
+    fundManager_dao_treasury: connectors.fundManagerConnectors.dao_treasury,
     fundManager_completer: connectors.fundManagerConnectors.completer,
     fundManager_minter: connectors.fundManagerConnectors.minter,
     fundManager_buyer: connectors.fundManagerConnectors.buyer,

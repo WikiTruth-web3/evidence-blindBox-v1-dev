@@ -156,6 +156,8 @@ contract BlindBox03 is BlindBox02 {
     }
 
     function _delay(uint256 boxId_) internal {
+        _isStatus(boxId_, Status.Delaying);
+        _isInWindowPeriod(boxId_);
         uint256 amount = _basicData[boxId_]._price;
 
         FUND_MANAGER.payDelayFee(boxId_, _msgSender(), amount); // erc2771

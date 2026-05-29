@@ -8,7 +8,7 @@ async function deployContracts() {
   const [
     admin, admin2, dao, governance, minter, 
     seller, buyer, buyer2, completer, other, 
-    other2, dao_fund_manager, siweAuth, quoter, forwarder
+    other2, dao_treasury, siweAuth, quoter, forwarder
   ] = await ethers.getSigners();
 
   // 部署核心管理合约
@@ -40,11 +40,14 @@ async function deployContracts() {
   const UserManager = await ethers.getContractFactory("UserManager");
   const userManager = await UserManager.deploy(addressManager.target);
 
+  const Forwarder = await ethers.getContractFactory("Forwarder");
+  const forwarder = await Forwarder.deploy(addressManager.target);
+
   return {
     signers: {
       admin, admin2, dao, governance, minter, 
       seller, buyer, buyer2, completer, other, 
-      other2, dao_fund_manager, 
+      other2, dao_treasury, 
       siweAuth, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
       quoter, 
       forwarder
@@ -59,7 +62,8 @@ async function deployContracts() {
       swapContract,
       fundManager,
       exchange,
-      userManager
+      userManager,
+      forwarder
     }
   };
 }

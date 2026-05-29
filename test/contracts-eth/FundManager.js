@@ -4,7 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const { deployBlindBoxFixture} = require("./Fixture.js");
+const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 
 describe("FundManager", function () {
