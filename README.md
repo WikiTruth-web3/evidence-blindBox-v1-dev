@@ -1,66 +1,66 @@
-# PingPong via Oasis Privacy Layer (OPL)
-This example example lets you send a message via the Oasis Privacy Layer ([OPL])
+# Evidence Market - Contract Testing Suite
 
-[OPL]: https://docs.oasis.io/dapp/opl/
+This directory contains the unit tests for the **Evidence Market** smart contracts.
 
-## Setup 
+## Project Overview
 
-Install the necessary NPM dependencies using `pnpm` or module manager of choice.
+**Evidence Market** is a decentralized whistleblower platform that transforms sensitive investigative evidence into tradeable digital assets. Built on top of **Oasis Sapphire** (a EVM-compatible privacy public chain with TEE-enabled confidential execution), the platform enables whistleblowers to monetize evidence anonymously while protecting their identity.
 
-```sh
-pnpm install
-```
+The local test version in `contracts-eth` is optimized for rapid testing on **Hardhat** without Sapphire-specific TEE and cryptographic library dependencies, simulating the exact same state machine and flow.
 
-Then, prepare your hex-encoded private key for paying the deployment gas fee
-and store it as an environment variable:
+---
 
-```sh
-export PRIVATE_KEY=0x...
-```
+## Smart Contract Architecture
 
-You will need to obtain TEST tokens on both networks.
+The test suite covers the following core smart contracts:
 
-## Running the Example
+1. **`BlindBox` (Core Asset)**:
+   - Manages the creation, status lifecycle (`Storing`, `Selling`, `Auctioning`, `Paid`, `Refunding`, `Delaying`, `Published`, `Blacklisted`), and metadata of the evidence blind boxes.
 
-The see the full example in action, run
+2. **`Exchange` (Trading Engine)**:
+   - Handles trade operations including listing for flat-price sale (`sell`) or auction (`auction`), making purchases (`buy` / `bid`), cancelling bids, request/agree/refuse refund, and completing orders.
 
-```sh
-pnpm hardhat full-pingpong
-```
+3. **`FundManager` (Escrow & Reward Distribution)**:
+   - Manages payments and user balances in multiple ERC20 tokens.
+   - Distributes payouts to minters and service fees to `DAO_TREASURY` once orders are completed.
+   - Converts helper rewards to the project's native `settlementToken` using a price oracle, while routing equivalent accepted tokens to the DAO treasury.
 
-This will do the following:
+4. **`UserManager` (Identity Privacy)**:
+   - Maps wallet addresses to pseudo-anonymous, random `bytes32` User IDs to prevent transaction tracing via event logs.
 
-- Deploy contracts on both testnets (BSC Testent, Sapphire Testnet)
-- Send a message (`"Hello from BSC"`) from the BSC Testnet to the Sapphire Testnet
-- Listen to the messege sent via OPL on the Sapphire Testnet
+5. **`MockPriceOracle` (Oracles)**:
+   - A mock oracle used in the Hardhat testing environment to set exchange rates between accepted payment tokens and the project's settlement token.
 
-If you want to run the steps one at a time, read the following chapters.
+---
 
-### Deploying Contracts
+## Key Game-Theoretic Design Under Test
 
-Deploy the contracts on the host network (BSC Testnet) and the enclav network
-(Sapphire Testnet):
+- **Refund Deterrence (Publish-on-Refund)**:
+  If a buyer files a refund request (state becomes `Refunding`), the decryption key for the box is immediately made public. This prevents malicious buyers from "free-riding" on the confidential data and requesting their money back, as the exclusivity of the evidence evaporates upon refund initiation.
+- **Auto-Escrow Settlement on Expiry**:
+  In auction mode, if the bid refund period passes after the auction ends, any refund attempt is automatically blocked, and funds are forced to settle to the Minter.
+- **Oracle-Based Payout Conversion**:
+  Helper rewards are converted into the settlement token at Oracle exchange rates, and the corresponding amount of accepted payment tokens is sent to the DAO Treasury along with platform fees.
 
-```sh
-pnpm hardhat deploy-pingpong
-```
+---
 
-### Sending the Ping Message
+## How to Run the Tests
 
-Sending the ping message from the host network (BSC Testnet):
+To run the unit tests in your local environment, follow these steps:
 
-```sh
-pnpm hardhat send-ping --ping-addr <Ping contract address from above>
-```
+1. **Install dependencies**:
+   ```bash
+   pnpm install
+   # or
+   npm install
+   ```
 
-### Verifying the Message
+2. **Compile the smart contracts**:
+   ```bash
+   npx hardhat compile
+   ```
 
-Verifying that the ping message arrived on the enclave network (Sapphire-Testnet):
-
-```sh
-pnpm hardhat verify-ping --pong-addr <Pong contract address from above>
-```
-
-## Tasks
-
-Running the example is done via hardhat tasks. You can find them in  `./tasks/index.ts`
+3. **Run the test suite**:
+   ```bash
+   npx hardhat test
+   ```

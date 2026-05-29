@@ -12,7 +12,7 @@ const {timestampToDate} = require('../utils/timeToDate.js');
 describe("AddressManager- 相关测试", function () {
   it("设置地址列表", async function () {
     const { 
-      blindBox, exchange, userManager, addressManager,siweAuth, quoter, swapContract, fundManager, 
+      blindBox, exchange, userManager, addressManager,siweAuth, fundManager, 
       buyer, minter, dao, wETH, wROSE, settlementToken, address_zero, wBTC,
       userManager_buyer, userManager_minter, userManager_DAO
     } = await loadFixture(deployBlindBoxFixture);
@@ -26,11 +26,11 @@ describe("AddressManager- 相关测试", function () {
       address_zero, // forwarder
       wBTC.target, // dao
       wETH.target, // dao_treasury
-      quoter.address, // governance
+      wROSE.target, // governance
     ]
 
-    for (i; i< addressList; i++) {
-      await addressManager.setMainContract(i,addressList[i]);
+    for (let i = 0; i < addressList.length; i++) {
+      await addressManager.setMainContract(i, addressList[i]);
     }
 
     expect(await addressManager.getMainContract(0)).to.deep.equal(blindBox.target);

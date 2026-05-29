@@ -14,6 +14,7 @@ import {
     RewardsType
 } from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IPriceOracle} from "../oracle/IPriceOracle.sol";
 
 // import {I_Swap} from "../dex/interfaceSwap.sol";
 
@@ -58,54 +59,68 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         address token_,
         uint256 amount_
     ) internal {
+        // Record total reward amount
+        _totalRewardAmounts[token_] += amount_;
+
         bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
         bytes32 sellerId = EXCHANGE.sellerIdOf(boxId_);
         bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
 
-        uint256 serviceFee = (amount_ * _serviceFeeRate) / 1000; // accepted token
+        uint256 toDaoTreasury = (amount_ * _serviceFeeRate) / 1000; // accepted token
         uint256 helperRewards = (amount_ * _helperFeeRate) / 1000; // accepted token
+        uint256 helperRewards2 = helperRewards;
 
+        address settlementToken = ADDR_MANAGER.settlementToken();
+        amount_ -= toDaoTreasury;
+
+        if (token_ != settlementToken) {
+            // If it is not the settlement token, use Oracle to convert helper rewards
+            address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle");
+            uint256 price = IPriceOracle(oracleAddr).getPrice(token_, settlementToken);
+            helperRewards2 = (helperRewards * price) / 1e18;
+        } 
 
         unchecked {
+
+            // If it is already the settlement token, no conversion needed
             if (sellerId != bytes32(0)) {
-                _rewardAmounts[sellerId][token_] += helperRewards;
+                _rewardAmounts[sellerId][settlementToken] += helperRewards2;
                 amount_ -= helperRewards;
+                toDaoTreasury += helperRewards;
                 emit RewardsAdded(
                     boxId_,
-                    token_,
-                    helperRewards,
+                    settlementToken,
+                    helperRewards2,
                     RewardsType.Seller
                 );
             }
 
             if (completerId != bytes32(0)) {
-                _rewardAmounts[completerId][token_] += helperRewards;
+                _rewardAmounts[completerId][settlementToken] += helperRewards2;
                 amount_ -= helperRewards;
+                toDaoTreasury += helperRewards;
                 emit RewardsAdded(
                     boxId_,
-                    token_,
-                    helperRewards,
+                    settlementToken,
+                    helperRewards2,
                     RewardsType.Completer
                 );
             }
 
             // Update minter rewards (using original token)
-            _rewardAmounts[minterId][token_] += (amount_ - serviceFee );
+            _rewardAmounts[minterId][token_] += amount_;
             emit RewardsAdded(
                 boxId_,
                 token_,
-                (amount_ - serviceFee ),
+                amount_,
                 RewardsType.Minter
             );
 
-            // Directly assign the service fee to the DAO fund manager contract
+            // Send serviceFee (and helperRewards if converted) to DAO treasury
             IERC20(token_).safeTransfer(
                 DAO_TREASURY,
-                serviceFee 
+                toDaoTreasury
             );
-
-            // Record total reward amount
-            _totalRewardAmounts[token_] += amount_;
         }
     }
 

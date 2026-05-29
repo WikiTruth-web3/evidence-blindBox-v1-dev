@@ -18,10 +18,6 @@ async function deployContracts() {
   const wBTC = await MockERC20.deploy("wBTC", "wBTC");
   const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH");
   const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE");
-
-  const SwapContract = await ethers.getContractFactory("SwapContract");
-  const swapContract = await SwapContract.deploy();
-
   // ---
 
   const AddressManager = await ethers.getContractFactory("AddressManager");
@@ -43,14 +39,15 @@ async function deployContracts() {
   const UserManager = await ethers.getContractFactory("UserManager");
   const userManager = await UserManager.deploy(addressManager.target);
 
+  const MockPriceOracle = await ethers.getContractFactory("MockPriceOracle");
+  const mockPriceOracle = await MockPriceOracle.deploy(addressManager.target);
 
   return {
     signers: {
       admin, admin2, dao, governance, minter, 
       seller, buyer, buyer2, completer, other, 
       other2, dao_treasury, 
-      siweAuth, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
-      quoter
+      siweAuth // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
     },
     contracts: {
       addressManager,
@@ -59,11 +56,11 @@ async function deployContracts() {
       wETH,
       wROSE,
       blindBox,
-      swapContract,
       fundManager,
       exchange,
       userManager,
-      forwarder
+      forwarder,
+      mockPriceOracle
     }
   };
 }

@@ -58,11 +58,7 @@ async function deployBlindBoxFixture() {
     fundManager_buyer: connectors.fundManagerConnectors.buyer,
     fundManager_buyer2: connectors.fundManagerConnectors.buyer2,
     fundManager_DAO: connectors.fundManagerConnectors.dao,
-    
-    swapContract_minter: connectors.swapContractConnectors.minter,
-    swapContract_buyer: connectors.swapContractConnectors.buyer,
-    swapContract_other: connectors.swapContractConnectors.other,
-    
+
     userManager_buyer: connectors.userManagerConnectors.buyer,
     userManager_buyer2: connectors.userManagerConnectors.buyer2,
     userManager_minter: connectors.userManagerConnectors.minter,
@@ -71,6 +67,10 @@ async function deployBlindBoxFixture() {
     userManager_other: connectors.userManagerConnectors.other,
     userManager_DAO: connectors.userManagerConnectors.dao,
     
+    mockPriceOracle_admin: connectors.mockPriceOracleConnectors.admin,
+    mockPriceOracle_dao: connectors.mockPriceOracleConnectors.dao,
+    mockPriceOracle_other: connectors.mockPriceOracleConnectors.other,
+
     // 测试数据
     ...testData
   };

@@ -19,11 +19,11 @@ async function createConnectors(signers, contracts) {
     wETH,
     wROSE,
     blindBox,
-    swapContract,
     fundManager,
     exchange,
     userManager,
-    forwarder
+    forwarder,
+    mockPriceOracle
   } = contracts;
 
   // BlindBox 连接器
@@ -67,6 +67,13 @@ async function createConnectors(signers, contracts) {
     completer: fundManager.connect(completer)
   };
 
+  // MockPriceOracle 连接器
+  const mockPriceOracleConnectors = {
+    admin: mockPriceOracle.connect(admin),
+    dao: mockPriceOracle.connect(dao),
+    other: mockPriceOracle.connect(other),
+  };
+
   // 代币连接器
   const tokenConnectors = {
     settlementToken: {
@@ -86,12 +93,6 @@ async function createConnectors(signers, contracts) {
     }
   };
 
-  // SwapContract 连接器
-  const swapContractConnectors = {
-    minter: swapContract.connect(minter),
-    buyer: swapContract.connect(buyer),
-    other: swapContract.connect(other)
-  };
 
   return {
     blindBoxConnectors,
@@ -99,7 +100,7 @@ async function createConnectors(signers, contracts) {
     userManagerConnectors,
     fundManagerConnectors,
     tokenConnectors,
-    swapContractConnectors
+    mockPriceOracleConnectors,
   };
 }
 

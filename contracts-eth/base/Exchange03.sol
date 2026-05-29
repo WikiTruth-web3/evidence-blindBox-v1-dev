@@ -74,7 +74,7 @@ contract Exchange03 is Exchange02 {
         uint256 payAmount = _calcPayAmount(boxId_, userId, currentPrice);
 
         _boxExchengData[boxId_]._buyerId = userId;
-        _setRefundRequestDeadline(boxId_, block.timestamp);
+        _setRefundRequestDeadline(boxId_, block.timestamp + 30 days); // NOTE bid refund deadline is 30 days + 7 days
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BidPlaced(boxId_, userId);

@@ -18,7 +18,7 @@ async function initializeContracts(contracts, connectors, signers) {
     blindBox,
     exchange,
     fundManager,
-    swapContract,
+    mockPriceOracle,
     userManager,
     forwarder,
     settlementToken,
@@ -51,13 +51,8 @@ async function initializeContracts(contracts, connectors, signers) {
 
   ];
 
-  const swapContracts = [ 
-    swapContract.target,
-    quoter.address
-  ];
-  
 
-  for (let i; i< addressList; i++) {
+  for (let i = 0; i < addressList.length; i++) {
     await addressManager.setMainContract(i, addressList[i]);
   }
 
@@ -67,6 +62,11 @@ async function initializeContracts(contracts, connectors, signers) {
   await userManager.setContracts();
   await forwarder.setContracts();
   
+  // 注册预言机扩展合约
+  await addressManager.setSpreadContract("PriceOracle", mockPriceOracle.target);
+  // 设置 1 wBTC = 2 Truth Coin (TCT)
+  await mockPriceOracle.setPrice(wBTC.target, settlementToken.target, ethers.parseUnits("2", 18));
+  
   // 在tokenConfig中设置
   await addressManager.setSettlementToken(settlementToken.target);
   await addressManager.addToken(wBTC.target);
@@ -74,7 +74,7 @@ async function initializeContracts(contracts, connectors, signers) {
   // 设置初始参数
   await blindBoxConnectors.dao.setIncrementRate(incrementRate);
   await exchangeConnectors.dao.setRefundRequestPeriod(15 * 24 * 60 * 60); // 15天
-  await exchangeConnectors.dao.setRefundReviewPeriod(30 * 24 * 60 * 60); // 30天
+  await exchangeConnectors.dao.setArbitrationPeriod(30 * 24 * 60 * 60); // 30天
   await exchangeConnectors.dao.setBidIncrementRate(bidIncrementRate);
   await fundManagerConnectors.dao.setServiceFeeRate(serviceFeeRate);
   await fundManagerConnectors.dao.setHelperFeeRate(helperFeeRate);
