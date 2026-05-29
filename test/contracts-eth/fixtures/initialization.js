@@ -61,8 +61,12 @@ async function initializeContracts(contracts, connectors, signers) {
     await addressManager.setMainContract(i, addressList[i]);
   }
 
-
-  await addressManager.setAllContracts();
+  await blindBox.setContracts();
+  await exchange.setContracts();
+  await fundManager.setContracts();
+  await userManager.setContracts();
+  await forwarder.setContracts();
+  
   // 在tokenConfig中设置
   await addressManager.setSettlementToken(settlementToken.target);
   await addressManager.addToken(wBTC.target);

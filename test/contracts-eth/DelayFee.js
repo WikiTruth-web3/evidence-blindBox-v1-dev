@@ -14,7 +14,7 @@ describe("BlindBox-DelayFee- 相关测试", async function () {
 
   it("设置延迟费用率", async function () {
     const { 
-      blindBox, fundManager, exchange,blindBox_DAO,blindBox_minter
+      blindBox, fundManager, exchange, blindBox_DAO, blindBox_minter
     } = await loadFixture(deployBlindBoxFixture);
 
     // 默认费率

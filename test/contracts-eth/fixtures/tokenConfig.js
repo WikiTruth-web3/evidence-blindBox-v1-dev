@@ -33,23 +33,23 @@ async function configureTokens(signers, contracts, connectors) {
   await tokenConnectors.wBTC.buyer2.approve(fundManager.target, 100000000);
 
   // 设置代币授权到SwapContract
-  await settlementToken.approve(swapContract.target, 1000000000000000);
-  await tokenConnectors.settlementToken.minter.approve(swapContract.target, 100000000);
-  await tokenConnectors.settlementToken.buyer.approve(swapContract.target, 100000000);
-  await tokenConnectors.settlementToken.other.approve(swapContract.target, 100000000);
+  // await settlementToken.approve(swapContract.target, 1000000000000000);
+  // await tokenConnectors.settlementToken.minter.approve(swapContract.target, 100000000);
+  // await tokenConnectors.settlementToken.buyer.approve(swapContract.target, 100000000);
+  // await tokenConnectors.settlementToken.other.approve(swapContract.target, 100000000);
 
-  await wBTC.approve(swapContract.target, 1000000000000000);
-  await tokenConnectors.wBTC.buyer.approve(swapContract.target, 100000000);
-  await tokenConnectors.wBTC.minter.approve(swapContract.target, 100000000);
-  await tokenConnectors.wBTC.other.approve(swapContract.target, 100000000);
+  // await wBTC.approve(swapContract.target, 1000000000000000);
+  // await tokenConnectors.wBTC.buyer.approve(swapContract.target, 100000000);
+  // await tokenConnectors.wBTC.minter.approve(swapContract.target, 100000000);
+  // await tokenConnectors.wBTC.other.approve(swapContract.target, 100000000);
 
   // 添加代币到地址管理器
   // await addressManager.setSettlementToken(settlementToken.target);
   // await addressManager.addToken(wBTC.target);
 
   // 配置交换合约
-  await swapContract.setToken(settlementToken.target, wBTC.target);
-  await swapContract.addLiquidity(100000000000000, 10000000000000); // 10:1 ratio
+  // await swapContract.setToken(settlementToken.target, wBTC.target);
+  // await swapContract.addLiquidity(100000000000000, 10000000000000); // 10:1 ratio
 }
 
 module.exports = {
