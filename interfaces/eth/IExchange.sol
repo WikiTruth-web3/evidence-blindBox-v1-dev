@@ -7,12 +7,14 @@ import {Status} from "./IBlindBox.sol";
 interface ExchangeEvents {
     event BoxListed(
         uint256 indexed boxId,
+        bytes32 userId,
         address acceptedToken
     );
     event BoxPurchased(uint256 indexed boxId, bytes32 indexed userId);
     event BidPlaced(uint256 indexed boxId, bytes32 indexed userId);
+    event CompleterAssigned(uint256 indexed boxId, bytes32 indexed userId);
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
-    event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
+    event ArbitrationDeadineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
 }
 
@@ -67,6 +69,13 @@ interface IExchange {
      */
     function calcPayAmount(uint256 boxId_) external view returns (uint256);
 
+    /**
+     * @notice Complete an order
+     * @param boxId_ Box ID
+     * @dev Buyer can call anytime, others can call after refund deadline
+     */
+    function completeOrder(uint256 boxId_) external;
+
     // =====================================================================================
     //                                          Getter Functions
     // =====================================================================================
@@ -78,6 +87,23 @@ interface IExchange {
      * @dev Only callable by project contracts
      */
     function buyerIdOf(uint256 boxId_) external view returns (bytes32);
+
+    /**
+     * @notice Get seller address
+     * @param boxId_ Box ID
+     * @return Seller address (address(0) means minter is the seller)
+     * @dev Only callable by project contracts
+     */
+    function sellerIdOf(uint256 boxId_) external view returns (bytes32);
+
+    /**
+     * @notice Get completer address
+     * @param boxId_ Box ID
+     * @return Completer address
+     * @dev Only callable by project contracts
+     */
+    function completerIdOf(uint256 boxId_) external view returns (bytes32);
+
 
     /**
      * @notice Get accepted token address
@@ -103,11 +129,11 @@ interface IExchange {
     ) external view returns (uint256);
 
     /**
-     * @notice Get refund review deadline
+     * @notice Get refund arbitration deadline
      * @param boxId_ Box ID
-     * @return Refund review deadline timestamp
+     * @return Refund arbitration deadline timestamp
      */
-    function refundReviewDeadline(
+    function arbitrationDeadline(
         uint256 boxId_
     ) external view returns (uint256);
 
@@ -116,16 +142,16 @@ interface IExchange {
      * @param boxId_ Box ID
      * @return Whether box is within refund request deadline
      */
-    function isInRequestRefundDeadline(
-        uint256 boxId_
-    ) external view returns (bool);
+    // function isInRequestRefundDeadline(
+    //     uint256 boxId_
+    // ) external view returns (bool);
 
     /**
-     * @notice Check if box is within refund review deadline
+     * @notice Check if box is within refund arbitration deadline
      * @param boxId_ Box ID
-     * @return Whether box is within refund review deadline
+     * @return Whether box is within refund arbitration deadline
      */
-    function isInReviewDeadline(uint256 boxId_) external view returns (bool);
+    // function isInArbitrationDeadline(uint256 boxId_) external view returns (bool);
 
     // =====================================================================================
 }

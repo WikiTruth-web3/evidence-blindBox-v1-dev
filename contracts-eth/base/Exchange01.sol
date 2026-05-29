@@ -23,7 +23,7 @@ contract Exchange01 is SetContracts {
     error NotBuyContract();
     
     uint256 internal _refundRequestPeriod;
-    uint256 internal _refundReviewPeriod;
+    uint256 internal _arbitrationPeriod;
 
     uint8 internal _bidIncrementRate;
 
@@ -32,7 +32,7 @@ contract Exchange01 is SetContracts {
     constructor(address addrManager_) SetContracts(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
-        _refundReviewPeriod = 15 days;
+        _arbitrationPeriod = 15 days;
     }
 
     // ========================================================================================================
@@ -47,9 +47,9 @@ contract Exchange01 is SetContracts {
         _refundRequestPeriod = period_;
     }
     // 15~60  || 1~7
-    function setRefundReviewPeriod(uint256 period_) external onlyDAO {
+    function setArbitrationPeriod(uint256 period_) external onlyDAO {
         if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
-        _refundReviewPeriod = period_;
+        _arbitrationPeriod = period_;
     }
 
     // 110
@@ -65,10 +65,12 @@ contract Exchange01 is SetContracts {
     function refundRequestPeriod() external view returns (uint256) {
         return _refundRequestPeriod;
     }
-    function refundReviewPeriod() external view returns (uint256) {
-        return _refundReviewPeriod;
+    function arbitrationPeriod() external view returns (uint256) {
+        return _arbitrationPeriod;
     }
     function bidIncrementRate() external view returns (uint8) {
         return _bidIncrementRate;
     }
+
+
 }

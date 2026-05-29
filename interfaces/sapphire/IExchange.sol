@@ -101,12 +101,12 @@ interface IExchange {
     /**
      * @notice Calculate payment amount for a bid
      * @param boxId_ Box ID
-     * @param siweToken_ The siwe token of the user
+     * @param userId_ The siwe token of the user
      * @return Payment amount required
      */
     function calcPayMoney(
         uint256 boxId_,
-        bytes memory siweToken_
+        bytes32 userId_
     ) external view returns (uint256);
 
     // =====================================================================================

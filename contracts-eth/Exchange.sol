@@ -122,6 +122,10 @@ contract Exchange is Exchange03, IExchange {
         _refuseRefund(boxId_);
     }
 
+    function completeOrder(uint256 boxId_) external {
+        _completeOrder(boxId_);
+    }
+
     // ========================================================================================================
     //                                           Getter function
     // ========================================================================================================
@@ -133,6 +137,14 @@ contract Exchange is Exchange03, IExchange {
      */
     function buyerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _buyerIdOf(boxId_);
+    }
+
+    function sellerIdOf(uint256 boxId_) external view returns (bytes32) {
+        return _sellerIdOf(boxId_);
+    }
+
+    function completerIdOf(uint256 boxId_) external view returns (bytes32) {
+        return _completerIdOf(boxId_);
     }
 
     // ===========================
@@ -152,20 +164,20 @@ contract Exchange is Exchange03, IExchange {
         return _refundRequestDeadline(boxId_);
     }
 
-    function refundReviewDeadline(
+    function arbitrationDeadline(
         uint256 boxId_
     ) external view returns (uint256) {
-        return _refundReviewDeadline(boxId_);
+        return _arbitrationDeadline(boxId_);
     }
 
-    function isInRequestRefundDeadline(
-        uint256 boxId_
-    ) external view returns (bool) {
-        return _isInRequestRefundDeadline(boxId_);
-    }
+    // function isInRequestRefundDeadline(
+    //     uint256 boxId_
+    // ) external view returns (bool) {
+    //     return _isInRequestRefundDeadline(boxId_);
+    // }
 
-    function isInReviewDeadline(uint256 boxId_) external view returns (bool) {
-        return _isInReviewDeadline(boxId_);
-    }
+    // function isInArbitrationDeadline(uint256 boxId_) external view returns (bool) {
+    //     return _isInArbitrationDeadine(boxId_);
+    // }
 
 }

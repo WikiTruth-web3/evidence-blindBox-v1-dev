@@ -18,67 +18,6 @@ interface IAddressManager {
      */
     // function admin() external view returns (address);
 
-    /**
-     * @notice Get DAO address
-     * @return DAO address
-     */
-    function dao() external view returns (address);
-
-    /**
-     * @notice Get governance address
-     * @return Governance address
-     */
-    function governance() external view returns (address);
-
-    /**
-     * @notice Get DAO fund manager address
-     * @return DAO fund manager address
-     */
-    function daoFundManager() external view returns (address);
-
-    /**
-     * @notice Get BlindBox contract address
-     * @return BlindBox contract address
-     */
-    function blindBox() external view returns (address);
-
-    /**
-     * @notice Get Exchange contract address
-     * @return Exchange contract address
-     */
-    function exchange() external view returns (address);
-
-    /**
-     * @notice Get FundManager contract address
-     * @return FundManager contract address
-     */
-    function fundManager() external view returns (address);
-
-    /**
-     * @notice Get UserManager contract address
-     * @return UserManager contract address
-     */
-    function userManager() external view returns (address);
-
-    /**
-     * @notice Get SIWE Auth contract address
-     * @return SIWE Auth contract address
-     */
-    function siweAuth() external view returns (address);
-
-    /**
-     * @notice Get Forwarder contract address
-     * @return Forwarder contract address
-     * erc2771 forwarder
-     */
-    function forwarder() external view returns (address);
-
-    /**
-     * @notice Get swap contracts address list
-     * @return Swap contracts address list
-     */
-    function swapContracts() external view returns (address[] memory);
-
     // =====================================================================================
     //                                          Address Management Functions (Admin Only)
     // =====================================================================================

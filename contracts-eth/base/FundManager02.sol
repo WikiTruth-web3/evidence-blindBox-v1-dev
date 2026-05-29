@@ -10,7 +10,8 @@ import {
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
-    FundsType
+    FundsType,
+    RewardsType
 } from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 
@@ -26,7 +27,7 @@ import {FundManager01} from "./FundManager01.sol";
 
 contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
     using SafeERC20 for IERC20;
-    address internal DAO_FUND_MANAGER;
+    address internal DAO_TREASURY;
 
     // ====================================================================================================================
     /// @dev Total reward amounts
@@ -59,22 +60,49 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         uint256 amount_
     ) internal {
         bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
+        bytes32 sellerId = EXCHANGE.sellerIdOf(boxId_);
+        bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
 
         uint256 serviceFee = (amount_ * _serviceFeeRate) / 1000; // accepted token
+        uint256 helperRewards = (amount_ * _helperFeeRate) / 1000; // accepted token
+
 
         unchecked {
+            if (sellerId != bytes32(0)) {
+                _rewardAmounts[sellerId][token_] += helperRewards;
+                amount_ -= helperRewards;
+                emit RewardsAdded(
+                    boxId_,
+                    token_,
+                    helperRewards,
+                    RewardsType.Seller
+                );
+            }
+
+            if (completerId != bytes32(0)) {
+                _rewardAmounts[completerId][token_] += helperRewards;
+                amount_ -= helperRewards;
+                emit RewardsAdded(
+                    boxId_,
+                    token_,
+                    helperRewards,
+                    RewardsType.Completer
+                );
+            }
+
             // Update minter rewards (using original token)
             _rewardAmounts[minterId][token_] += (amount_ - serviceFee );
             emit RewardsAdded(
                 boxId_,
                 token_,
-                (amount_ - serviceFee )
+                (amount_ - serviceFee ),
+                RewardsType.Minter
             );
 
             // Directly assign the service fee to the DAO fund manager contract
             IERC20(token_).safeTransfer(
-                DAO_FUND_MANAGER,
-                (serviceFee )
+                DAO_TREASURY,
+                serviceFee 
             );
 
             // Record total reward amount
@@ -95,13 +123,13 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      * @param type_ Type of withdrawal, order or refund
      */
     function _withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_,
-        address virtual_,
+        address receiver_,
         FundsType type_
     ) internal nonReentrant whenNotPaused {
         if (list_.length == 0) revert EmptyList();
@@ -144,7 +172,7 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         }
 
         // Execute refund
-        IERC20(token_).safeTransfer(virtual_, amount);
+        IERC20(token_).safeTransfer(receiver_, amount);
 
         if (type_ == FundsType.Order) {
             emit OrderAmountWithdraw(list_, token_, userId, amount);

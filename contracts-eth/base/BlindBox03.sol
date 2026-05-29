@@ -26,36 +26,19 @@ contract BlindBox03 is BlindBox02 {
     function _getStatus(uint256 boxId_) internal view returns (Status) {
         Status status = _basicData[boxId_]._status;
         // If the deadline has passed, then you need to judge the status of the box
-
-        uint256 deadline = _basicData[boxId_]._deadline;
-        
-        if (deadline < block.timestamp) {
-            if (status == Status.Storing) {
-                // Selling and nobuyer
-                if(deadline + 365 days < block.timestamp) {
-                    return Status.Published;
-                }
-                return Status.Selling;
-            }
-        } else if (status == Status.Selling || status == Status.Auctioning) {
+        if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
-            if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
+            if (status == Status.Selling || status == Status.Auctioning) {
+                if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
+                    return Status.Published;
+                } else {
+                    // If there is a buyer, then the status is Paid
+                    return Status.Paid;
+                }
+            } else if (status == Status.Delaying) {
+                // 2, Box in Delaying status, then the status is Published
                 return Status.Published;
-            } else {
-                // If there is a buyer, then the status is Paid
-                return Status.Paid;
             }
-        } else if (status == Status.Paid) {
-            // is out of request refund deadline
-            if (
-                !EXCHANGE.isInRequestRefundDeadline(boxId_) 
-                ) {
-                return Status.Delaying;
-            }
-
-        } else if (status == Status.Delaying) {
-            // 2, Box in Delaying status, then the status is Published
-            return Status.Published;
         }
         return status;
     }

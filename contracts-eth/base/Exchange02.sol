@@ -23,9 +23,11 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
 
     struct BoxExchengData {
         address _acceptedToken; // If address(0), then it means support settlementToken
+        bytes32 _sellerId; // If address(0), then it means by minter sell
         bytes32 _buyerId;
+        bytes32 _completerId;
         uint256 _refundRequestDeadline;
-        uint256 _refundReviewDeadline;
+        uint256 _arbitrationDeadline;
         bool _refundPermit;
     }
 
@@ -47,7 +49,6 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     // function _isStatus(uint256 boxId_, Status status_) internal view {
     //     if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
     // }
-
     // Check the refund timestamp. Within the refund time,
     // you can apply for a refund (set to refunding mode),
     function _isInRequestRefundDeadline(
@@ -58,8 +59,8 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         return true;
     }
 
-    function _isInReviewDeadline(uint256 boxId_) internal view returns (bool) {
-        if (_boxExchengData[boxId_]._refundReviewDeadline < block.timestamp)
+    function _isInArbitrationDeadline(uint256 boxId_) internal view returns (bool) {
+        if (_boxExchengData[boxId_]._arbitrationDeadline < block.timestamp)
             return false;
         return true;
     }
@@ -84,12 +85,21 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         bytes32 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();
 
-        if (userId != BlindBox.minterIdOf(boxId_)) revert NotMinter();
+        if (userId != BlindBox.minterIdOf(boxId_)) {
+            // others sell
+            if (BlindBox.getDeadline(boxId_) >= block.timestamp) {
+                revert DeadlineNotOver();
+            }
+            _boxExchengData[boxId_]._sellerId = userId;
 
-        if (acceptedToken_ != token ) {
-            ADDR_MANAGER.checkTokenSupported(acceptedToken_);
-            _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
-            token = acceptedToken_;
+            // if the _sellerId is not the minter, they can't set the price
+            price_ = 0;
+        } else {
+            if (acceptedToken_ != token ) {
+                ADDR_MANAGER.checkTokenSupported(acceptedToken_);
+                _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
+                token = acceptedToken_;
+            }
         }
 
         BlindBox.setBasicData(
@@ -99,7 +109,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
             block.timestamp + seconds_
         );
 
-        emit BoxListed(boxId_, token);
+        emit BoxListed(boxId_, userId, token);
     }
 
     function _setRefundRequestDeadline(
@@ -117,20 +127,20 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         emit RefundPermitChanged(boxId_, true);
     }
 
-    // =========================================================================================================
-    //                                           Funds Functions
-    // ========================================================================================================
-    // function _processAllocation(uint256 boxId_) internal {
-    //     FUND_MANAGER.allocationRewards(boxId_);
-    // }
-
-
     // ========================================================================================================
     //                                           Getter function
     // ========================================================================================================
 
     function _buyerIdOf(uint256 boxId_) internal view returns (bytes32) {
         return _boxExchengData[boxId_]._buyerId;
+    }
+
+    function _sellerIdOf(uint256 boxId_) internal view returns (bytes32) {
+        return _boxExchengData[boxId_]._sellerId;
+    }
+
+    function _completerIdOf(uint256 boxId_) internal view returns (bytes32) {
+        return _boxExchengData[boxId_]._completerId;
     }
 
     function _refundPermit(uint256 boxId_) internal view returns (bool) {
@@ -146,10 +156,10 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         return token;
     }
 
-    function _refundReviewDeadline(
+    function _arbitrationDeadline(
         uint256 boxId_
     ) internal view returns (uint256) {
-        return _boxExchengData[boxId_]._refundReviewDeadline;
+        return _boxExchengData[boxId_]._arbitrationDeadline;
     }
 
     function _refundRequestDeadline(

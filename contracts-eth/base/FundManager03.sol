@@ -88,11 +88,11 @@ contract FundManager03 is FundManager02 {
     /**
      * @dev Withdraw rewards
      * @param token_ Token address
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
     function _withdrawRewards(
         address token_,
-        address virtual_
+        address receiver_
     ) internal nonReentrant whenNotPaused {
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
@@ -104,7 +104,7 @@ contract FundManager03 is FundManager02 {
         // Zero out reward amount
         _rewardAmounts[userId][token_] = 0;
         // Execute safeTransfer
-        IERC20(token_).safeTransfer(virtual_, amount);
+        IERC20(token_).safeTransfer(receiver_, amount);
 
         emit RewardsWithdraw(userId, token_, amount);
     }

@@ -108,7 +108,7 @@ contract Exchange03 is Exchange02 {
     /**
      * @notice Request refund function, after requesting refund, the box status becomes Refunding
      * Need to check: status、deadline.
-     * Request refund will modify: status、refundReviewDeadline.
+     * Request refund will modify: status、arbitrationDeadline.
      * Request refund also needs to set the status of BLIND_BOX to Published
      */
     function _requestRefund(uint256 boxId_) internal {
@@ -120,11 +120,11 @@ contract Exchange03 is Exchange02 {
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
 
         if (_isInRequestRefundDeadline(boxId_)) {
-            uint256 deadline = block.timestamp + _refundReviewPeriod;
-            _boxExchengData[boxId_]._refundReviewDeadline = deadline;
+            uint256 deadline = block.timestamp + _arbitrationPeriod;
+            _boxExchengData[boxId_]._arbitrationDeadline = deadline;
 
             blindBox.setStatus(boxId_, Status.Refunding);
-            emit ReviewDeadlineChanged(boxId_, deadline);
+            emit ArbitrationDeadineChanged(boxId_, deadline);
         } else {
             blindBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
@@ -150,7 +150,7 @@ contract Exchange03 is Exchange02 {
     /**
      * @notice Agree refund function, after agreeing refund, the box status becomes Sold
      * Need to check: status、deadline.
-     * Agree refund will modify: status、refundReviewDeadline.
+     * Agree refund will modify: status、arbitrationDeadline.
      * Agree refund also needs to set the status of BLIND_BOX to Published
      */
     function _agreeRefund(uint256 boxId_) internal {
@@ -160,7 +160,7 @@ contract Exchange03 is Exchange02 {
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
 
-        if (_isInReviewDeadline(boxId_)) {
+        if (_isInArbitrationDeadline(boxId_)) {
             // erc2771 - _msgSender() is the real caller
             address sender = _msgSender();
             // Check role: minter、DAO
@@ -190,7 +190,7 @@ contract Exchange03 is Exchange02 {
         if (blindBox.getStatus(boxId_) != Status.Refunding)
             revert InvalidStatus();
         // According to whether it is within the review deadline, determine.
-        if (_isInReviewDeadline(boxId_)) {
+        if (_isInArbitrationDeadline(boxId_)) {
             // Check role: DAO
             blindBox.setStatus(boxId_, Status.Delaying);
             FUND_MANAGER.allocationRewards(boxId_);
@@ -199,6 +199,39 @@ contract Exchange03 is Exchange02 {
             blindBox.setStatus(boxId_, Status.Published);
             emit RefundPermitChanged(boxId_, true);
         }
+    }
+
+    // =========================================================================================================
+    //                                           finalize related functions
+    // ========================================================================================================
+
+    /**
+     * @notice Complete order function, after completing order, the box status becomes Sold
+     * Need to check: refundPermit.
+     * Complete order will modify: status、completer.
+     * Complete order also needs to set the status of BLIND_BOX to Delaying
+     * Complete order also needs to set refundRequestDeadline.
+     */
+    function _completeOrder(uint256 boxId_) internal {
+        // _checkStatus(boxId_, Status.Paid);
+        IBlindBox blindBox = BLIND_BOX;
+        // canComplete?
+        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (_refundPermit(boxId_)) revert RefundPermitTrue();
+
+        // erc2771
+        address sender = _msgSender();
+        bytes32 userId = USER_MANAGER.getUserId(sender);
+
+        if (userId != _buyerIdOf(boxId_)) {
+            if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
+            if (userId != blindBox.minterIdOf(boxId_)) {
+                _boxExchengData[boxId_]._completerId = userId;
+                emit CompleterAssigned(boxId_, userId);
+            }
+        }
+        blindBox.setStatus(boxId_, Status.Delaying);
+        FUND_MANAGER.allocationRewards(boxId_);
     }
 
 }

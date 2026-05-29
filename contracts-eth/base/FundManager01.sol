@@ -24,11 +24,13 @@ contract FundManager01 is SetContracts, ReentrancyGuard, Pausable {
      * @dev The official service fee rate
      */
     uint8 internal _serviceFeeRate;
+    uint8 internal _helperFeeRate;
 
 
     // =====================================================================================
     constructor(address addrManager_) SetContracts(addrManager_) {
         _serviceFeeRate = 30; // 30
+        _helperFeeRate = 10; // 10
     }
 
     // =====================================================================================
@@ -57,12 +59,21 @@ contract FundManager01 is SetContracts, ReentrancyGuard, Pausable {
         _serviceFeeRate = Rate_;
     }
 
+    function setHelperFeeRate(uint8 Rate_) external onlyDAO {
+        if (Rate_ > 30) revert InvalidRate();
+        _helperFeeRate = Rate_;
+    }
+
     // ==========================================================================================================
     //                                         view get fee rate
     // ==========================================================================================================
 
     function serviceFeeRate() external view returns (uint8) {
         return _serviceFeeRate;
+    }
+
+    function helperFeeRate() external view returns (uint8) {
+        return _helperFeeRate;
     }
 
 }

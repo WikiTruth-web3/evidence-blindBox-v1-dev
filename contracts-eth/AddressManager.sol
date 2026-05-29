@@ -86,18 +86,17 @@ contract AddressManager is IAddressManager, Error {
 
     // ======================================= set contracts function ==============================================
 
-    function _OldNew(address old_, address new_) internal {
-        if (new_ == address(0) || new_ == old_) revert InvalidAddress();
-        _isProjectContract[new_] = true;
-        _isProjectContract[old_] = false;
-    }
     /**
      * @dev Set addresses
-     * @notice (init step: 1)
+     * @notice NOTE(init step: 1)
      * @param name_ Contract name
      * @param addr_ Contract address
      */
-    function setMainContract(Main name_, address addr_) external onlyAdmin {
+    function setMainContract(Main name_, address addr_) external {
+        _setMainContract(name_, addr_);
+    }
+
+    function _setMainContract(Main name_, address addr_) internal onlyAdmin {
         address current = _mainContracts[name_];
         _OldNew(current, addr_);
         
@@ -106,7 +105,6 @@ contract AddressManager is IAddressManager, Error {
 
     /**
      * @dev Set spread addresses
-     * @notice (init step: 1)
      * @param name_ Contract name
      * @param addr_ Contract address
      */
@@ -116,9 +114,12 @@ contract AddressManager is IAddressManager, Error {
         _OldNew(current, addr_);
 
         _spreadContracts[key] = addr_;
-
     }
-
+    function _OldNew(address old_, address new_) internal {
+        if (new_ == address(0) || new_ == old_) revert InvalidAddress();
+        _isProjectContract[new_] = true;
+        _isProjectContract[old_] = false;
+    }
     // ==========================================================================================
 
     function removeMainContract(Main name_) external onlyAdmin {
@@ -136,26 +137,10 @@ contract AddressManager is IAddressManager, Error {
 
     // =================================================================================
 
-    function _checkZeroAddress(address addr_) internal pure returns (address) {
-        if (addr_ == address(0)) revert ZeroAddress();
-        return addr_;
-    }
-    function getMainContract(Main name_) external view returns (address) {
-        address current = _mainContracts[name_];
-        return _checkZeroAddress(current);
-    }
-
-    function getSpreadContract(string memory name_) external view returns (address) {
-        bytes32 key = keccak256(bytes(name_));
-        address current = _spreadContracts[key];
-        return _checkZeroAddress(current);
-    }
-
     // =================================================================================
 
-
-        /**
-     * @notice (init )
+    /**
+     * @notice NOTE(init: step 2 )
      * Set all contract addresses
      */
     function setAllContracts() external onlyAdmin {
@@ -170,7 +155,7 @@ contract AddressManager is IAddressManager, Error {
 
     /**
      * @dev Set settlement token
-     * @notice (init step: 3)
+     * @notice NOTE(init step: 3) 
      */
     function setSettlementToken(address token_) external onlyAdmin {
         address oldToken = _settlementToken;
@@ -226,6 +211,20 @@ contract AddressManager is IAddressManager, Error {
     //                                        getters Token  
     // ====================================================================================================
 
+    function getMainContract(Main name_) external view returns (address) {
+        address current = _mainContracts[name_];
+        if (current == address(0)) revert ZeroAddress();
+        return current;
+    }
+
+    function getSpreadContract(string memory name_) external view returns (address) {
+        bytes32 key = keccak256(bytes(name_));
+        address current = _spreadContracts[key];
+        if (current == address(0)) revert ZeroAddress();
+        return current;
+    }
+
+    // ==========================================
     function isProjectContract(address contract_) external view returns (bool) {
         return _isProjectContract[contract_];
     }

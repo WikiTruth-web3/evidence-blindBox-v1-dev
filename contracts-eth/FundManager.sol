@@ -77,28 +77,28 @@ contract FundManager is FundManager03, IFundManager {
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
     function withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_,
-        address virtual_
+        address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, virtual_, FundsType.Order);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundsType.Order);
     }
 
     /**
      * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
     function withdrawRefundAmounts(
         address token_,
         uint256[] calldata list_,
-        address virtual_
+        address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, virtual_, FundsType.Refund);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundsType.Refund);
 
     }
 
@@ -107,10 +107,10 @@ contract FundManager is FundManager03, IFundManager {
     /**
      * @dev Withdraw rewards
      * @param token_ Token address
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_, address virtual_) external {
-        _withdrawRewards(token_, virtual_);
+    function withdrawRewards(address token_, address receiver_) external {
+        _withdrawRewards(token_, receiver_);
     }
 
     // ====================================================================================================================
