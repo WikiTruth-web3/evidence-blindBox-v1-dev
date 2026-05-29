@@ -21,7 +21,7 @@ contract FundManager is FundManager03, IFundManager {
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setContracts() external onlyManager{
+    function setContracts() external onlyAdmin{
         _setContracts();
     }
 

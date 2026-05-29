@@ -8,7 +8,7 @@ async function createConnectors(signers, contracts) {
   const {
     admin, admin2, dao, governance, minter, 
     seller, buyer, buyer2, completer, other, 
-    other2, dao_treasury, forwarder,
+    other2, dao_treasury, 
     siweAuth, // 替代SiweAuth 合约，因为eth版本不使用SiweAuth
   } = signers;
 
@@ -22,7 +22,8 @@ async function createConnectors(signers, contracts) {
     swapContract,
     fundManager,
     exchange,
-    userManager
+    userManager,
+    forwarder
   } = contracts;
 
   // BlindBox 连接器

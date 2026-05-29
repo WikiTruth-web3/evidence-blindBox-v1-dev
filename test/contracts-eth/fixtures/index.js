@@ -20,13 +20,10 @@
 // module.exports = {
 //   // 合约部署
 //   deployContracts,
-  
 //   // 连接器创建
 //   createConnectors,
-  
 //   // 代币配置
 //   configureTokens,
-  
 //   // 初始化配置
 //   initializeContracts,
 //   generateTestData,
@@ -36,7 +33,6 @@
 //   serviceFeeRate,
 //   otherRewardRate,
 //   slippageProtection,
-  
 //   // 工具函数
 //   utils: {
 //     generateTestData,

@@ -116,6 +116,10 @@ contract AddressManager is IAddressManager, Error {
         _spreadContracts[key] = addr_;
     }
     function _OldNew(address old_, address new_) internal {
+        if (old_ == address(0)) {
+            _isProjectContract[new_] = true;
+            return;
+        }
         if (new_ != address(0) && new_ != old_) {
             _isProjectContract[new_] = true;
             _isProjectContract[old_] = false;
@@ -134,22 +138,6 @@ contract AddressManager is IAddressManager, Error {
         address current = _spreadContracts[key];
         _spreadContracts[key] = address(0);
         _isProjectContract[current] = false;
-    }
-
-    // =================================================================================
-
-    // =================================================================================
-
-    /**
-     * @notice NOTE(init: step 2 )
-     * Set all contract addresses
-     */
-    function setAllContracts() external onlyAdmin {
-        IExchange(_mainContracts[Main.Exchange]).setContracts();
-        IFundManager(_mainContracts[Main.FundManager]).setContracts();
-        IBlindBox(_mainContracts[Main.BlindBox]).setContracts();
-        IUserManager(_mainContracts[Main.UserManager]).setContracts();
-        IForwarder(_mainContracts[Main.Forwarder]).setContracts();
     }
 
     // =================================================================================

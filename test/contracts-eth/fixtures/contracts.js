@@ -8,14 +8,9 @@ async function deployContracts() {
   const [
     admin, admin2, dao, governance, minter, 
     seller, buyer, buyer2, completer, other, 
-    other2, dao_treasury, siweAuth, quoter, forwarder
+    other2, dao_treasury, siweAuth, quoter
   ] = await ethers.getSigners();
 
-  // 部署核心管理合约
-  const AddressManager = await ethers.getContractFactory("AddressManager");
-  const addressManager = await AddressManager.deploy();
-
-  // 部署代币合约
   const SettlementToken = await ethers.getContractFactory("MockERC20");
   const settlementToken = await SettlementToken.deploy("Truth Coin Test", "TCT");
   
@@ -24,24 +19,30 @@ async function deployContracts() {
   const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH");
   const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE");
 
-  const BlindBox = await ethers.getContractFactory("BlindBox");
-  const blindBox = await BlindBox.deploy(addressManager.target);
-
-  // 部署交换和资金管理合约
   const SwapContract = await ethers.getContractFactory("SwapContract");
   const swapContract = await SwapContract.deploy();
 
+  // ---
+
+  const AddressManager = await ethers.getContractFactory("AddressManager");
+  const addressManager = await AddressManager.deploy();
+
+  const Forwarder = await ethers.getContractFactory("Forwarder");
+  const forwarder = await Forwarder.deploy("Hardhat test forwarder",addressManager.target);
+
+  // ---
+  const BlindBox = await ethers.getContractFactory("BlindBox");
+  const blindBox = await BlindBox.deploy(addressManager.target, forwarder.target);
+
   const FundManager = await ethers.getContractFactory("FundManager");
-  const fundManager = await FundManager.deploy(addressManager.target);
+  const fundManager = await FundManager.deploy(addressManager.target,forwarder.target);
   
   const Exchange = await ethers.getContractFactory("Exchange");
-  const exchange = await Exchange.deploy(addressManager.target);
+  const exchange = await Exchange.deploy(addressManager.target,forwarder.target);
 
   const UserManager = await ethers.getContractFactory("UserManager");
   const userManager = await UserManager.deploy(addressManager.target);
 
-  const Forwarder = await ethers.getContractFactory("Forwarder");
-  const forwarder = await Forwarder.deploy(addressManager.target);
 
   return {
     signers: {
@@ -49,8 +50,7 @@ async function deployContracts() {
       seller, buyer, buyer2, completer, other, 
       other2, dao_treasury, 
       siweAuth, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
-      quoter, 
-      forwarder
+      quoter
     },
     contracts: {
       addressManager,

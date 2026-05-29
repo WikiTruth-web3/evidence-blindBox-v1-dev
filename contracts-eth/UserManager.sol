@@ -22,7 +22,7 @@ contract UserManager is UserManager01, IUserManager {
 
     // =====================================================================================
 
-    function setContracts() external onlyManager{
+    function setContracts() external onlyAdmin{
         _setContracts();
     }
 

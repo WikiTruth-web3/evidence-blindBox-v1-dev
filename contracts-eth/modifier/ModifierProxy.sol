@@ -31,12 +31,12 @@ contract ModifierProxy is ProxyUpgrade {
 
     // =====================================================================================
 
-    modifier onlyManager() {
-        if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {
-            revert InvalidCaller();
-        }
-        _;
-    }
+    // modifier onlyManager() {
+    //     if (msg.sender != address(ADDR_MANAGER) && msg.sender != admin()) {
+    //         revert InvalidCaller();
+    //     }
+    //     _;
+    // }
 
     modifier onlyProjectContract() {
         if (!ADDR_MANAGER.isProjectContract(msg.sender)) {

@@ -21,7 +21,7 @@ contract BlindBox is BlindBox03, IBlindBox {
      * @notice Set the contract address
      * @dev Get and set the related contract addresses from AddressManager
      */
-    function setContracts() external onlyManager {
+    function setContracts() external onlyAdmin {
         _setContracts();
     }
 

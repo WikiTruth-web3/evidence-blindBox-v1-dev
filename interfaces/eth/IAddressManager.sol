@@ -44,7 +44,7 @@ interface IAddressManager {
      * @notice set all contract addresses
      * @dev Only callable by admin, calls setAddress() on all project contracts
      */
-    function setAllContracts() external;
+    // function setAllContracts() external;
 
     // =====================================================================================
     //                                          Token Management Functions (Admin Only)

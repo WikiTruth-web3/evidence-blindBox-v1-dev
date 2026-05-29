@@ -20,6 +20,7 @@ async function initializeContracts(contracts, connectors, signers) {
     fundManager,
     swapContract,
     userManager,
+    forwarder,
     settlementToken,
     wBTC,
   } = contracts;
@@ -32,7 +33,7 @@ async function initializeContracts(contracts, connectors, signers) {
 
   // 从传入的 signers 中获取需要的签名者
   const {
-    dao, governance, dao_treasury, siweAuth, quoter, forwarder
+    dao, governance, dao_treasury, siweAuth, quoter
   } = signers;
 
   const addressList = [
@@ -42,7 +43,7 @@ async function initializeContracts(contracts, connectors, signers) {
     userManager.target,
     // ------------------------- 
     siweAuth.address, // NOTE: 本地测试，使用地址来替代siweAuth令牌合约地址。
-    forwarder.address,
+    forwarder.target,
     // --------------------------
     dao.address,
     dao_treasury.address,
@@ -56,8 +57,8 @@ async function initializeContracts(contracts, connectors, signers) {
   ];
   
 
-  for (i; i< addressList; i++) {
-    await addressManager.setMainContract(i,addressList[i]);
+  for (let i; i< addressList; i++) {
+    await addressManager.setMainContract(i, addressList[i]);
   }
 
 

@@ -39,7 +39,7 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Forwarder01, Pausable {
     /**
      * @notice Initialize contract references
      */
-    function setContracts() external onlyManager {
+    function setContracts() external onlyAdmin {
         _setContracts();
     }
 

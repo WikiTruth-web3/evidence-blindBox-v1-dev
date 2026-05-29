@@ -7,6 +7,8 @@ const { expect } = require("chai");
 const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
 
+// npx hardhat test test/contracts-eth/DelayFee.js
+
 describe("BlindBox-DelayFee- 相关测试", async function () {
 
 
