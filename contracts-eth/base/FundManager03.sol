@@ -24,19 +24,19 @@ contract FundManager03 is FundManager02 {
     /**
      * @dev Pay order amount
      * @param boxId_ BlindBox ID
-     * @param buyer_ Buyer address
+     * @param from_ Buyer address
      * @param amount_ Amount to pay
      * @param userId_ Buyer id
      */
     function _payOrderAmount(
         uint256 boxId_,
-        address buyer_,
+        address from_,
         uint256 amount_,
         bytes32 userId_
     ) internal {
         address token = EXCHANGE.acceptedToken(boxId_);
 
-        IERC20(token).safeTransferFrom(buyer_, address(this), amount_);
+        IERC20(token).safeTransferFrom(from_, address(this), amount_);
 
         _orderAmounts[boxId_][userId_] += amount_;
 
@@ -46,17 +46,17 @@ contract FundManager03 is FundManager02 {
     /**
      * @dev Pay delay fee
      * @param boxId_ BlindBox ID
-     * @param sender_ Sender address
+     * @param from_ Sender address
      * @param amount_ Amount to pay
      */
     function _payDelayFee(
         uint256 boxId_,
-        address sender_,
+        address from_,
         uint256 amount_
     ) internal {
         address settlementToken = ADDR_MANAGER.settlementToken();
         IERC20(settlementToken).safeTransferFrom(
-            sender_,
+            from_,
             address(this),
             amount_
         );

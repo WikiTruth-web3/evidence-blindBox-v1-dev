@@ -67,27 +67,26 @@ contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
     function buy(
-        uint256 boxId_
+        uint256 boxId_,
+        address from_
     ) external {
-        _buy(boxId_);
+        _buy(boxId_, from_);
     }
 
     function bid(
-        uint256 boxId_
+        uint256 boxId_,
+        address from_
     ) external {
-        _bid(boxId_);
+        _bid(boxId_, from_);
     }
 
     function calcPayAmount(
-        uint256 boxId_
+        uint256 boxId_,
+        bytes32 userId_
     ) public view returns (uint256) {
-        // Use SiweContext get sender
-        // address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        address sender = msg.sender;
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        uint256 price = BLIND_BOX.getPrice(boxId_);
 
-        return _calcPayAmount(boxId_, userId, price);
+        uint256 price = BLIND_BOX.getPrice(boxId_);
+        return _calcPayAmount(boxId_, userId_, price);
     }
 
     // ========================================================================================================

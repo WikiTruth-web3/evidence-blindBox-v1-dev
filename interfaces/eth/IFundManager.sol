@@ -73,14 +73,14 @@ interface IFundManager {
     /**
      * @notice Pay order amount
      * @param boxId_ BlindBox ID
-     * @param buyer_ Buyer address
+     * @param from_ Buyer address
      * @param amount_ Amount to pay
      * @param userId_ Buyer id
      * @dev Only callable by project contracts
      */
     function payOrderAmount(
         uint256 boxId_,
-        address buyer_,
+        address from_,
         uint256 amount_,
         bytes32 userId_
     ) external;
@@ -88,13 +88,13 @@ interface IFundManager {
     /**
      * @notice Pay delay fee
      * @param boxId_ BlindBox ID
-     * @param buyer_ Buyer address
+     * @param from_ Buyer address
      * @param amount_ Amount to pay
      * @dev Only callable by project contracts
      */
     function payDelayFee(
         uint256 boxId_,
-        address buyer_,
+        address from_,
         uint256 amount_
     ) external;
 
