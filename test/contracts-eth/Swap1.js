@@ -15,7 +15,7 @@ describe("交易测试-常规交易测试", function () {
   // 解构变量，用于单元测试
   
 
-  it("01-minter出售-buyer购买-支付延迟费用- 检查时间-价格-状态", async function () {
+  it("01-minter出售-buyer购买-支付延迟费用- 检查时间-价格", async function () {
     const { 
       admin, dao, minter, buyer, completer,
       settlementToken, 

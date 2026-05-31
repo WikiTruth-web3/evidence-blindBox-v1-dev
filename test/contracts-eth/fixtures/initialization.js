@@ -29,6 +29,7 @@ async function initializeContracts(contracts, connectors, signers) {
     blindBoxConnectors,
     exchangeConnectors,
     fundManagerConnectors,
+    userManagerConnectors
   } = connectors;
 
   // 从传入的 signers 中获取需要的签名者
@@ -103,15 +104,15 @@ function generateTestData() {
 }
 
 async function createTestBlindBoxes(blindBoxMinter, testData) {
-  const signers = await ethers.getSigners();
-  const minter = signers[4]; // minter 是第5个签名者
+  // const signers = await ethers.getSigners();
+  // const minter = signers[4]; // minter 是第5个签名者
 
   // 创建测试用的BlindBox项目
-  await blindBoxMinter.create("00_infoURI", testData.bytes_mint, 1000);
-  await blindBoxMinter.create("01_infoURI", testData.bytes_mint, 1000);
-  await blindBoxMinter.create("02_infoURI", testData.bytes_mint, 1000);
-  await blindBoxMinter.create("03_infoURI", testData.bytes_mint, 1000);
-  await blindBoxMinter.create("04_infoURI", testData.bytes_mint, 1000);
+  await blindBoxMinter.create("00_infoURI", testData.bytes_mint, ethers.parseUnits("1000", 18));
+  await blindBoxMinter.create("01_infoURI", testData.bytes_mint, ethers.parseUnits("1000", 18));
+  await blindBoxMinter.create("02_infoURI", testData.bytes_mint, ethers.parseUnits("1000", 18));
+  await blindBoxMinter.create("03_infoURI", testData.bytes_mint, ethers.parseUnits("1000", 18));
+  await blindBoxMinter.create("04_infoURI", testData.bytes_mint, ethers.parseUnits("1000", 18));
   await blindBoxMinter.createAndPublish("05_infoURI——public");
 }
 

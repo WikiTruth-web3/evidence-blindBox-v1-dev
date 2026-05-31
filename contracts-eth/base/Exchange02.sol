@@ -95,8 +95,11 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
             // if the _sellerId is not the minter, they can't set the price
             price_ = 0;
         } else {
-            if (acceptedToken_ != token ) {
-                ADDR_MANAGER.checkTokenSupported(acceptedToken_);
+            if (
+                acceptedToken_ != token && 
+                ADDR_MANAGER.isTokenSupported(acceptedToken_)
+            ) {
+                
                 _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
                 token = acceptedToken_;
             }

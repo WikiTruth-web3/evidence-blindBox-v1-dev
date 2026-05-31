@@ -7,6 +7,8 @@ const { expect } = require("chai");
 const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate} = require('../utils/timeToDate.js');
 
+// npx hardhat test test/contracts-eth/AddressManagerToken.js
+
 describe("AddressManager-Token- 相关测试", function () {
   it("移除官方代币--失败", async function () {
     const { 
@@ -47,7 +49,7 @@ describe("AddressManager-Token- 相关测试", function () {
       userManager_buyer, userManager_minter, userManager_DAO
     } = await loadFixture(deployBlindBoxFixture);
 
-    await expect(addressManager.addToken(settlementToken.target)).to.be.revertedWithCustomError(addressManager, "TokenIsActive");
+    await expect(addressManager.addToken(settlementToken.target)).to.be.revertedWithCustomError(addressManager, "IsSettlementToken");
 
   }); 
 
@@ -86,8 +88,8 @@ describe("AddressManager-Token- 相关测试", function () {
     expect(tokenList2.length).to.equal(1);
     expect(tokenList2[0]).to.equal(wBTC.target);
     expect(await addressManager.isTokenSupported(wETH.target)).to.equal(false);
-    // 重复移除，失败
-    await expect(addressManager.removeToken(wETH.target)).to.be.revertedWithCustomError(addressManager, "TokenIsNotActive");
+    // 重复移除，不会有变化
+    await addressManager.removeToken(wETH.target);
 
   });  
 

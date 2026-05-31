@@ -6,6 +6,12 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployBlindBoxFixture } = require("./fixtures/Fixture.js");
 const { FundsType, RewardType, Status } = require("./helpers");
+const {
+  wBTC_amount,
+  wETH_amount,
+  wROSE_amount,
+  settlementToken_amount
+} = require("./fixtures/tokenAmount.js");
 
 // npx hardhat test test/contracts-eth/EmitTest.js
 
@@ -23,10 +29,10 @@ describe("Exchange 交易流程事件测试", function () {
       wBTC
     } = await loadFixture(deployBlindBoxFixture);
 
-    const tx = await blindBox_minter.create("test_boxInfoCID_",bytes_mint,5000)
+    const tx = await blindBox_minter.create("test_boxInfoCID_",bytes_mint,settlementToken_amount("5000"))
     await expect(tx)
       .and.to.emit(blindBox, "PriceChanged")
-      .withArgs(6, 5000)
+      .withArgs(6, settlementToken_amount("5000"))
       .and.to.emit(blindBox, "BoxCreated")
       .withArgs(6, anyValue, "test_boxInfoCID_")
       .and.to.emit(blindBox, "DeadlineChanged")
@@ -44,25 +50,25 @@ describe("Exchange 交易流程事件测试", function () {
       wBTC
     } = await loadFixture(deployBlindBoxFixture);
 
-    const tx = exchange_minter.sell(1, address_zero, 2000);
+    const tx = exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
 
     await expect(tx)
       .to.emit(exchange, "BoxListed")
       .withArgs(1, anyValue, settlementToken.target)
       .and.to.emit(blindBox, "PriceChanged")
-      .withArgs(1, 2000)
+      .withArgs(1, settlementToken_amount("2000"))
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Selling)
       .and.to.emit(blindBox, "DeadlineChanged")
       .withArgs(1, anyValue);
 
     // 使用wBTC作为支付代币
-    const tx2 = exchange_minter.auction(2, wBTC.target, 5000);
+    const tx2 = exchange_minter.auction(2, wBTC.target, wBTC_amount("5000"));
     await expect(tx2)
       .to.emit(exchange, "BoxListed")
       .withArgs(2, anyValue, wBTC.target)
       .and.to.emit(blindBox, "PriceChanged")
-      .withArgs(2, 5000)
+      .withArgs(2, wBTC_amount("5000"))
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(2, Status.Auctioning)
       .and.to.emit(blindBox, "DeadlineChanged")
@@ -81,7 +87,7 @@ describe("Exchange 交易流程事件测试", function () {
       } = await loadFixture(deployBlindBoxFixture);
     await time.increase(380 * 24 * 60 * 60);
 
-    const tx3 = exchange_seller.sell(1, settlementToken.target, 2000);
+    const tx3 = exchange_seller.sell(1, settlementToken.target, settlementToken_amount("2000"));
     await expect(tx3)
       .to.emit(exchange, "BoxListed")
       .withArgs(1, anyValue, settlementToken.target)
@@ -89,7 +95,7 @@ describe("Exchange 交易流程事件测试", function () {
       .withArgs(1, Status.Selling)
       .and.to.emit(blindBox, "DeadlineChanged")
 
-      const tx4 = exchange_seller.auction(2, wBTC.target, 3000);
+      const tx4 = exchange_seller.auction(2, wBTC.target, wBTC_amount("3000"));
       await expect(tx4)
         .to.emit(exchange, "BoxListed")
         .withArgs(2, anyValue, settlementToken.target) // 代币不会被改动
@@ -112,7 +118,7 @@ describe("Exchange 交易流程事件测试", function () {
       settlementToken,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
 
     const tx = exchange_buyer.buy(1);
 
@@ -124,7 +130,7 @@ describe("Exchange 交易流程事件测试", function () {
       .and.to.emit(exchange, "BoxPurchased")
       .withArgs(1, anyValue)
       .and.to.emit(fundManager, "OrderAmountPaid")
-      .withArgs(1, anyValue, settlementToken.target, 2000);
+      .withArgs(1, anyValue, settlementToken.target, settlementToken_amount("2000"));
 
 
   });
@@ -133,7 +139,7 @@ describe("Exchange 交易流程事件测试", function () {
     const {
       exchange_minter,
       exchange_seller,
-      exchange_buyer,
+      exchange_buyer, buyer,
       exchange_buyer2,
       fundManager,
       fundManager_buyer,
@@ -144,7 +150,7 @@ describe("Exchange 交易流程事件测试", function () {
       settlementToken,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.auction(1, address_zero, 5000);
+    await exchange_minter.auction(1, address_zero, settlementToken_amount("5000"));
     await time.increase(1 * 24 * 60 * 60);
 
     const tx = exchange_buyer.bid(1);
@@ -153,21 +159,21 @@ describe("Exchange 交易流程事件测试", function () {
       .to.emit(exchange, "RequestDeadlineChanged")
       .withArgs(1, anyValue)
       .and.to.emit(blindBox, "PriceChanged")
-      .withArgs(1, 5500)
+      .withArgs(1, settlementToken_amount("5500"))
       .and.to.emit(blindBox, "DeadlineChanged")
       .withArgs(1, anyValue)
       .and.to.emit(exchange, "BidPlaced")
       .withArgs(1, anyValue)
       .and.to.emit(fundManager, "OrderAmountPaid")
-      .withArgs(1, anyValue, settlementToken.target, 5000);
+      .withArgs(1, anyValue, settlementToken.target, settlementToken_amount("5000"));
 
     // buyer2 参与竞拍，buyer提取资金
     const tx2 = exchange_buyer2.bid(1);
 
-    const tx3 = fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1]);
+    const tx3 = fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1], buyer.address);
     await expect(tx3)
       .to.emit(fundManager, "OrderAmountWithdraw")
-      .withArgs([1], settlementToken.target, anyValue, 5000);
+      .withArgs([1], settlementToken.target, anyValue, settlementToken_amount("5000"));
 
 
   });
@@ -175,7 +181,7 @@ describe("Exchange 交易流程事件测试", function () {
   it("04-refund 流程: requestRefund + agreeRefund 触发对应事件", async function () {
     const {
       exchange_minter,
-      exchange_buyer,
+      exchange_buyer,buyer,
       fundManager,
       fundManager_buyer,
       exchange,
@@ -184,7 +190,7 @@ describe("Exchange 交易流程事件测试", function () {
       settlementToken,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
     await exchange_buyer.buy(1);
 
     const requestTx = exchange_buyer.requestRefund(1);
@@ -202,18 +208,18 @@ describe("Exchange 交易流程事件测试", function () {
       .withArgs(1, true);
 
     // buyer 提取退款
-    const withdrawTx = fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1]);
+    const withdrawTx = fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1],buyer.address);
     await expect(withdrawTx)
       .to.emit(fundManager, "RefundAmountWithdraw")
-      .withArgs([1], settlementToken.target, anyValue, 2000);
+      .withArgs([1], settlementToken.target, anyValue, settlementToken_amount("2000"));
 
   });
 
   it("05-completeOrder: 非买家完成订单触发 CompleterAssigned + 状态变更", async function () {
     const {
-      exchange_minter,
+      exchange_minter,minter,
       exchange_buyer,
-      exchange_completer,
+      exchange_completer,completer,
       exchange,
       blindBox,
       fundManager,
@@ -223,7 +229,7 @@ describe("Exchange 交易流程事件测试", function () {
       address_zero,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
     await exchange_buyer.buy(1);
     await time.increase(50 * 24 * 60 * 60);
 
@@ -233,17 +239,19 @@ describe("Exchange 交易流程事件测试", function () {
       .withArgs(1, anyValue)
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Delaying)
-      .and.to.emit(fundManager, "RewardsAdded")
-      .withArgs(1, anyValue);
+      .and.to.emit(fundManager, "RewardAdded")
+      .withArgs(1, settlementToken.target, settlementToken_amount("1920"), RewardType.Minter)
+      .and.to.emit(fundManager, "RewardAdded")
+      .withArgs(1, settlementToken.target, settlementToken_amount("20"), RewardType.Completer);
 
     // completer 提取奖励
-    const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target);
+    const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target, completer.address);
     await expect(withdrawTx)
       .to.emit(fundManager, "RewardsWithdraw")
       .withArgs(anyValue, settlementToken.target, anyValue);
 
     // minter 提取奖励
-    const withdrawTx2 = fundManager_minter.withdrawRewards(settlementToken.target);
+    const withdrawTx2 = fundManager_minter.withdrawRewards(settlementToken.target, minter.address);
     await expect(withdrawTx2)
       .to.emit(fundManager, "RewardsWithdraw")
       .withArgs(anyValue, settlementToken.target, anyValue);
@@ -251,9 +259,9 @@ describe("Exchange 交易流程事件测试", function () {
 
   it("06-completeOrder: 非买家完成订单, 非settlementToken支付, ", async function () {
     const {
-      exchange_minter,
+      exchange_minter,minter,
       exchange_buyer,
-      exchange_completer,
+      exchange_completer, completer,
       exchange,
       blindBox,
       fundManager,
@@ -264,9 +272,14 @@ describe("Exchange 交易流程事件测试", function () {
       wBTC,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, wBTC, 2000); // NOTE 这里是wBTC
+    await exchange_minter.sell(1, wBTC.target, wBTC_amount("2000")); // NOTE 这里是wBTC
     await exchange_buyer.buy(1);
     await time.increase(50 * 24 * 60 * 60);
+
+    // 为 fundManager 提供足够的结算代币储备，用于 Helper 折算提现
+    for (let i = 0; i < 10; i++) {
+      await settlementToken.mint(fundManager.target);
+    }
 
     const tx = exchange_completer.completeOrder(1);
     await expect(tx)
@@ -274,17 +287,19 @@ describe("Exchange 交易流程事件测试", function () {
       .withArgs(1, anyValue)
       .and.to.emit(blindBox, "BoxStatusChanged")
       .withArgs(1, Status.Delaying)
-      .and.to.emit(fundManager, "RewardsAdded")
-      .withArgs(1, anyValue);
+      .and.to.emit(fundManager, "RewardAdded")
+      .withArgs(1, wBTC.target, wBTC_amount("1920"), RewardType.Minter)
+      .and.to.emit(fundManager, "RewardAdded")
+      .withArgs(1, settlementToken.target, settlementToken_amount("40"), RewardType.Completer);
 
     // completer 提取奖励
-    const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target);
+    const withdrawTx = fundManager_completer.withdrawRewards(settlementToken.target, completer.address);
     await expect(withdrawTx)
       .to.emit(fundManager, "RewardsWithdraw")
       .withArgs(anyValue, settlementToken.target, anyValue);
 
     // minter 提取奖励
-    const withdrawTx2 = fundManager_minter.withdrawRewards(wBTC.target);
+    const withdrawTx2 = fundManager_minter.withdrawRewards(wBTC.target, minter.address);
     await expect(withdrawTx2)
       .to.emit(fundManager, "RewardsWithdraw")
       .withArgs(anyValue, wBTC.target, anyValue);

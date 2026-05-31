@@ -7,25 +7,27 @@ contract MockERC20 is ERC20 {
     error NotAdmin();
 
     // mapping(address => uint256 date) public mintDate;
-    // uint256 public mintDeadline;
+    uint8 internal _decimals;
     address internal ADMIN;
 
     // name: Test WETH for WikiTruth
     // symbol: TWETH
     constructor(
         string memory name_,
-        string memory symbol_
+        string memory symbol_,
+        uint8 decimals_
     ) ERC20(name_, symbol_) {
         ADMIN = msg.sender;
+        _decimals = decimals_;
     }
 
-    function decimals() public pure override returns (uint8) {
-        return 3;
+    function decimals() public view override returns (uint8) {
+        return _decimals;
     }
 
     function mint(address to_) public {
         // if(msg.sender != ADMIN) revert NotAdmin();
-        _mint(to_, 10000000000000000);
+        _mint(to_, 100000000000 * (10 ** uint256(_decimals)));
     }
 
     function burn(uint256 amount_) public {

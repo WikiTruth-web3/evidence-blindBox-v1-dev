@@ -14,7 +14,7 @@ describe("AddressManager- 相关测试", function () {
     const { 
       blindBox, exchange, userManager, addressManager,siweAuth, fundManager, 
       buyer, minter, dao, wETH, wROSE, settlementToken, address_zero, wBTC,
-      userManager_buyer, userManager_minter, userManager_DAO
+      userManager_buyer, userManager_minter, userManager_DAO, forwarder
     } = await loadFixture(deployBlindBoxFixture);
 
     const addressList = [

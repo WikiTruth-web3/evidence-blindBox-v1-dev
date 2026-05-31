@@ -92,15 +92,15 @@ contract AddressManager is IAddressManager, Error {
      * @param enum_ Contract name
      * @param addr_ Contract address
      */
-    function setMainContract(Main enum_, address addr_) external {
+    function setMainContract(Main enum_, address addr_) external onlyAdmin {
         _setMainContract(enum_, addr_);
     }
 
-    function _setMainContract(Main enum_, address addr_) internal onlyAdmin {
+    function _setMainContract(Main enum_, address addr_) internal {
         address current = _mainContracts[enum_];
-        _OldNew(current, addr_);
-        
-        _mainContracts[enum_] = addr_;
+        if(_OldNew(current, addr_)){
+            _mainContracts[enum_] = addr_;
+        }
     }
 
     /**
@@ -111,19 +111,19 @@ contract AddressManager is IAddressManager, Error {
     function setSpreadContract(string memory name_, address addr_) external onlyAdmin {
         bytes32 key = keccak256(bytes(name_));
         address current = _spreadContracts[key];
-        _OldNew(current, addr_);
-
-        _spreadContracts[key] = addr_;
+        if(_OldNew(current, addr_)){
+            _spreadContracts[key] = addr_;
+        }
     }
-    function _OldNew(address old_, address new_) internal {
-        if (old_ == address(0)) {
-            _isProjectContract[new_] = true;
-            return;
-        }
-        if (new_ != address(0) && new_ != old_) {
-            _isProjectContract[new_] = true;
+    function _OldNew(address old_, address new_) internal returns (bool){
+        if (new_ != address(0)) {
+            if (old_ != address(0)) {
             _isProjectContract[old_] = false;
+            }
+            _isProjectContract[new_] = true;
+            return true;
         }
+        return false;
     }
     // ==========================================================================================
 
@@ -164,6 +164,7 @@ contract AddressManager is IAddressManager, Error {
 
     function addToken(address token_) external onlyAdmin {
         if (token_ == address(0)) revert InvalidAddress();
+        if (token_ == _settlementToken) revert IsSettlementToken();
 
         if (_tokenStatus[token_] == TokenEnum.UnExsited) {
             _tokenList.push(token_);
@@ -227,17 +228,13 @@ contract AddressManager is IAddressManager, Error {
         return _settlementToken;
     }
 
-    function checkTokenSupported(address token_) external view {
-        if(token_ == address(0)) revert ZeroAddress();
-        if(_tokenStatus[token_] != TokenEnum.Active) revert TokenIsNotActive();
-    }
-
     /**
      * @dev Check if the token is supported
      * @param token_ Token contract address
      * @return Whether the token is supported
      */
     function isTokenSupported(address token_) external view returns (bool) {
+        if(token_ == address(0)) return false;
         return _tokenStatus[token_] == TokenEnum.Active;
     }
 

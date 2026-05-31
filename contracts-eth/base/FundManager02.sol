@@ -10,11 +10,12 @@ import {
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
-    FundsType,
-    RewardsType
+    FundType,
+    RewardType
 } from "@interfaces/eth/IFundManager.sol";
 import {IExchange} from "@interfaces/eth/IExchange.sol";
 import {IPriceOracle} from "../oracle/IPriceOracle.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 // import {I_Swap} from "../dex/interfaceSwap.sol";
 
@@ -74,10 +75,7 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         amount_ -= toDaoTreasury;
 
         if (token_ != settlementToken) {
-            // If it is not the settlement token, use Oracle to convert helper rewards
-            address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle");
-            uint256 price = IPriceOracle(oracleAddr).getPrice(token_, settlementToken);
-            helperRewards2 = (helperRewards * price) / 1e18;
+            helperRewards2 = _convertAmount( token_, settlementToken, helperRewards);
         } 
 
         unchecked {
@@ -86,34 +84,38 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
             if (sellerId != bytes32(0)) {
                 _rewardAmounts[sellerId][settlementToken] += helperRewards2;
                 amount_ -= helperRewards;
-                toDaoTreasury += helperRewards;
-                emit RewardsAdded(
+                if (token_ != settlementToken) {
+                    toDaoTreasury += helperRewards;
+                }
+                emit RewardAdded(
                     boxId_,
                     settlementToken,
                     helperRewards2,
-                    RewardsType.Seller
+                    RewardType.Seller
                 );
             }
 
             if (completerId != bytes32(0)) {
                 _rewardAmounts[completerId][settlementToken] += helperRewards2;
                 amount_ -= helperRewards;
-                toDaoTreasury += helperRewards;
-                emit RewardsAdded(
+                if (token_ != settlementToken) {
+                    toDaoTreasury += helperRewards;
+                }
+                emit RewardAdded(
                     boxId_,
                     settlementToken,
                     helperRewards2,
-                    RewardsType.Completer
+                    RewardType.Completer
                 );
             }
 
             // Update minter rewards (using original token)
             _rewardAmounts[minterId][token_] += amount_;
-            emit RewardsAdded(
+            emit RewardAdded(
                 boxId_,
                 token_,
                 amount_,
-                RewardsType.Minter
+                RewardType.Minter
             );
 
             // Send serviceFee (and helperRewards if converted) to DAO treasury
@@ -122,6 +124,16 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
                 toDaoTreasury
             );
         }
+    }
+
+    function _convertAmount(address tokenIn_, address tokenOut_, uint256 amount_) internal view returns(uint256) {
+        // If it is not the settlement token, use Oracle to convert helper rewards
+        address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle");
+        uint256 price = IPriceOracle(oracleAddr).getPrice(tokenIn_, tokenOut_);
+        
+        uint8 decimalsA = IERC20Metadata(tokenIn_).decimals();
+        uint8 decimalsB = IERC20Metadata(tokenOut_).decimals();
+        return (amount_ * price * (10 ** decimalsB)) / (1e18 * (10 ** decimalsA));
     }
 
     // Fund Deposit Functions
@@ -144,9 +156,10 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         address token_,
         uint256[] calldata list_,
         address receiver_,
-        FundsType type_
+        FundType type_
     ) internal nonReentrant whenNotPaused {
         if (list_.length == 0) revert EmptyList();
+        if (receiver_ == address(0)) revert ZeroAddress();
         uint256 amount;
         IExchange exchange = EXCHANGE;
         // erc2771 - _msgSender() is the real caller
@@ -162,10 +175,10 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
                 revert AmountIsZero();
             }
 
-            if (type_ == FundsType.Order) {
+            if (type_ == FundType.Order) {
                 // Cannot be the current buyer
                 if (userId == buyerId) revert InvalidCaller();
-            } else if (type_ == FundsType.Refund) {
+            } else if (type_ == FundType.Refund) {
                 // The caller must be the buyer and the refund must be permitted
                 if (
                     userId != buyerId || 
@@ -188,7 +201,7 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         // Execute refund
         IERC20(token_).safeTransfer(receiver_, amount);
 
-        if (type_ == FundsType.Order) {
+        if (type_ == FundType.Order) {
             emit OrderAmountWithdraw(list_, token_, userId, amount);
         } else {
             emit RefundAmountWithdraw(list_, token_, userId, amount);

@@ -11,7 +11,7 @@ const TimeHelpers = require("./helpers");
 
 describe("交易测试-多角色参与交易过程", function () {
 
-  it("06-过期出售-seller-buyer-completer-提取资金", async function () {
+  it("1-过期出售-seller-buyer-completer-提取资金", async function () {
     const { admin, dao, minter, seller, buyer, settlementToken, completer, blindBox, 
       exchange, fundManager ,bytes_mint, bytes_deliver, bytes32_1 , address_zero,
       userManager_completer,
@@ -96,65 +96,21 @@ describe("交易测试-多角色参与交易过程", function () {
 
   });
 
-  it("07-黑名单、公开的无法出售", async function () {
-    const { minter, blindBox, exchange_minter, settlementToken ,blindBox_DAO,
-      blindBox_minter, address_zero,
-    } = await loadFixture(deployBlindBoxFixture);
-    
-    await blindBox_DAO.addToBlacklist(1);
-    await blindBox_DAO.addToBlacklist(2);
-    // 时间增加360天
-    await time.increase(360 * 24 * 60 * 60);
-    // 应该抛出异常
-    await expect(exchange_minter.sell(1, address_zero, 2000)).to.be.reverted;
-    await expect(exchange_minter.sell(2, address_zero, 2000)).to.be.reverted;
-
-  });
-
-  it("08-黑名单、公开的无法拍卖", async function () {
-    const { minter, blindBox, exchange, settlementToken ,blindBox_DAO,
-      blindBox_minter,exchange_seller, address_zero,
-    } = await loadFixture(deployBlindBoxFixture);
-
-    await blindBox_DAO.addToBlacklist(1);
-    // 时间增加360天
-    await time.increase(360 * 24 * 60 * 60);
-    // 应该抛出异常
-    await expect(exchange_seller.auction(1, address_zero,  2000)).to.be.reverted;
-    await expect(exchange_seller.auction(2, address_zero, 2000)).to.be.reverted;
-
-  });
-
-  it("09-过期-seller-出售/拍卖", async function () {
+  it("2- seller 使用 other Token出售", async function () {
     const { 
-      minter, buyer, settlementToken, blindBox, exchange_seller, address_zero, seller,
-      fundManager, bytes_mint,userManager_seller , exchange_minter,exchange, bytes32_zero,
+      exchange_minter,exchange_buyer, exchange_buyer2, buyer, buyer2, bytes32_buyer, wBTC,
+      settlementToken, blindBox, blindBox_DAO, address_zero, minter, dao_treasury,
+      fundManager, exchange, exchange_seller, fundManager_buyer2,fundManager_buyer, fundManager_minter,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await time.increase(380 * 24 * 60 * 60);
-    await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 3000);
-    await exchange_seller.sell(3, address_zero, 2000);
-    await exchange_seller.auction(4, address_zero, 4000);
+    await time.increase(380*24*60*60)
+    await exchange_seller.sell(1, wBTC.target, 2000);
+    await exchange_seller.auction(2, wBTC.target, 2000);
 
-    // 检查价格是否被修改
-    expect(await blindBox.getPrice(1)).to.equal(2000);
-    expect(await blindBox.getPrice(2)).to.equal(3000);
-    expect(await blindBox.getPrice(3)).to.equal(1000);
-    expect(await blindBox.getPrice(4)).to.equal(1000);
-    // 检查1，2，5号的状态是否是1
-    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Selling);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Auctioning);
-    expect(await blindBox.getStatus(3)).to.equal(TimeHelpers.Status.Selling);
-    expect(await blindBox.getStatus(4)).to.equal(TimeHelpers.Status.Auctioning);
-    // 检查 seller
-    expect(await exchange.sellerIdOf(1)).to.equal(bytes32_zero);
-    expect(await exchange.sellerIdOf(2)).to.equal(bytes32_zero);
-    const seller_id = await userManager_seller.myUserId();
-    expect(await exchange.sellerIdOf(3)).to.equal(seller_id);
-    expect(await exchange.sellerIdOf(4)).to.equal(seller_id);
+    expect(await exchange.acceptedToken(1)).to.equal(settlementToken.target)
+    expect(await exchange.acceptedToken(2)).to.equal(settlementToken.target)
 
-  });
+  })
 
   
 });

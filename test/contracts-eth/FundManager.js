@@ -6,6 +6,14 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
+const {
+  wBTC_amount,
+  wETH_amount,
+  wROSE_amount,
+  settlementToken_amount
+} = require("./fixtures/tokenAmount.js");
+
+// npx hardhat test test/contracts-eth/FundManager.js
 
 describe("FundManager", function () {
 
@@ -34,11 +42,11 @@ describe("FundManager", function () {
 
       blindBox_minter, blindBox_buyer, exchange_minter,exchange_buyer,
       bytes32_1, bytes32_2, fundManager_minter, wBTC, settlementToken, address_zero,
-      fundManager, exchange
+      fundManager, exchange, userId_minter,minter,
     } = await loadFixture(deployBlindBoxFixture);
 
     // ===========================mint =========================
-    await exchange_minter.sell(0, address_zero, 2000);
+    await exchange_minter.sell(0, address_zero, settlementToken_amount("2000"));
     await exchange_buyer.buy(0);
     await exchange_buyer.completeOrder(0);
 
@@ -46,44 +54,30 @@ describe("FundManager", function () {
     await fundManager.pause();
     expect(await fundManager.paused()).to.equal(true);
     // ===========================提款失败！ =========================
-    await expect(fundManager_minter.withdrawRewards(settlementToken.target)).to.reverted;
+    await expect(fundManager_minter.withdrawRewards(settlementToken.target, minter.address)).to.reverted;
 
     // 切换为false(即已恢复)
     await fundManager.unpause();
     expect(await fundManager.paused()).to.equal(false);
 
     // ===========================提款成功！ =========================
-    await fundManager_minter.withdrawRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target, minter.address);
 
   });
 
-  // 设置滑点-成功
-  // it("设置滑点-成功", async function () {
-  //   const {admin, fundManager} = await loadFixture(deployBlindBoxFixture);
-  //   await fundManager.setSlippageProtection(10);
-  //   expect(await fundManager.slippageProtection()).to.equal(10);
-  // });
-
-  // 设置滑点-失败
-  // it("设置滑点-失败", async function () {
-  //   const {admin, fundManager} = await loadFixture(deployBlindBoxFixture);
-  //   await expect(fundManager.setSlippageProtection(101)).to.be.reverted;
-  //   await expect(fundManager.setSlippageProtection(0)).to.be.reverted;
-  // });
-
   it("直接--接收orderAmount-失败", async function () {
-    const {admin, minter, fundManager,wBTC} = await loadFixture(deployBlindBoxFixture);
+    const {admin, minter, fundManager,wBTC, userId_minter, userId_buyer,userId_completer,} = await loadFixture(deployBlindBoxFixture);
 
     const fundMinter = await fundManager.connect(minter);
     // 调用接收服务费函数，传入1000个代币
-    await expect(fundMinter.payOrderAmount(1, minter.address,1000)).to.be.reverted;
+    await expect(fundMinter.payOrderAmount(1, minter.address, settlementToken_amount("1000"),userId_minter)).to.be.reverted;
     
   });
 
   it("接收延迟费用-失败-不能直接调用", async function () {
     const {admin, minter, seller, buyer, fundManager,wBTC} = await loadFixture(deployBlindBoxFixture);
     // 调用接收服务费函数，传入1000个代币
-    await expect(fundManager.payDelayFee(1, buyer.address, 1000)).to.be.reverted;
+    await expect(fundManager.payDelayFee(1, buyer.address, settlementToken_amount("1000"))).to.be.reverted;
     // 检查
     // expect(await fundManager.totalRewardAmounts(wBTC.target)).to.equal(1000);
     // expect(await fundManager.availableServiceFees()).to.equal(50);
@@ -101,11 +95,11 @@ describe("FundManager", function () {
 
 
   it("查询-为空", async function () {
-    const {minter, fundManager, seller, wBTC, userManager} = await loadFixture(deployBlindBoxFixture);
+    const {minter, fundManager, seller, wBTC, userManager, userId_minter, userId_seller} = await loadFixture(deployBlindBoxFixture);
     // const orderAmount = await fundManager.orderAmount(1, minter.address);
     // 检查orderMoney是否为空
-    expect(await fundManager.orderAmounts(1, minter.address)).to.equal(0);
-    await expect(fundManager.rewardAmounts(wBTC.target,seller.address)).to.be.revertedWithCustomError(userManager,"EmptyUserId")
+    expect(await fundManager.orderAmounts(1, userId_minter)).to.equal(0);
+    expect(await fundManager.rewardAmounts(ethers.ZeroHash, wBTC.target)).to.equal(0);
 
   });
 
@@ -115,12 +109,12 @@ describe("FundManager", function () {
     const { 
       blindBox_minter, exchange_minter, exchange_buyer, fundManager_buyer,fundManager_completer,
       bytes32_buyer, bytes_deliver, fundManager, exchange,fundManager_minter,wBTC, 
-      settlementToken,
-      address_zero,
+      settlementToken,userId_minter, userId_buyer,userId_completer,
+      address_zero, minter, buyer, completer
     } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售、购买、发货、请求退款
-    await exchange_minter.sell(1, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
     await exchange_buyer.buy(1);
     await exchange_buyer.requestRefund(1);
     await exchange_minter.agreeRefund(1);
@@ -129,17 +123,17 @@ describe("FundManager", function () {
     expect(await exchange.refundPermit(1)).to.equal(true);
     
     // 非买家（这里用卖家和其他账户）尝试提取退款，应该失败
-    await expect(fundManager_minter.withdrawOrderAmounts(settlementToken.target, [1]))
+    await expect(fundManager_minter.withdrawOrderAmounts(settlementToken.target, [1], minter.address))
       .to.be.reverted;
       
-    await expect(fundManager_completer.withdrawOrderAmounts(settlementToken.target, [1]))
+    await expect(fundManager_completer.withdrawOrderAmounts(settlementToken.target, [1], completer.address))
       .to.be.reverted;
       
     // 真正的买家应该可以成功提取退款
-    await fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1]);
+    await fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1], buyer.address);
     
     // 再次尝试提取应该失败，因为金额已经被提取
-    await expect(fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1]))
+    await expect(fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1], buyer.address))
       .to.be.reverted;
   });
 
@@ -151,25 +145,26 @@ describe("FundManager", function () {
       bytes32_buyer, bytes_deliver, fundManager, fundManager_buyer,
       wBTC, address_zero, settlementToken,
       blindBox,minter,fundManager_completer,fundManager_minter,
+      buyer, completer,userId_minter,
     } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售、购买、完成交易
-    await exchange_minter.sell(2, address_zero, 2000);
+    await exchange_minter.sell(2, address_zero, settlementToken_amount("2000"));
     await exchange_buyer.buy(2);
     await exchange_buyer.completeOrder(2);
     
     // 非铸造者（这里用买家和其他账户）尝试提取铸造者奖励，应该失败
-    await expect(fundManager_buyer.withdrawRewards(settlementToken.target))
+    await expect(fundManager_buyer.withdrawRewards(settlementToken.target, buyer.address))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
       
-    await expect(fundManager_completer.withdrawRewards(settlementToken.target))
+    await expect(fundManager_completer.withdrawRewards(settlementToken.target, completer.address))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
       
     // 真正的铸造者应该可以成功提取奖励
-    await fundManager_minter.withdrawRewards(settlementToken.target);
+    await fundManager_minter.withdrawRewards(settlementToken.target, minter.address);
     
     // 再次尝试提取应该失败，因为金额已经被提取
-    await expect(fundManager_minter.withdrawRewards(settlementToken.target))
+    await expect(fundManager_minter.withdrawRewards(settlementToken.target, minter.address))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
   });
 
@@ -180,11 +175,12 @@ describe("FundManager", function () {
       blindBox_minter, exchange_minter, exchange_buyer, exchange_buyer2, exchange_other,
       wBTC, address_zero, settlementToken, 
       userManager, userManager_buyer2,
-      fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer
+      fundManager, exchange,buyer2,fundManager_buyer2,fundManager_buyer,
+      buyer
     } = await loadFixture(deployBlindBoxFixture);
 
     // 准备测试环境：出售并竞拍，但未最终购买
-    await exchange_minter.auction(3, address_zero, 2000);
+    await exchange_minter.auction(3, address_zero, settlementToken_amount("2000"));
     
     // 多个账户竞拍
     await exchange_buyer.bid(3);
@@ -196,24 +192,24 @@ describe("FundManager", function () {
     expect(await exchange.buyerIdOf(3)).to.equal(buyerId_2);
     
     // 当前买家尝试提取订单金额，应该失败
-    await expect(fundManager_buyer2.withdrawOrderAmounts(settlementToken.target, [3]))
+    await expect(fundManager_buyer2.withdrawOrderAmounts(settlementToken.target, [3], buyer2.address))
       .to.be.revertedWithCustomError(fundManager, "InvalidCaller");
       
     // 已经被取代的前一个竞拍者可以提取他们的订单金额
-    await fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [3]);
+    await fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [3], buyer.address);
     
     // 创建一个新的拍卖
-    await exchange_minter.auction(4, address_zero, 3000);
+    await exchange_minter.auction(4, address_zero, settlementToken_amount("3000"));
     
     // 买家竞拍但还未被取代
     await exchange_buyer.bid(4);
     
     // 买家尝试提取自己的订单金额，应该失败
-    await expect(fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [4]))
+    await expect(fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [4], buyer.address))
       .to.be.revertedWithCustomError(fundManager, "InvalidCaller");
     
     // 不是竞拍者的账户应该也无法提取（金额为0）
-    await expect(fundManager_buyer2.withdrawOrderAmounts(settlementToken.target, [4]))
+    await expect(fundManager_buyer2.withdrawOrderAmounts(settlementToken.target, [4], buyer2.address))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
   });
 
@@ -230,7 +226,7 @@ describe("FundManager", function () {
     await blindBox_DAO.setIncrementRate(150);
 
     // 拍卖成交，
-    await exchange_minter.auction(1, address_zero, 2000);
+    await exchange_minter.auction(1, address_zero, settlementToken_amount("2000"));
     // await exchange_buyer2.bid(1);
     await exchange_buyer.bid(1);
 
@@ -238,7 +234,7 @@ describe("FundManager", function () {
     await exchange_buyer.completeOrder(1);
 
     // 验证价格是否为3000
-    expect (await blindBox.getPrice(1)).to.equal(3000);
+    expect (await blindBox.getPrice(1)).to.equal(settlementToken_amount("3000"));
     
     // 缴纳延迟费用
     await time.increase(340*24*60*60);
@@ -247,10 +243,10 @@ describe("FundManager", function () {
     const balance_buyer_2 = await settlementToken.balanceOf(buyer.address)
 
     await time.increase(365*24*60*60);
-    expect(balance_buyer_1-balance_buyer_2).to.equal(3000);
+    expect(balance_buyer_1 - balance_buyer_2).to.equal(settlementToken_amount("3000"));
     await blindBox_buyer.delay(1);
     const balance_buyer_3 = await settlementToken.balanceOf(buyer.address)
-    expect(balance_buyer_2-balance_buyer_3).to.equal(4500);
+    expect(balance_buyer_2 - balance_buyer_3).to.equal(settlementToken_amount("4500"));
 
   });
 

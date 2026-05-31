@@ -11,13 +11,18 @@ async function deployContracts() {
     other2, dao_treasury, siweAuth, quoter
   ] = await ethers.getSigners();
 
-  const SettlementToken = await ethers.getContractFactory("MockERC20");
-  const settlementToken = await SettlementToken.deploy("Truth Coin Test", "TCT");
-  
+  const {
+    decimals_settlementToken,
+    decimals_wBTC,
+    decimals_wETH,
+    decimals_wROSE
+  } = require("./decimals");
+
   const MockERC20 = await ethers.getContractFactory("MockERC20");
-  const wBTC = await MockERC20.deploy("wBTC", "wBTC");
-  const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH");
-  const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE");
+  const settlementToken = await MockERC20.deploy("Truth Coin Test", "TCT", decimals_settlementToken);
+  const wBTC = await MockERC20.deploy("wBTC", "wBTC", decimals_wBTC);
+  const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH", decimals_wETH);
+  const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE", decimals_wROSE);
   // ---
 
   const AddressManager = await ethers.getContractFactory("AddressManager");
@@ -61,7 +66,7 @@ async function deployContracts() {
       userManager,
       forwarder,
       mockPriceOracle
-    }
+    },
   };
 }
 

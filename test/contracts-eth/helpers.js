@@ -22,8 +22,8 @@ const Status = {
     Selling: 1,
     Auctioning: 2,
     Paid: 3,
-    Refunding: 4,
-    Delaying: 5,
+    Delaying: 4,
+    Refunding: 5,
     Published: 6,
     Blacklisted: 7
 };

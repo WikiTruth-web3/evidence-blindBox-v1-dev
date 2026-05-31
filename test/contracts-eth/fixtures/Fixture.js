@@ -10,6 +10,15 @@ const { deployContracts } = require("./contracts");
 const { createConnectors } = require("./connectors");
 const { configureTokens } = require("./tokenConfig");
 const { initializeContracts } = require("./initialization");
+const { getAllUserId } = require("./userId");
+
+  const {
+    decimals_settlementToken,
+    decimals_wBTC,
+    decimals_wETH,
+    decimals_wROSE
+  } = require("./decimals");
+
 
 async function deployBlindBoxFixture() {
   // 1. 部署所有合约
@@ -23,6 +32,7 @@ async function deployBlindBoxFixture() {
   
   // 4. 初始化合约参数和创建测试数据
   const testData = await initializeContracts(contracts, connectors, signers);
+  const userId_data = await getAllUserId(contracts, connectors);
   
   // 5. 定义时间常量
   const DAY = 24 * 60 * 60;
@@ -37,6 +47,11 @@ async function deployBlindBoxFixture() {
     
     // 合约实例
     ...contracts,
+
+    decimals_settlementToken,
+    decimals_wBTC,
+    decimals_wETH,
+    decimals_wROSE,
     
     // 连接器（保持向后兼容的命名）
     blindBox_minter: connectors.blindBoxConnectors.minter,
@@ -72,7 +87,9 @@ async function deployBlindBoxFixture() {
     mockPriceOracle_other: connectors.mockPriceOracleConnectors.other,
 
     // 测试数据
-    ...testData
+    ...testData,
+    ...userId_data,
+
   };
 }
 

@@ -15,6 +15,8 @@ async function configureTokens(signers, contracts, connectors) {
   await wBTC.mint(minter.address);
   await wBTC.mint(other.address);
 
+  await settlementToken.mint(fundManager.target);
+
   // 铸造官方代币
   await settlementToken.mint(admin.address);
   await tokenConnectors.settlementToken.minter.mint(minter.address);
@@ -24,13 +26,13 @@ async function configureTokens(signers, contracts, connectors) {
   await tokenConnectors.settlementToken.buyer2.mint(buyer2.address);
 
   // 设置代币授权到FundManager
-  await tokenConnectors.settlementToken.other.approve(fundManager.target, 100000000);
-  await tokenConnectors.settlementToken.minter.approve(fundManager.target, 100000000);
-  await tokenConnectors.settlementToken.buyer.approve(fundManager.target, 100000000);
-  await tokenConnectors.settlementToken.buyer2.approve(fundManager.target, 100000000);
+  await tokenConnectors.settlementToken.other.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken.minter.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken.buyer.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken.buyer2.approve(fundManager.target, ethers.MaxUint256);
 
-  await tokenConnectors.wBTC.buyer.approve(fundManager.target, 100000000);
-  await tokenConnectors.wBTC.buyer2.approve(fundManager.target, 100000000);
+  await tokenConnectors.wBTC.buyer.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.wBTC.buyer2.approve(fundManager.target, ethers.MaxUint256);
 }
 
 module.exports = {

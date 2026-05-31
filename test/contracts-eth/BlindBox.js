@@ -7,7 +7,14 @@ const { expect } = require("chai");
 const { deployBlindBoxFixture} = require("./fixtures/Fixture.js");
 const {timestampToDate,secondsToDhms} = require('../utils/timeToDate.js');
 const { Status } = require("./helpers.js");
+const {
+  wBTC_amount,
+  wETH_amount,
+  wROSE_amount,
+  settlementToken_amount
+} = require("./fixtures/tokenAmount.js");
 
+// npx hardhat test test/contracts-eth/BlindBox.js
 
 describe("BlindBox合约测试", function () {
   // 基本铸造功能测试
@@ -18,7 +25,7 @@ describe("BlindBox合约测试", function () {
         blindBox_minter, blindBox_other, dao} = await loadFixture(deployBlindBoxFixture);
       
       // 再铸造一个新代币 - 
-      await blindBox_minter.create("10_infoURI", bytes_mint, 1000);
+      await blindBox_minter.create("10_infoURI", bytes_mint, settlementToken_amount("1000"));
       
       // 获取并验证Box信息  TODO: 暂时不需要这个函数
       // const boxInfo_0 = await blindBox.getBoxInfoCID(0);
@@ -49,8 +56,8 @@ describe("BlindBox合约测试", function () {
       wBTC, bytes32_1 , exchange_minter, exchange_buyer, address_zero,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 1000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
+    await exchange_minter.auction(2, address_zero, settlementToken_amount("1000"));
     await blindBox_DAO.addToBlacklist(1);
     await blindBox_DAO.addToBlacklist(2);
     // ========================== 购买1 ==========================
@@ -124,8 +131,8 @@ describe("BlindBox合约测试", function () {
       exchange_buyer, exchange_DAO, fundManager, address_zero,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
+    await exchange_minter.auction(2, address_zero, settlementToken_amount("2000"));
 
     // ========================== 到期自动公开 ==========================
     await time.increase(40*24*60*60);
@@ -154,8 +161,8 @@ describe("BlindBox合约测试", function () {
       blindBox_minter, blindBox_DAO, exchange_minter, address_zero,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
+    await exchange_minter.auction(2, address_zero, settlementToken_amount("2000"));
 
     // 后移20天
     await time.increase(20*24*60*60);
@@ -179,11 +186,11 @@ describe("BlindBox合约测试", function () {
       exchange_buyer, exchange_DAO, fundManager, address_zero,
     } = await loadFixture(deployBlindBoxFixture);
 
-    await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 2000);
+    await exchange_minter.sell(1, address_zero, settlementToken_amount("2000"));
+    await exchange_minter.auction(2, address_zero, settlementToken_amount("2000"));
 
-    await exchange_minter.sell(3, address_zero, 2000);
-    await exchange_minter.auction(4, address_zero, 2000);
+    await exchange_minter.sell(3, address_zero, settlementToken_amount("2000"));
+    await exchange_minter.auction(4, address_zero, settlementToken_amount("2000"));
 
     // ========================== 购买 ==========================
     await exchange_buyer.buy(1)

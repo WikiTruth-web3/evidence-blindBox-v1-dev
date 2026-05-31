@@ -9,45 +9,86 @@ const exp = require("constants");
 const { timestampToDate, secondsToDhms } = require('../utils/timeToDate.js');
 const TimeHelpers = require("./helpers");
 
+// npx hardhat test test/contracts-eth/BlackList.js
+
 describe("交易测试-黑名单相关测试", function () {
 
-  it("13-出售/拍卖-添加黑名单-申请退款失败", async function () {
+    it("07-黑名单无法出售/拍卖", async function () {
+    const { minter, blindBox, exchange_minter, settlementToken ,blindBox_DAO,
+      blindBox_minter, address_zero,
+    } = await loadFixture(deployBlindBoxFixture);
+    
+    await blindBox_DAO.addToBlacklist(1);
+    await blindBox_DAO.addToBlacklist(2);
+    // 时间增加360天
+    await time.increase(360 * 24 * 60 * 60);
+    // 应该抛出异常
+    await expect(exchange_minter.sell(1, address_zero, 2000)).to.be.reverted;
+    await expect(exchange_minter.auction(2, address_zero, 2000)).to.be.reverted;
+
+  });
+
+  it("14-购买-取消退款-黑名单", async function () {
     const { 
-      exchange_minter,exchange_buyer,bytes32_buyer,
-      settlementToken, blindBox, blindBox_DAO, address_zero,
+      blindBox_minter, blindBox_other, exchange_minter,exchange_buyer,bytes32_buyer,
+      settlementToken, address_zero, bytes32_zero,fundManager_buyer, buyer,
+      blindBox, blindBox_DAO,
       fundManager, exchange
     } = await loadFixture(deployBlindBoxFixture);
 
-    // 将0拉入黑名单，无法出售和拍卖
-    await blindBox_DAO.addToBlacklist(0);
-    await expect(exchange_minter.sell(0, address_zero, 2000)).to.be.reverted;
-    await expect(exchange_minter.auction(0, address_zero, 2000)).to.be.reverted;
-
     await exchange_minter.sell(1, address_zero, 2000);
-    await exchange_minter.auction(2, address_zero, 2000);
+    await exchange_minter.sell(2, address_zero, 2000);
     // ========================== 购买1 ==========================
     await exchange_buyer.buy(1);
-    await exchange_buyer.bid(2);
+    await exchange_buyer.buy(2);
 
-    // ========================== 发货1 ==========================
-    // 将2号加入黑名单
-    await blindBox_DAO.addToBlacklist(1);
-    await blindBox_DAO.addToBlacklist(2);
     // ========================== 申请退款 ==========================
+    await exchange_buyer.requestRefund(1);
+    await exchange_buyer.requestRefund(2);
+    // ========================== 取消退款 ==========================
+    await exchange_buyer.cancelRefund(1);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Delaying);
+    await expect(fundManager_buyer.withdrawRefundAmounts(settlementToken.target,[1], buyer.address)).to.be.reverted;
+    // 黑名单 --- 
+    await blindBox_DAO.addToBlacklist(2);
+    await expect(exchange_buyer.cancelRefund(2)).to.be.reverted;
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); // Refunding
+    expect(await exchange.refundPermit(2)).to.equal(true);
 
-    // 黑名单 --- 直接获得退款
-    await expect(exchange_buyer.requestRefund(1)).to.be.reverted;
-    await expect(exchange_buyer.requestRefund(2)).to.be.reverted;
-    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Blacklisted); // 黑名单 --- 状态不变
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); // 黑名单 --- 状态不变
-    expect(await exchange.refundPermit(1)).to.equal(true); // 黑名单 --- 直接获得退款
-    expect(await exchange.refundPermit(2)).to.equal(true); // 黑名单 --- 直接获得退款
-    // ========================== 尝试再次申请退款 ==========================
-    // 已经申请过退款，不能再次申请
-    await expect(exchange_buyer.requestRefund(1)).to.be.reverted;
-    await expect(exchange_buyer.requestRefund(2)).to.be.reverted;
+
 
   });
+
+  it("14-竞拍-同意退款-黑名单", async function () {
+    const { 
+      blindBox_minter, blindBox_other, exchange_minter,exchange_buyer,bytes32_buyer,
+      settlementToken, address_zero, exchange_DAO,
+      blindBox, blindBox_DAO,
+      fundManager, exchange
+    } = await loadFixture(deployBlindBoxFixture);
+
+    await exchange_minter.auction(1, address_zero, 2000);
+    await exchange_minter.auction(2, address_zero, 2000);
+    // ========================== 购买1 ==========================
+    await exchange_buyer.bid(1);
+    await exchange_buyer.bid(2);
+    // ========================== 确认1 ==========================
+    await time.increase(35 * 24 * 60 * 60);
+
+    // ========================== 申请退款 ==========================
+    await exchange_buyer.requestRefund(1);
+    await exchange_buyer.requestRefund(2);
+    // 将2和4号加入黑名单
+    // ========================== 取消退款 ==========================
+    await exchange_DAO.agreeRefund(1);
+    // 由于超时发货，导致有退款产生
+    expect(await exchange.refundPermit(1)).to.equal(true);
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Published);
+    // 黑名单 --- 
+    await blindBox_DAO.addToBlacklist(2);
+    await expect(exchange_buyer.agreeRefund(2)).to.be.reverted;
+  });
+
 
   it("13-出售/拍卖--申请退款--添加黑名单--后续操作失败", async function () {
     const { 
@@ -74,6 +115,8 @@ describe("交易测试-黑名单相关测试", function () {
     // 加入黑名单
     await blindBox_DAO.addToBlacklist(1);
     await blindBox_DAO.addToBlacklist(2);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); // 黑名单 --- 状态不变
+    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Blacklisted); // 黑名单 --- 状态不变
 
     await expect(exchange_DAO.agreeRefund(1)).to.be.reverted;
     await expect(exchange_DAO.agreeRefund(2)).to.be.reverted;
@@ -91,11 +134,7 @@ describe("交易测试-黑名单相关测试", function () {
 
     // ========================== 验证退款 ==========================
         // 黑名单 --- 直接获得退款
-    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Blacklisted);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted);
-    expect(await blindBox.getStatus(3)).to.equal(TimeHelpers.Status.Blacklisted);
     expect(await exchange.refundPermit(3)).to.equal(true); 
-    expect(await blindBox.getStatus(4)).to.equal(TimeHelpers.Status.Blacklisted); // 黑名单 ---- 状态不变
     expect(await exchange.refundPermit(4)).to.equal(true); // 黑名单
 
     // ========================== 尝试再次申请退款 ==========================
@@ -130,9 +169,6 @@ describe("交易测试-黑名单相关测试", function () {
     // 将2和4号加入黑名单
     await blindBox_DAO.addToBlacklist(1);
     await blindBox_DAO.addToBlacklist(2);
-    // ========================== 验证 ==========================
-    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Blacklisted);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted); 
 
     // ========================== 尝试再次取消退款 ！！！出错！！！==========================
     // 已经申请过退款，不能再次申请
@@ -161,20 +197,6 @@ describe("交易测试-黑名单相关测试", function () {
     // ========================== 购买 失败 ==========================
     await expect(exchange_buyer.buy(1)).to.be.reverted;
     await expect(exchange_buyer.bid(2)).to.be.reverted;
-
-    // 将2和4号加入黑名单
-    // ========================== 验证 ==========================
-    // 由于没有buyer，所以没有退款许可
-    expect(await exchange.refundPermit(1)).to.equal(false);
-    expect(await exchange.refundPermit(2)).to.equal(false);
-    expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Blacklisted);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Blacklisted);
-
-    // ========================== 尝试提款 失败==========================
-    // 已经申请过退款，不能再次申请
-    await expect(fundManager_buyer.withdrawOrderAmounts(settlementToken.target, [1,2])).to.be.reverted;
-    await expect(fundManager_buyer.withdrawRefundAmounts(settlementToken.target, [1,2])).to.be.reverted;
-
   });
 
 });

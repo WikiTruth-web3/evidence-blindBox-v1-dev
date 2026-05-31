@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {Main} from "@interfaces/IContracts.sol";
 
-import {IFundManager,FundsType} from "@interfaces/eth/IFundManager.sol";
+import {IFundManager,FundType} from "@interfaces/eth/IFundManager.sol";
 import {FundManager03} from "./base/FundManager03.sol";
 /**
  * @title FundManager
@@ -81,7 +81,7 @@ contract FundManager is FundManager03, IFundManager {
         uint256[] calldata list_,
         address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, receiver_, FundsType.Order);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundType.Order);
     }
 
     /**
@@ -95,7 +95,7 @@ contract FundManager is FundManager03, IFundManager {
         uint256[] calldata list_,
         address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, receiver_, FundsType.Refund);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundType.Refund);
 
     }
 

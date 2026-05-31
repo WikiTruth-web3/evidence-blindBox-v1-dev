@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {FundsType} from "@interfaces/eth/IFundManager.sol";
+import {FundType} from "@interfaces/eth/IFundManager.sol";
 import {FundManager02} from "./FundManager02.sol";
 
 /**
@@ -94,6 +94,7 @@ contract FundManager03 is FundManager02 {
         address token_,
         address receiver_
     ) internal nonReentrant whenNotPaused {
+        if(receiver_ == address(0)) revert ZeroAddress();
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
