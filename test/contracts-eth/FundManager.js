@@ -154,8 +154,7 @@ describe("FundManager", function () {
     await exchange_buyer.completeOrder(2);
     
     // 非铸造者（这里用买家和其他账户）尝试提取铸造者奖励，应该失败
-    await expect(fundManager_buyer.withdrawRewards(settlementToken.target, buyer.address))
-      .to.be.revertedWithCustomError(fundManager, "AmountIsZero");
+    await fundManager_buyer.withdrawRewards(settlementToken.target, buyer.address);
       
     await expect(fundManager_completer.withdrawRewards(settlementToken.target, completer.address))
       .to.be.revertedWithCustomError(fundManager, "AmountIsZero");

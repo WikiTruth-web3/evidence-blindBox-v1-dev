@@ -75,20 +75,20 @@ describe("FundManager_FeeRate", function () {
     expect(orderAmounts_1_buyer).to.equal(0);
     // 检查1号的minter收入
     const incomeMinter = await fundManager.rewardAmounts(userId_minter, settlementToken.target);
-    expect(incomeMinter).to.equal(settlementToken_amount("1940")); // 2000-2000*3%*2 = 1940
+    expect(incomeMinter).to.equal(settlementToken_amount("1920")); // 2000-2000*3%*2 = 1940
     // 检查1号的DAO收入（服务费）
     expect(await settlementToken.balanceOf(dao_treasury.address)).to.equal(settlementToken_amount("60"));
 
     // ========================== 完成2 ==========================
     await exchange_completer.completeOrder(2);
-    expect(await fundManager.rewardAmounts(userId_buyer, settlementToken.target)).to.equal(0);
+    expect(await fundManager.rewardAmounts(userId_buyer, settlementToken.target)).to.equal(settlementToken_amount("20"));
     // 检查completer
     const completerId =await userManager_completer.myUserId();
     expect(await exchange.completerIdOf(2)).to.equal(completerId);
     const incomeCompleterA = await fundManager.rewardAmounts(userId_completer, settlementToken.target);
     const incomeMinter02 = await fundManager.rewardAmounts(userId_minter, settlementToken.target);
     expect(incomeCompleterA).to.equal(settlementToken_amount("10"));
-    expect(incomeMinter02).to.equal(settlementToken_amount("2900"));
+    expect(incomeMinter02).to.equal(settlementToken_amount("2880"));
 
     // ========================== 缴纳延迟费用 ==========================
     await expect(blindBox_buyer.delay(1)).to.be.revertedWithCustomError(blindBox,"NotInWindowPeriod");

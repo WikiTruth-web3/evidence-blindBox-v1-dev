@@ -51,18 +51,16 @@ interface IExchange {
     /**
      * @notice Buy a box
      * @param boxId_ Box ID
-     * @param from_ erc20 token of buyer
      * @dev Only callable by project contracts
      */
-    function buy(uint256 boxId_, address from_) external;
+    function buy(uint256 boxId_) external;
 
     /**
      * @notice Place a bid on an auction
      * @param boxId_ Box ID
-     * @param from_ erc20 token of buyer
      * @dev Only callable by project contracts
      */
-    function bid(uint256 boxId_, address from_) external;
+    function bid(uint256 boxId_) external;
 
     /**
      * @notice Place a bid on an auction

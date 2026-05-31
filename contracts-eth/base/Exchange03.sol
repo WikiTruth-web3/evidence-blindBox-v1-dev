@@ -21,7 +21,7 @@ contract Exchange03 is Exchange02 {
     // ========================================================================================================
     //                                          Buying related functions
     // ========================================================================================================
-    function _buy(uint256 boxId_, address from_) internal {
+    function _buy(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
         if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
         address sender = _msgSender();
@@ -33,7 +33,7 @@ contract Exchange03 is Exchange02 {
 
         _boxExchengData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp);
-        FUND_MANAGER.payOrderAmount(boxId_, from_, payAmount, userId);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BoxPurchased(boxId_, userId);
 
@@ -63,8 +63,7 @@ contract Exchange03 is Exchange02 {
     }
 
     function _bid(
-        uint256 boxId_,
-        address from_
+        uint256 boxId_
     ) internal {
         address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
@@ -75,7 +74,7 @@ contract Exchange03 is Exchange02 {
 
         _boxExchengData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp + 30 days); // NOTE bid refund deadline is 30 days + 7 days
-        FUND_MANAGER.payOrderAmount(boxId_, from_, payAmount, userId);
+        FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BidPlaced(boxId_, userId);
     }

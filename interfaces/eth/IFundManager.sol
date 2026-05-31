@@ -113,32 +113,32 @@ interface IFundManager {
      * @notice Withdraw order amounts (for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
     function withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_,
-        address virtual_
+        address receiver_
     ) external;
 
     /**
      * @notice Withdraw refund amounts
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
     function withdrawRefundAmounts(
         address token_,
         uint256[] calldata list_,
-        address virtual_
+        address receiver_
     ) external;
 
     /**
      * @notice Withdraw rewards
      * @param token_ Token address
-     * @param virtual_ user virtual address(privacy erc20)
+     * @param receiver_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_, address virtual_) external;
+    function withdrawRewards(address token_, address receiver_) external;
 
     // =====================================================================================
     //                                          Getter Functions

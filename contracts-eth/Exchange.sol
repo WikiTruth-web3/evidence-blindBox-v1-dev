@@ -67,17 +67,15 @@ contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
     function buy(
-        uint256 boxId_,
-        address from_
+        uint256 boxId_
     ) external {
-        _buy(boxId_, from_);
+        _buy(boxId_);
     }
 
     function bid(
-        uint256 boxId_,
-        address from_
+        uint256 boxId_
     ) external {
-        _bid(boxId_, from_);
+        _bid(boxId_);
     }
 
     function calcPayAmount(

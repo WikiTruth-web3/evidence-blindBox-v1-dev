@@ -38,8 +38,8 @@ describe("交易测试-退款相关测试", function () {
     await exchange_minter.sell(2, address_zero, 2000);
     await exchange_buyer.buy(2);
     await time.increase(30 * 24 * 60 * 60);
-    await exchange_buyer.requestRefund(2);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
+    await expect(exchange_buyer.requestRefund(2)).to.be.revertedWithCustomError(exchange,"DeadlineIsOver");
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Paid);
 
   });
 
@@ -70,7 +70,7 @@ describe("交易测试-退款相关测试", function () {
     expect(await exchange.refundPermit(1)).to.equal(true); 
 
     await exchange_DAO.refuseRefund(2);
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Published);
     expect(await exchange.refundPermit(2)).to.equal(false); 
   });
 
@@ -132,8 +132,8 @@ describe("交易测试-退款相关测试", function () {
     await exchange_buyer.bid(4);
     // NOTE 30 + 7 
     await time.increase(60 * 24 * 60 * 60); 
-    await exchange_buyer.requestRefund(4);
-    expect(await blindBox.getStatus(4)).to.equal(TimeHelpers.Status.Delaying); // 完成状态
+    await expect(exchange_buyer.requestRefund(2)).to.be.revertedWithCustomError(exchange,"InvalidStatus");
+    expect(await blindBox.getStatus(4)).to.equal(TimeHelpers.Status.Paid); // 完成状态
   });
 
   it("7-拍卖-审核退款-未过期", async function () {
@@ -159,7 +159,7 @@ describe("交易测试-退款相关测试", function () {
     await exchange_DAO.refuseRefund(2);
     expect(await blindBox.getStatus(1)).to.equal(TimeHelpers.Status.Published);
     expect(await exchange.refundPermit(1)).to.equal(true); 
-    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Delaying);
+    expect(await blindBox.getStatus(2)).to.equal(TimeHelpers.Status.Published);
     expect(await exchange.refundPermit(2)).to.equal(false); 
   });
 

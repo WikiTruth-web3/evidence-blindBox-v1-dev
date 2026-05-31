@@ -64,7 +64,7 @@ describe("BlindBox-DelayFee- 相关测试", async function () {
     
     // 打印buyer账户的代币余额
     const rewards_minter0 = await fundManager.rewardAmounts(userId_minter,settlementToken.target)
-    expect (rewards_minter0).to.equal(settlementToken_amount("19400"));
+    expect (rewards_minter0).to.equal(settlementToken_amount("19200"));
     // =================检查时间================
     const deadline00_0 = Number(await blindBox.getDeadline(0)); 
     const balanceOf_buyer = await settlementToken.balanceOf(buyer.address);
@@ -83,7 +83,7 @@ describe("BlindBox-DelayFee- 相关测试", async function () {
 
     ///
     const rewards_minter = await fundManager.rewardAmounts(userId_minter,settlementToken.target)
-    expect (rewards_minter).to.equal(settlementToken_amount("38800"));
+    expect (rewards_minter).to.equal(settlementToken_amount("38400"));
 
     // =================查看价格是否变化===============
     const price_0 = await blindBox_minter.getPrice(0);

@@ -2,22 +2,20 @@
 
 pragma solidity ^0.8.24;
 
-interface PrivacyERC20Error {
+interface EIP712Errors {
     /// Invalid permit label
     error InvalidPermitLabel();
     /// Invalid permit amount
     error InvalidPermitAmount();
     /// EIP error
     error EIPError();
-    /// Zero amount
-    error ZeroAmount();
     /// Signature used
     error SignatureUsed();
-    /// Insufficient balance
-    error InsufficientBalance();
     /// Expired deadline
     error ExpiredDeadline();
 
     /// Invalid signature
     error InvalidSignature();
+    /// Invalid nonce
+    error InvalidNonce();
 }
