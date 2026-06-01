@@ -9,8 +9,8 @@ export enum Status {
     Selling = 1,
     Auctioning = 2,
     Paid = 3,
-    Refunding = 4,
-    Delaying = 5,
+    Delaying = 4,
+    Refunding = 5,
     Published = 6,
     Blacklisted = 7
 }
@@ -18,8 +18,7 @@ export enum Status {
 export enum RewardType {
     Minter = 0,
     Seller = 1,
-    Completer = 2,
-    Total = 3
+    Completer = 2
 }
 
 export enum FundsType {
@@ -33,29 +32,12 @@ export enum FundsType {
 
 export interface IAddressManagerRead {
     admin(): Promise<string>;
-    dao(): Promise<string>;
-    governance(): Promise<string>;
-    daoFundManager(): Promise<string>;
-    blindBox(): Promise<string>;
-    exchange(): Promise<string>;
-    fundManager(): Promise<string>;
-    userManager(): Promise<string>;
-    siweAuth(): Promise<string>;
-    forwarder(): Promise<string>;
-    swapContracts(): Promise<string[]>;
     isProjectContract(contract_: string): Promise<boolean>;
     settlementToken(): Promise<string>;
     isTokenSupported(token_: string): Promise<boolean>;
-    getTokenList(): Promise<string[]>;
-    reservedList(): Promise<string[]>;
-    getAddressFromIndex(index_: number | bigint | string): Promise<string>;
 }
 
 export interface IAddressManagerWrite {
-    setAddressList(list_: string[]): Promise<any>;
-    setSwapContracts(list_: string[]): Promise<any>;
-    setAllAddress(): Promise<any>;
-    addReservedAddress(reservedAddress_: string): Promise<any>;
     setSettlementToken(token_: string): Promise<any>;
     addToken(token_: string): Promise<any>;
     removeToken(token_: string): Promise<any>;

@@ -34,7 +34,6 @@ async function main() {
     const domain = "wikitruth.xyz";
     const token = await get_siwe_token(domain, userSigner, chainId, core_contracts_address.siweAuth);
     
-
     const tasks_to_run: CallFunctionParams[] = boxes.map(boxId => ({
         taskName: `获取 Box #${boxId} 的解密数据`,
         contractsName: "BlindBox",

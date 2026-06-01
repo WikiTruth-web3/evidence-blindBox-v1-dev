@@ -11,16 +11,6 @@ import { TaskMap, IAddressManagerRead } from "../types/contracts-functions";
 
 // 当前需要执行的查询列表
 const current_executes: (keyof IAddressManagerRead)[] = [
-    // 'dao',
-    // 'governance',
-    'daoFundManager',
-    // 'userManager',
-    // 'siweAuth',
-    // 'blindBox',
-    // 'exchange',
-    // 'fundManager',
-    // 'forwarder',
-    'swapContracts',
     'settlementToken',
 ];
 
@@ -37,7 +27,6 @@ async function main() {
 
     // 测试数据定义
     const testTokenAddress = "0x"; // 示例 SIWE Token
-    const testIndex = 0;
     const testContractAddress = "0x"; // 示例合约地址
 
     // 定义所有可能的读取任务
@@ -47,76 +36,6 @@ async function main() {
             taskName: "获取管理员地址",
             contractsName: "AddressManager",
             functionName: "admin",
-            params: [],
-            signer: null
-        },
-        'dao': {
-            taskName: "获取DAO地址",
-            contractsName: "AddressManager",
-            functionName: "dao",
-            params: [],
-            signer: null
-        },
-        'governance': {
-            taskName: "获取治理地址",
-            contractsName: "AddressManager",
-            functionName: "governance",
-            params: [],
-            signer: null
-        },
-        'daoFundManager': {
-            taskName: "获取DAO基金管理器地址",
-            contractsName: "AddressManager",
-            functionName: "daoFundManager",
-            params: [],
-            signer: null
-        },
-        'userManager': {
-            taskName: "获取用户管理器地址",
-            contractsName: "AddressManager",
-            functionName: "userManager",
-            params: [],
-            signer: null
-        },
-        'siweAuth': {
-            taskName: "获取SIWE认证地址",
-            contractsName: "AddressManager",
-            functionName: "siweAuth",
-            params: [],
-            signer: null
-        },
-        'blindBox': {
-            taskName: "获取BlindBox地址",
-            contractsName: "AddressManager",
-            functionName: "blindBox",
-            params: [],
-            signer: null
-        },
-        'exchange': {
-            taskName: "获取Exchange地址",
-            contractsName: "AddressManager",
-            functionName: "exchange",
-            params: [],
-            signer: null
-        },
-        'fundManager': {
-            taskName: "获取FundManager地址",
-            contractsName: "AddressManager",
-            functionName: "fundManager",
-            params: [],
-            signer: null
-        },
-        'forwarder': {
-            taskName: "获取Forwarder地址",
-            contractsName: "AddressManager",
-            functionName: "forwarder",
-            params: [],
-            signer: null
-        },
-        'swapContracts': {
-            taskName: "获取SwapContracts地址",
-            contractsName: "AddressManager",
-            functionName: "swapContracts",
             params: [],
             signer: null
         },
@@ -134,32 +53,12 @@ async function main() {
             params: [testContractAddress],
             signer: null
         },
-        'getTokenList': {
-            taskName: "获取代币列表",
-            contractsName: "AddressManager",
-            functionName: "getTokenList",
-            params: [],
-            signer: null
-        },
+ 
         'isTokenSupported': {
             taskName: "检查代币是否支持",
             contractsName: "AddressManager",
             functionName: "isTokenSupported",
             params: [testTokenAddress],
-            signer: null
-        },
-        'reservedList': {
-            taskName: "获取保留列表",
-            contractsName: "AddressManager",
-            functionName: "reservedList",
-            params: [],
-            signer: null
-        },
-        'getAddressFromIndex': {
-            taskName: "获取地址从索引",
-            contractsName: "AddressManager",
-            functionName: "getAddressFromIndex",
-            params: [testIndex],
             signer: null
         },
     };

@@ -2,7 +2,8 @@ import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
-import { getSiweMsg, erc191sign } from "../utils/SiweAuth";
+import { get_siwe_token } from "../utils/SiweAuth";
+import { core_contracts_address } from "../utils/contracts_address";
 
 /**
  * SiweAuth 合约写入（撤销）批处理脚本
@@ -33,10 +34,8 @@ async function main() {
     // 1. 生成一个测试用 SIWE Token 用于撤销测试
     console.log("🎫 正在生成测试用 SIWE Token...");
     const domain = "wikitruth.xyz";
-    const siweMsg = await getSiweMsg(domain, adminSigner, chainId);
-    const signature = await erc191sign(siweMsg, adminSigner);
-    const token = ethers.solidityPacked(["string", "bytes"], [siweMsg, signature.serialized]);
-
+    const token = await get_siwe_token(domain, adminSigner, chainId, core_contracts_address.siweAuth);
+        
     // 2. 定义所有可能的写入任务
     const all_tasks: { [key: string]: CallFunctionParams } = {
         'removeAuthToken': {

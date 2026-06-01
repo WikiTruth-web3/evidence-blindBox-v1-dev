@@ -3,9 +3,16 @@
  * 负责代币的铸造、授权和流动性配置
  */
 
+const {
+  wBTC_amount,
+  wETH_amount,
+  wROSE_amount,
+  settlementToken_amount
+} = require("./tokenAmount.js");
+
 async function configureTokens(signers, contracts, connectors) {
   const { admin, buyer, buyer2, minter, other, other2 } = signers;
-  const { wBTC, settlementToken, fundManager } = contracts;
+  const { wBTC, settlementToken, settlementToken_Privacy, fundManager } = contracts;
   const { tokenConnectors } = connectors;
 
   // 铸造测试代币
@@ -17,6 +24,7 @@ async function configureTokens(signers, contracts, connectors) {
 
   await settlementToken.mint(fundManager.target);
 
+
   // 铸造官方代币
   await settlementToken.mint(admin.address);
   await tokenConnectors.settlementToken.minter.mint(minter.address);
@@ -24,6 +32,8 @@ async function configureTokens(signers, contracts, connectors) {
   await tokenConnectors.settlementToken.other2.mint(other2.address);
   await tokenConnectors.settlementToken.buyer.mint(buyer.address);
   await tokenConnectors.settlementToken.buyer2.mint(buyer2.address);
+
+
 
   // 设置代币授权到FundManager
   await tokenConnectors.settlementToken.other.approve(fundManager.target, ethers.MaxUint256);
@@ -33,6 +43,25 @@ async function configureTokens(signers, contracts, connectors) {
 
   await tokenConnectors.wBTC.buyer.approve(fundManager.target, ethers.MaxUint256);
   await tokenConnectors.wBTC.buyer2.approve(fundManager.target, ethers.MaxUint256);
+
+  // 隐私代币授权
+  await tokenConnectors.settlementToken.minter.approve(settlementToken_Privacy.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken.buyer.approve(settlementToken_Privacy.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken.buyer2.approve(settlementToken_Privacy.target, ethers.MaxUint256);
+
+  // 隐私代币wrap
+  await tokenConnectors.settlementToken_Privacy.minter.wrap(settlementToken_amount("10000"));
+  await tokenConnectors.settlementToken_Privacy.buyer.wrap(settlementToken_amount("10000"));
+  await tokenConnectors.settlementToken_Privacy.buyer2.wrap(settlementToken_amount("10000"));
+
+  await tokenConnectors.settlementToken_Privacy.minter.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken_Privacy.buyer.approve(fundManager.target, ethers.MaxUint256);
+  await tokenConnectors.settlementToken_Privacy.buyer2.approve(fundManager.target, ethers.MaxUint256);
+
+
+
+
+
 }
 
 module.exports = {

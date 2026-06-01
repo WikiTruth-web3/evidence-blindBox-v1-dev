@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { Signer, Wallet } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { user_evm_WikiTruth } from "../account_admin";
+import { user_oasis } from "../account_admin";
 
 /**
  * 网络配置接口
@@ -116,17 +116,17 @@ export const getAccount = async function (chainId: number| bigint): Promise<Test
             console.log("🌐 使用远程网络账户...");
             
             // 验证配置文件
-            if (!user_evm_WikiTruth) {
+            if (!user_oasis) {
                 throw new Error("远程网络账户配置未找到");
             }
 
             accounts = {
-                admin: createWalletFromConfig(user_evm_WikiTruth.admin, "admin"),
-                minter: createWalletFromConfig(user_evm_WikiTruth.minter, "minter"),
-                buyer: createWalletFromConfig(user_evm_WikiTruth.buyer, "buyer"),
-                buyer2: createWalletFromConfig(user_evm_WikiTruth.buyer2, "buyer2"),
-                seller: createWalletFromConfig(user_evm_WikiTruth.seller, "seller"),
-                completer: createWalletFromConfig(user_evm_WikiTruth.completer, "completer")
+                admin: createWalletFromConfig(user_oasis.admin, "admin"),
+                minter: createWalletFromConfig(user_oasis.minter, "minter"),
+                buyer: createWalletFromConfig(user_oasis.buyer, "buyer"),
+                buyer2: createWalletFromConfig(user_oasis.buyer2, "buyer2"),
+                seller: createWalletFromConfig(user_oasis.seller, "seller"),
+                completer: createWalletFromConfig(user_oasis.completer, "completer")
             };
         }
 

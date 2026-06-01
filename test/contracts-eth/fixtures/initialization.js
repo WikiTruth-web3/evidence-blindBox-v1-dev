@@ -22,6 +22,7 @@ async function initializeContracts(contracts, connectors, signers) {
     userManager,
     forwarder,
     settlementToken,
+    settlementToken_Privacy,
     wBTC,
   } = contracts;
 
@@ -67,10 +68,12 @@ async function initializeContracts(contracts, connectors, signers) {
   await addressManager.setSpreadContract("PriceOracle", mockPriceOracle.target);
   // 设置 1 wBTC = 2 Truth Coin (TCT)
   await mockPriceOracle.setPrice(wBTC.target, settlementToken.target, ethers.parseUnits("2", 18));
+  await mockPriceOracle.setPrice(settlementToken_Privacy.target, settlementToken.target, ethers.parseUnits("5", 18));
   
   // 在tokenConfig中设置
   await addressManager.setSettlementToken(settlementToken.target);
   await addressManager.addToken(wBTC.target);
+  await addressManager.addToken(settlementToken_Privacy.target);
 
   // 设置初始参数
   await blindBoxConnectors.dao.setIncrementRate(incrementRate);

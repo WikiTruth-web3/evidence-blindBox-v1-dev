@@ -2,6 +2,7 @@
  * 合约部署模块
  * 负责部署所有智能合约
  */
+const crypto = require('crypto');
 
 async function deployContracts() {
   // 获取多个签名者，通常第一个是部署合约的账户
@@ -24,6 +25,10 @@ async function deployContracts() {
   const wETH = await MockERC20.deploy("WETH for WikiTruth", "WETH", decimals_wETH);
   const wROSE = await MockERC20.deploy("WROSE for WikiTruth", "WROSE", decimals_wROSE);
   // ---
+  const randomBytes = crypto.randomBytes(36);
+  const pers = '0x' + randomBytes.toString('hex');
+  const PrivacyERC20 = await ethers.getContractFactory("PrivacyERC20ETH");
+  const settlementToken_Privacy = await PrivacyERC20.deploy(settlementToken, pers);
 
   const AddressManager = await ethers.getContractFactory("AddressManager");
   const addressManager = await AddressManager.deploy();
@@ -57,6 +62,7 @@ async function deployContracts() {
     contracts: {
       addressManager,
       settlementToken,
+      settlementToken_Privacy,
       wBTC,
       wETH,
       wROSE,

@@ -4,23 +4,19 @@ import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 
 /**
- * BlindBox 合约写入操作批处理脚本
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/blindBox_write.ts --network sapphire-testnet
  */
 
 const current_executes = [
-    'create',
-    // 'createAndPublish',
+    'publishByMinter',
+    'extendDeadline'
 ];
+const boxId = 1;
 
 async function main() {
     console.log("🚀 开始执行 BlindBox 写入任务...");
 
     const { adminSigner, minterSigner } = await getSigners_SapphireTestnet();
-    const testBoxId = 1;
-    const testCID = "QmTest123...";
-    const testKey = "0x1234...";
-    const testPrice = ethers.parseEther("0.1");
 
     const all_tasks: { [key: string]: CallFunctionParams } = {
         'setAddress': {
@@ -30,46 +26,32 @@ async function main() {
             params: [],
             signer: adminSigner
         },
-        'create': {
-            taskName: "创建 BlindBox",
-            contractsName: "BlindBox",
-            functionName: "create",
-            params: [testCID, testCID, testKey, testPrice],
-            signer: minterSigner
-        },
-        'createAndPublish': {
-            taskName: "创建并直接发布",
-            contractsName: "BlindBox",
-            functionName: "createAndPublish",
-            params: [testCID, testCID],
-            signer: minterSigner
-        },
         'publishByMinter': {
             taskName: "由铸造者发布",
             contractsName: "BlindBox",
             functionName: "publishByMinter",
-            params: [testBoxId],
+            params: [boxId],
             signer: minterSigner
         },
         'extendDeadline': {
             taskName: "延长截止日期",
             contractsName: "BlindBox",
             functionName: "extendDeadline",
-            params: [testBoxId, 3600],
+            params: [boxId, 3600],
             signer: adminSigner
         },
         'delay': {
             taskName: "宽限延期 (Delay)",
             contractsName: "BlindBox",
             functionName: "delay",
-            params: [testBoxId],
+            params: [boxId],
             signer: adminSigner
         },
         'addToBlacklist': {
             taskName: "加入黑名单",
             contractsName: "BlindBox",
             functionName: "addToBlacklist",
-            params: [testBoxId],
+            params: [boxId],
             signer: adminSigner
         }
     };

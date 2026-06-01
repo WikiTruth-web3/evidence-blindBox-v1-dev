@@ -23,21 +23,17 @@ async function main() {
         return;
     }
 
-    const { daoFundManagerSigner } = await getSigners_SapphireTestnet();
+    const { daoTreasurySigner } = await getSigners_SapphireTestnet();
 
-    if (!daoFundManagerSigner) {
+    if (!daoTreasurySigner) {
         console.error("The signers are not found, please check the .env file.");
         return;
     }
 
-
-
     // ---------------------------------------------------------------
 
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, daoFundManagerSigner, chainId, core_contracts_address.siweAuth);
-
-    
+    const token = await get_siwe_token(domain, daoTreasurySigner, chainId, core_contracts_address.siweAuth);
 
     // 2. -------------------------------------------------------------------
     const all_tasks: { [key: string]: CallFunctionParams } = {

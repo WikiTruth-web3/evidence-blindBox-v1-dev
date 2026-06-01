@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
-import { user_evm_WikiTruth } from "../../account_admin";
+import { user_oasis } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { core_contracts_address, token_contracts_address } from "../utils/contracts_address";
 import { CallFunctionParams } from "../types/call-params";
-import { v3_core_testnet_address, v3_periphery_testnet_address } from "../utils/v3_testnet_address";
+// import { v3_core_testnet_address, v3_periphery_testnet_address } from "../utils/v3_testnet_address";
 
 /**
  * 示例：使用批量模式初始化 AddressManager
@@ -17,44 +17,17 @@ async function main() {
     const { adminSigner } = await getSigners_SapphireTestnet();
     if (!adminSigner) return;
 
-    const adminAddress = user_evm_WikiTruth.admin.address;
-    const daoFundManagerAddress = user_evm_WikiTruth.daoFundManager.address;
+    const adminAddress = user_oasis.admin.address;
+    const daoTreasuryAddress = user_oasis.daoTreasury.address;
 
-    if (!adminAddress || !daoFundManagerAddress) {
-        console.error("adminAddress 或 daoFundManagerAddress 不存在");
+    if (!adminAddress || !daoTreasuryAddress) {
+        console.error("adminAddress 或 daoTreasuryAddress 不存在");
         return;
     }
 
     // 1. 编排任务清单
     const tasks: CallFunctionParams[] = [
-        {
-            taskName: "设置地址列表",
-            contractsName: "AddressManager",
-            functionName: "setAddressList",
-            params: [[
-                adminAddress,           // dao 
-                ethers.ZeroAddress,     // governance
-                daoFundManagerAddress,  // daoFundManager 
-                core_contracts_address.userManager,
-                core_contracts_address.siweAuth,
-                core_contracts_address.blindBox,
-                core_contracts_address.exchange,
-                core_contracts_address.fundManager,
-                core_contracts_address.forwarder,
-            ]],
-            signer: adminSigner
-        },
 
-        {
-            taskName: "设置SwapContracts",
-            contractsName: "AddressManager",
-            functionName: "setSwapContracts",
-            params: [[
-                v3_periphery_testnet_address.swapRouter,
-                v3_periphery_testnet_address.quoter
-            ]],
-            signer: adminSigner
-        },
         {
             taskName: "设置结算代币",
             contractsName: "AddressManager",
@@ -69,13 +42,6 @@ async function main() {
             params: [token_contracts_address.wrosePrivacy],
             signer: adminSigner
         },
-        {
-            taskName: "设置所有合约地址",
-            contractsName: "AddressManager",
-            functionName: "setAllAddress",
-            params: [],
-            signer: adminSigner
-        }
     ];
 
     // 2. 执行批量任务

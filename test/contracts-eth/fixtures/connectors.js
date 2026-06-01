@@ -15,6 +15,7 @@ async function createConnectors(signers, contracts) {
   const {
     addressManager,
     settlementToken,
+    settlementToken_Privacy,
     wBTC,
     wETH,
     wROSE,
@@ -76,6 +77,15 @@ async function createConnectors(signers, contracts) {
 
   // 代币连接器
   const tokenConnectors = {
+    settlementToken_Privacy: {
+      buyer: settlementToken_Privacy.connect(buyer),
+      buyer2: settlementToken_Privacy.connect(buyer2),
+      other: settlementToken_Privacy.connect(other),
+      other2: settlementToken_Privacy.connect(other2),
+      minter: settlementToken_Privacy.connect(minter),
+      seller:settlementToken_Privacy.connect(seller),
+      completer:settlementToken_Privacy.connect(completer),
+    },
     settlementToken: {
       buyer: settlementToken.connect(buyer),
       buyer2: settlementToken.connect(buyer2),

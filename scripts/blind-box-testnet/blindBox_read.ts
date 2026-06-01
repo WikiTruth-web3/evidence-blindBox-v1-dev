@@ -15,46 +15,46 @@ const current_executes = [
     'getBasicData',
     'isInBlacklist'
 ];
+const boxId = 1;
 
 async function main() {
     console.log("🔍 开始读取 BlindBox 合约状态...");
-    const { adminSigner } = await getSigners_SapphireTestnet();
-    const testBoxId = 1;
+    // const { adminSigner } = await getSigners_SapphireTestnet();
 
     const all_tasks: { [key: string]: CallFunctionParams } = {
         'getStatus': {
             taskName: "获取状态",
             contractsName: "BlindBox",
             functionName: "getStatus",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'getPrice': {
             taskName: "获取价格",
             contractsName: "BlindBox",
             functionName: "getPrice",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'getDeadline': {
             taskName: "获取截止日期",
             contractsName: "BlindBox",
             functionName: "getDeadline",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'getBasicData': {
             taskName: "获取基础数据 (Status, Price, Deadline)",
             contractsName: "BlindBox",
             functionName: "getBasicData",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         },
         'isInBlacklist': {
             taskName: "检查是否在黑名单中",
             contractsName: "BlindBox",
             functionName: "isInBlacklist",
-            params: [testBoxId],
+            params: [boxId],
             signer: null
         }
     };

@@ -22,6 +22,19 @@ contract FundManager03 is FundManager02 {
     // ====================================================================================================================
 
     /**
+     * @dev Detect token type and return payment source address (virtual address for privacy tokens if authorized, else original)
+     */
+    function _getPayFrom(address token_, address from_) internal view returns (address) {
+        (bool success, bytes memory data) = token_.staticcall(
+            abi.encodeWithSignature("getVirtualAddress(address)", from_)
+        );
+        if (success && data.length == 32) {
+            return abi.decode(data, (address));
+        }
+        return from_;
+    }
+
+    /**
      * @dev Pay order amount
      * @param boxId_ BlindBox ID
      * @param from_ Buyer address
@@ -36,7 +49,8 @@ contract FundManager03 is FundManager02 {
     ) internal {
         address token = EXCHANGE.acceptedToken(boxId_);
 
-        IERC20(token).safeTransferFrom(from_, address(this), amount_);
+        address payFrom = _getPayFrom(token, from_);
+        IERC20(token).safeTransferFrom(payFrom, address(this), amount_);
 
         _orderAmounts[boxId_][userId_] += amount_;
 
@@ -55,8 +69,9 @@ contract FundManager03 is FundManager02 {
         uint256 amount_
     ) internal {
         address settlementToken = ADDR_MANAGER.settlementToken();
+        address payFrom = _getPayFrom(settlementToken, from_);
         IERC20(settlementToken).safeTransferFrom(
-            from_,
+            payFrom,
             address(this),
             amount_
         );
