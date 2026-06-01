@@ -15,9 +15,18 @@ export const user_evm = {
         address: process.env.BUYER2_ADDR_EVM,
         privateKey: process.env.BUYER2_PRIVATE_KEY_EVM,
     },
-    daoFundManager: {
-        address: process.env.DAO_FUND_MANAGER_ADDR_EVM,
-        privateKey: process.env.DAO_FUND_MANAGER_PRIVATE_KEY_EVM,
+    seller: {
+        address: process.env.SELLER_ADDR_EVM,
+        privateKey: process.env.SELLER_PRIVATE_KEY_EVM,
+    },
+    completer: {
+        address: process.env.COMPLETER_ADDR_EVM,
+        privateKey: process.env.COMPLETER_PRIVATE_KEY_EVM,
+    },
+
+    daoTreasury: {
+        address: process.env.DAO_TREASURY_ADDR_EVM,
+        privateKey: process.env.DAO_TREASURY_PRIVATE_KEY_EVM,
     }
 }
 
@@ -38,9 +47,18 @@ export const user_oasis = {
         address: process.env.BUYER2_ADDR_OASIS_CONSENSUS,
         privateKey: process.env.BUYER2_PRIVATE_KEY_OASIS_CONSENSUS,
     },
-    daoFundManager: {
-        address: process.env.DAO_FUND_MANAGER_ADDR_OASIS_CONSENSUS,
-        privateKey: process.env.DAO_FUND_MANAGER_PRIVATE_KEY_OASIS_CONSENSUS,
+    seller: {
+        address: process.env.SELLER_ADDR_OASIS_CONSENSUS,
+        privateKey: process.env.SELLER_PRIVATE_KEY_OASIS_CONSENSUS,
+    },
+    completer: {
+        address: process.env.COMPLETER_ADDR_OASIS_CONSENSUS,
+        privateKey: process.env.COMPLETER_PRIVATE_KEY_OASIS_CONSENSUS,
+    },
+
+    daoTreasury: {
+        address: process.env.DAO_TREASURY_ADDR_OASIS_CONSENSUS,
+        privateKey: process.env.DAO_TREASURY_PRIVATE_KEY_OASIS_CONSENSUS,
     }
 }
 

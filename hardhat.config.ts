@@ -15,11 +15,11 @@ const sapphire_testnet_admin = process.env.ADMIN_PRIVATE_KEY_EVM ? process.env.A
 const sapphire_testnet_minter = process.env.MINTER_PRIVATE_KEY_EVM ? process.env.MINTER_PRIVATE_KEY_EVM : "";
 const sapphire_testnet_buyer = process.env.BUYER_PRIVATE_KEY_EVM ? process.env.BUYER_PRIVATE_KEY_EVM : "";
 const sapphire_testnet_buyer2 = process.env.BUYER2_PRIVATE_KEY_EVM ? process.env.BUYER2_PRIVATE_KEY_EVM : "";
-const sapphire_testnet_daoFundManager = process.env.DAO_FUND_MANAGER_PRIVATE_KEY_EVM ? process.env.DAO_FUND_MANAGER_PRIVATE_KEY_EVM : "";
+const sapphire_testnet_dao_treasury = process.env.DAO_TREASURY_PRIVATE_KEY_EVM ? process.env.DAO_TREASURY_PRIVATE_KEY_EVM : "";
 
 // =============================================================
-const sapphire_testnet_user = process.env.Privacy_ERC20_User_PRIVATE_KEY_EVM ? process.env.Privacy_ERC20_User_PRIVATE_KEY_EVM : "";
-const sapphire_testnet_user_01 = process.env.Privacy_ERC20_User_01_PRIVATE_KEY_EVM ? process.env.Privacy_ERC20_User_01_PRIVATE_KEY_EVM : "";
+const sapphire_testnet_seller = process.env.SELLER_PRIVATE_KEY_EVM ? process.env.SELLER_PRIVATE_KEY_EVM : "";
+const sapphire_testnet_completer = process.env.COMPLETER_PRIVATE_KEY_EVM ? process.env.COMPLETER_PRIVATE_KEY_EVM : "";
 
 const sapphire_mainnet_admin = process.env.ADMIN_PRIVATE_KEY_EVM ? process.env.ADMIN_PRIVATE_KEY_EVM : "";
 
@@ -166,9 +166,9 @@ const config: HardhatUserConfig = {
         sapphire_testnet_minter,
         sapphire_testnet_buyer,
         sapphire_testnet_buyer2,
-        sapphire_testnet_user,
-        sapphire_testnet_user_01,
-        sapphire_testnet_daoFundManager,
+        sapphire_testnet_seller,
+        sapphire_testnet_completer,
+        sapphire_testnet_dao_treasury,
       ]
     },
   },

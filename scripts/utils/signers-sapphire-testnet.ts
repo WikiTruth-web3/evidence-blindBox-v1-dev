@@ -16,7 +16,7 @@ interface Signers_SapphireTestnet {
     buyer2Signer: HardhatEthersSigner | null;
     sellerSigner: HardhatEthersSigner | null;
     completerSigner: HardhatEthersSigner | null;
-    daoFundManagerSigner: HardhatEthersSigner | null;
+    daoTreasurySigner: HardhatEthersSigner | null;
 }
 
 export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTestnet> => {
@@ -31,7 +31,7 @@ export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTes
             buyer2Signer: null,
             sellerSigner: null,
             completerSigner: null,
-            daoFundManagerSigner: null
+            daoTreasurySigner: null
         };
     }
     
@@ -42,7 +42,7 @@ export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTes
     const buyer2Signer = signers[3];
     const sellerSigner = signers[4];
     const completerSigner = signers[5];
-    const daoFundManagerSigner = signers[6];
+    const daoTreasurySigner = signers[6];
 
     return {
         adminSigner,
@@ -51,7 +51,7 @@ export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTes
         buyer2Signer,
         sellerSigner,
         completerSigner,
-        daoFundManagerSigner
+        daoTreasurySigner
     }
 }
 
@@ -73,7 +73,7 @@ export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTes
 //     const buyer2Signer = signers[3];
 //     const sellerSigner = signers[4];
 //     const completerSigner = signers[5];
-//     const daoFundManagerSigner = signers[6];
+//     const daoTreasurySigner = signers[6];
 
 //     console.log("adminSigner:", adminSigner.address);
 //     console.log("minterSigner:", minterSigner.address);
@@ -81,7 +81,7 @@ export const getSigners_SapphireTestnet = async () : Promise<Signers_SapphireTes
 //     console.log("buyer2Signer:", buyer2Signer.address);
 //     console.log("sellerSigner:", sellerSigner.address);
 //     console.log("completerSigner:", completerSigner.address);
-//     console.log("daoFundManagerSigner:", daoFundManagerSigner.address);
+//     console.log("daoTreasurySigner:", daoTreasurySigner.address);
 
 // }
 

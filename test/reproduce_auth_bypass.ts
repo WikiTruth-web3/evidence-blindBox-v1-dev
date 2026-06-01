@@ -3,11 +3,11 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import '@nomicfoundation/hardhat-chai-matchers';
 import { 
-    getAccount, 
     siweMsg, 
     erc191sign,
-    sleep
-} from '../utils';
+} from '../utils/getSiweAuth';
+import { sleep} from '../utils/common';
+import {getAccount, } from '../utils/getAccount'
 
 describe('Reproduction: Unlisted Domain Login', function () {
     let accounts: any;
