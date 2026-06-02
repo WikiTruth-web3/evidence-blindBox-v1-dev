@@ -25,13 +25,13 @@ contract Exchange03 is Exchange02 {
     // ========================================================================================================
     function _buy(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
-        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
+        if (blindBox.getStatus(boxId_) != BoxStatus.Selling) revert InvalidStatus();
         address sender = _msgSender();
         bytes32 userId = USER_MANAGER.getUserId(sender);
 
         uint256 payAmount = blindBox.getPrice(boxId_);
 
-        blindBox.setStatus(boxId_, Status.Paid);
+        blindBox.setStatus(boxId_, BoxStatus.Paid);
 
         _boxExchengData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp);
@@ -47,17 +47,17 @@ contract Exchange03 is Exchange02 {
      */
     function _bidPrice(uint256 boxId_) internal returns (uint256) {
         IBlindBox BlindBox = BLIND_BOX;
-        (Status status, uint256 price, ) = BlindBox.getBasicData(boxId_);
+        (BoxStatus status, uint256 price, ) = BlindBox.getBasicData(boxId_);
 
         // canBid?
-        if (status != Status.Auctioning) revert InvalidStatus();
+        if (status != BoxStatus.Auctioning) revert InvalidStatus();
 
         uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
 
         BlindBox.setBasicData(
             boxId_,
             newPrice,
-            Status.Auctioning,
+            BoxStatus.Auctioning,
             block.timestamp + 30 days
         );
 
@@ -114,7 +114,7 @@ contract Exchange03 is Exchange02 {
     function _requestRefund(uint256 boxId_) internal {
         IBlindBox blindBox = BLIND_BOX;
         // canRequestRefund?
-        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (blindBox.getStatus(boxId_) != BoxStatus.Paid) revert InvalidStatus();
         if (!_isInRequestRefundDeadline(boxId_)) revert DeadlineIsOver();
         // erc2771 - _msgSender() is the real caller
         bytes32 userId = USER_MANAGER.getUserId(_msgSender());
@@ -123,7 +123,7 @@ contract Exchange03 is Exchange02 {
         uint256 deadline = block.timestamp + _arbitrationPeriod;
         _boxExchengData[boxId_]._arbitrationDeadline = deadline;
 
-        blindBox.setStatus(boxId_, Status.Refunding);
+        blindBox.setStatus(boxId_, BoxStatus.Refunding);
         emit ArbitrationDeadineChanged(boxId_, deadline);
     }
 
@@ -136,10 +136,10 @@ contract Exchange03 is Exchange02 {
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
 
         IBlindBox blindBox = BLIND_BOX;
-        if (blindBox.getStatus(boxId_) != Status.Refunding)
+        if (blindBox.getStatus(boxId_) != BoxStatus.Refunding)
             revert InvalidStatus();
 
-        blindBox.setStatus(boxId_, Status.Delaying);
+        blindBox.setStatus(boxId_, BoxStatus.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 
@@ -153,7 +153,7 @@ contract Exchange03 is Exchange02 {
         IBlindBox blindBox = BLIND_BOX;
 
         // canAgree?
-        if (blindBox.getStatus(boxId_) != Status.Refunding)
+        if (blindBox.getStatus(boxId_) != BoxStatus.Refunding)
             revert InvalidStatus();
 
         if (_isInArbitrationDeadline(boxId_)) {
@@ -170,7 +170,7 @@ contract Exchange03 is Exchange02 {
         }
         // If it exceeds the deadline, then it means anyone can call this function.
         _boxExchengData[boxId_]._refundPermit = true;
-        blindBox.setStatus(boxId_, Status.Published);
+        blindBox.setStatus(boxId_, BoxStatus.Published);
         emit RefundPermitChanged(boxId_, true);
 
     }
@@ -183,7 +183,7 @@ contract Exchange03 is Exchange02 {
 
         if (_msgSender() != ADDR_MANAGER.getMainContract(Main.Dao)) revert NotDAO();
         // canRefuse?
-        if (blindBox.getStatus(boxId_) != Status.Refunding)
+        if (blindBox.getStatus(boxId_) != BoxStatus.Refunding)
             revert InvalidStatus();
         // According to whether it is within the review deadline, determine.
         if (_isInArbitrationDeadline(boxId_)) {
@@ -191,7 +191,7 @@ contract Exchange03 is Exchange02 {
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
         }
-        blindBox.setStatus(boxId_, Status.Published);
+        blindBox.setStatus(boxId_, BoxStatus.Published);
         emit RefundPermitChanged(boxId_, true);
     }
 
@@ -207,10 +207,10 @@ contract Exchange03 is Exchange02 {
      * Complete order also needs to set refundRequestDeadline.
      */
     function _completeOrder(uint256 boxId_) internal {
-        // _checkStatus(boxId_, Status.Paid);
+        // _checkStatus(boxId_, BoxStatus.Paid);
         IBlindBox blindBox = BLIND_BOX;
         // canComplete?
-        if (blindBox.getStatus(boxId_) != Status.Paid) revert InvalidStatus();
+        if (blindBox.getStatus(boxId_) != BoxStatus.Paid) revert InvalidStatus();
         if (_refundPermit(boxId_)) revert RefundPermitTrue();
 
         // erc2771
@@ -224,7 +224,7 @@ contract Exchange03 is Exchange02 {
             _boxExchengData[boxId_]._completerId = userId;
             emit CompleterAssigned(boxId_, userId);
         }
-        blindBox.setStatus(boxId_, Status.Delaying);
+        blindBox.setStatus(boxId_, BoxStatus.Delaying);
         FUND_MANAGER.allocationRewards(boxId_);
     }
 

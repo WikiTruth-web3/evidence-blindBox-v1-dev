@@ -12,7 +12,8 @@ import {
 import {IdentitySalt} from "../abstract/IdentitySalt.sol";
 import {SecretKeyManager} from "../abstract/SecretKeyManager.sol";
 import {BlindBox01} from "./BlindBox01.sol";
-import {BlindBoxEvents, Status} from "@interfaces/sapphire/IBlindBox.sol";
+import {BlindBoxEvents} from "@interfaces/sapphire/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
 
 /**
  *  @notice BlindBox contract
@@ -29,7 +30,7 @@ contract BlindBox02 is
     SecretKeyManager
 {
     struct BasicData {
-        Status _status;
+        BoxStatus _status;
         uint256 _price;
         uint256 _deadline;
     }
@@ -70,7 +71,7 @@ contract BlindBox02 is
     function _setBoxData(
         string calldata boxInfoCID_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 deadline_,
         bytes memory key_
     ) internal returns (uint256) {
@@ -147,7 +148,7 @@ contract BlindBox02 is
         uint256 boxId = _setBoxData(
             boxInfoCID_,
             price_,
-            Status.Storing,
+            BoxStatus.Storing,
             deadline,
             key_
         );
@@ -164,9 +165,32 @@ contract BlindBox02 is
     ) internal returns (uint256) {
         _checkCID(boxInfoCID_);
 
-        uint256 boxId = _setBoxData(boxInfoCID_, 0, Status.Published, 0, "");
+        uint256 boxId = _setBoxData(boxInfoCID_, 0, BoxStatus.Published, 0, "");
 
-        emit BoxStatusChanged(boxId, Status.Published);
+        emit BoxStatusChanged(boxId, BoxStatus.Published);
         return boxId;
+    }
+    // ==========================================================================================================
+    function _checkMinter(uint256 boxId_) internal view {
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
+        if (userId != _secretData[boxId_]._minterId) revert NotMinter();
+    }
+
+    function _checkBuyer(uint256 boxId_) internal view {
+        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
+        if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
+    }
+
+    function _boxExists(uint256 boxId_) internal view {
+        if (boxId_ >= _nextBoxId) revert BoxNotExists();
+    }
+    // ==========================================================================================================
+    //                                      Getter Functions
+    // ==========================================================================================================
+
+    function _minterIdOf(uint256 boxId_) internal view returns (bytes32) {
+        bytes32 minterId = _secretData[boxId_]._minterId;
+        if (minterId == bytes32(0)) revert BoxNotExists();
+        return minterId;
     }
 }

@@ -3,10 +3,11 @@
 
 pragma solidity ^0.8.24;
 
-import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
-import {IExchange} from "@interfaces/sapphire/IExchange.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 /**
  *  @notice Exchange contract
@@ -17,15 +18,16 @@ import {CoreContracts} from "@interfaces/IContracts.sol";
 contract Exchange is Exchange03, IExchange {
     // ========================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) Exchange03(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_, address trustForwarder_) Exchange03(addrManager_, trustForwarder_) {}
 
     // ==========================================================================================================
 
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.Exchange);
+    /**
+     * @notice Set contract addresses
+     * @dev Get and set related contract addresses from AddressManager
+     */
+    function setContracts() external onlyAdmin{
+        _setContracts();
     }
 
     // ========================================================================================================
@@ -37,13 +39,13 @@ contract Exchange is Exchange03, IExchange {
         address acceptedToken_,
         uint256 price_
     ) external {
-        // NOTE: mainnet 365 days---- testnet 15 days
+        // NOTE: 365----15
         _setBoxListedArgs(
             boxId_,
             acceptedToken_,
             price_,
-            Status.Selling,
-            15 days
+            BoxStatus.Selling,
+            365 days
         );
     }
 
@@ -52,82 +54,57 @@ contract Exchange is Exchange03, IExchange {
         address acceptedToken_,
         uint256 price_
     ) external {
-        // NOTE: mainnet 30 days---- testnet 3 days
+        // NOTE: 30 days----3 days
         _setBoxListedArgs(
             boxId_,
             acceptedToken_,
             price_,
-            Status.Auctioning,
-            3 days
+            BoxStatus.Auctioning,
+            30 days
         );
     }
-
     // ========================================================================================================
-    //                                          Buying/Payment Functions (Project Contracts Only)
+    //                                          Buying related functions
     // ========================================================================================================
 
     function buy(
-        uint256 boxId_,
-        bytes32 buyerUserId_,
-        PaymentType payType_
-    ) external onlyProjectContract {
-        IBlindBox blindBox = BLIND_BOX;
-        if (blindBox.getStatus(boxId_) != Status.Selling) revert InvalidStatus();
-
-        blindBox.setStatus(boxId_, Status.Paid);
-
-        _boxExchengData[boxId_]._buyerId = buyerUserId_;
-        _boxExchengData[boxId_]._paymentType = payType_;
-
-        _setRefundRequestDeadline(boxId_, block.timestamp);
-
-        emit BoxPurchased(boxId_, buyerUserId_);
+        uint256 boxId_
+    ) external {
+        _buy(boxId_);
     }
 
     function bid(
-        uint256 boxId_,
-        bytes32 buyerUserId_,
-        uint256 price_,
-        PaymentType payType_
-    ) external onlyProjectContract {
-        if (buyerUserId_ == _buyerIdOf(boxId_)) revert NotBuyer();
-
-        uint256 currentRequiredPrice = _bidPrice(boxId_);
-        require(price_ >= currentRequiredPrice, "Bid price is too low");
-
-        _boxExchengData[boxId_]._buyerId = buyerUserId_;
-        _boxExchengData[boxId_]._paymentType = payType_;
-
-        emit BidPlaced(boxId_, buyerUserId_, price_);
+        uint256 boxId_
+    ) external {
+        _bid(boxId_);
     }
 
-    function calcPayMoney(
+    function calcPayAmount(
         uint256 boxId_,
-        bytes memory siweToken_
+        bytes32 userId_
     ) public view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        uint256 price = BLIND_BOX.getPrice(boxId_);
 
-        return _calcPayMoney(boxId_, userId, price);
+        uint256 price = BLIND_BOX.getPrice(boxId_);
+        return _calcPayAmount(boxId_, userId_, price);
     }
 
     // ========================================================================================================
     //                                           Refund function
     // ========================================================================================================
 
-    function setRefundPermit(
-        uint256 boxId_,
-        bool permission_
+    function setRefundPermitTrue(
+        uint256 boxId_
     ) external onlyProjectContract {
-        _setRefundPermit(boxId_, permission_);
+        _setRefundPermitTrue(boxId_);
     }
 
     function requestRefund(uint256 boxId_) external {
         _requestRefund(boxId_);
     }
 
+    /**
+     * @notice Cancel refund function, after canceling refund, the box status becomes Sold
+     */
     function cancelRefund(uint256 boxId_) external {
         _cancelRefund(boxId_);
     }
@@ -136,13 +113,12 @@ contract Exchange is Exchange03, IExchange {
         _agreeRefund(boxId_);
     }
 
+    /**
+     * @notice Refuse refund function, after refusing refund, the box status becomes Published!
+     */
     function refuseRefund(uint256 boxId_) external {
         _refuseRefund(boxId_);
     }
-
-    // =========================================================================================================
-    //                                           finalize related functions
-    // ========================================================================================================
 
     function completeOrder(uint256 boxId_) external {
         _completeOrder(boxId_);
@@ -152,27 +128,20 @@ contract Exchange is Exchange03, IExchange {
     //                                           Getter function
     // ========================================================================================================
 
-    function paymentTypeOf(
-        uint256 boxId_
-    ) external view override returns (PaymentType) {
-        return _boxExchengData[boxId_]._paymentType;
-    }
-
-    function buyerIdOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (bytes32) {
+    /**
+     * @notice Get buyer address
+     * @param boxId_ Box ID
+     * @return Buyer address
+     */
+    function buyerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _buyerIdOf(boxId_);
     }
 
-    function sellerIdOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (bytes32) {
+    function sellerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _sellerIdOf(boxId_);
     }
 
-    function completerIdOf(
-        uint256 boxId_
-    ) external view onlyProjectContract returns (bytes32) {
+    function completerIdOf(uint256 boxId_) external view returns (bytes32) {
         return _completerIdOf(boxId_);
     }
 
@@ -193,19 +162,20 @@ contract Exchange is Exchange03, IExchange {
         return _refundRequestDeadline(boxId_);
     }
 
-    function refundReviewDeadline(
+    function arbitrationDeadline(
         uint256 boxId_
     ) external view returns (uint256) {
-        return _refundReviewDeadline(boxId_);
+        return _arbitrationDeadline(boxId_);
     }
 
-    function isInRequestRefundDeadline(
-        uint256 boxId_
-    ) external view returns (bool) {
-        return _isInRequestRefundDeadline(boxId_);
-    }
+    // function isInRequestRefundDeadline(
+    //     uint256 boxId_
+    // ) external view returns (bool) {
+    //     return _isInRequestRefundDeadline(boxId_);
+    // }
 
-    function isInReviewDeadline(uint256 boxId_) external view returns (bool) {
-        return _isInReviewDeadline(boxId_);
-    }
+    // function isInArbitrationDeadline(uint256 boxId_) external view returns (bool) {
+    //     return _isInArbitrationDeadine(boxId_);
+    // }
+
 }

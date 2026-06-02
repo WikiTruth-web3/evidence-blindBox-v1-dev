@@ -2,14 +2,13 @@
 
 pragma solidity ^0.8.24;
 
-import {Error} from "@interfaces/Error.sol";
-import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {Error} from "@interfaces/base/Error.sol";
+import {IAddressManager} from "@interfaces/IAddressManager.sol";
 import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
 import {SiweContext} from "@siwe/SiweContext.sol";
 import {IdentitySalt} from "./abstract/IdentitySalt.sol";
 
-import {ModifierV2} from "./modifier/ModifierV2.sol";
+import {UserManager01} from "./base/UserManager01.sol";
 
 /**
  * @title UserManager
@@ -19,19 +18,19 @@ import {ModifierV2} from "./modifier/ModifierV2.sol";
  * Inherits IUserManager interface to ensure consistency between interface and implementation
  */
 
-contract UserManager is ModifierV2, IUserManager, SiweContext, IdentitySalt {
+contract UserManager is UserManager01, IUserManager, SiweContext, IdentitySalt {
     mapping(address => bool) internal _blacklist;
 
     // =======================================================================================================
     constructor(
         address addrManager_,
         bytes memory pers_
-    ) ModifierV2(addrManager_) IdentitySalt(pers_) {}
+    ) UserManager01(addrManager_) IdentitySalt(pers_) {}
 
     // =====================================================================================
 
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.UserManager);
+    function setContracts() external onlyAdmin{
+        _setContracts();
     }
 
     // =====================================================================================

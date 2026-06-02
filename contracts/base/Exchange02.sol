@@ -7,10 +7,12 @@ import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-import {IBlindBox, Status} from "@interfaces/sapphire/IBlindBox.sol";
-import {ExchangeEvents, PaymentType} from "@interfaces/sapphire/IExchange.sol";
+import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+
+import {ExchangeEvents} from "@interfaces/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
+// import {SiweContext} from "@siwe/SiweContext.sol";
 
 /**
  *  @notice Exchange02 contract
@@ -18,28 +20,24 @@ import {SiweContext} from "@siwe/SiweContext.sol";
  *  @dev Inherits IExchange interface to ensure consistency between interface and implementation
  */
 
-contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
+contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     // =======================================================================================================
 
     struct BoxExchengData {
         address _acceptedToken; // If address(0), then it means support settlementToken
-        bytes32 _sellerId; // If 0, then it means by minter sell
+        bytes32 _sellerId; // If address(0), then it means by minter sell
         bytes32 _buyerId;
         bytes32 _completerId;
         uint256 _refundRequestDeadline;
-        uint256 _refundReviewDeadline;
+        uint256 _arbitrationDeadline;
         bool _refundPermit;
-        PaymentType _paymentType; // Payment type record
     }
 
     mapping(uint256 boxId => BoxExchengData data) internal _boxExchengData;
 
     // ========================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) Exchange01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    constructor(address addrManager_, address trustedForwarder_) Exchange01(addrManager_) ERC2771Context(trustedForwarder_) {}
 
     // ========================================================================================================
     //                                           Checker functions
@@ -50,25 +48,21 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
      * @param boxId_ Box ID
      * If the box status is Auctioning, and the deadline is over, then it is directly Paid.
      */
-    function _checkStatus(uint256 boxId_, Status status_) internal view {
-        if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
-    }
-
+    // function _isStatus(uint256 boxId_, BoxStatus status_) internal view {
+    //     if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
+    // }
     // Check the refund timestamp. Within the refund time,
     // you can apply for a refund (set to refunding mode),
     function _isInRequestRefundDeadline(
         uint256 boxId_
     ) internal view returns (bool) {
-        _checkStatus(boxId_, Status.Paid);
-
         if (_boxExchengData[boxId_]._refundRequestDeadline < block.timestamp)
             return false;
         return true;
     }
 
-    function _isInReviewDeadline(uint256 boxId_) internal view returns (bool) {
-        _checkStatus(boxId_, Status.Refunding);
-        if (_boxExchengData[boxId_]._refundReviewDeadline < block.timestamp)
+    function _isInArbitrationDeadline(uint256 boxId_) internal view returns (bool) {
+        if (_boxExchengData[boxId_]._arbitrationDeadline < block.timestamp)
             return false;
         return true;
     }
@@ -81,11 +75,11 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         uint256 boxId_,
         address acceptedToken_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 seconds_
     ) internal {
-        IBlindBox blindBox = BLIND_BOX;
-        if (blindBox.getStatus(boxId_) != Status.Storing)
+        IBlindBox BlindBox = BLIND_BOX;
+        if (BlindBox.getStatus(boxId_) != BoxStatus.Storing)
             revert InvalidStatus();
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();
@@ -93,26 +87,27 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         bytes32 userId = USER_MANAGER.getUserId(sender);
         address token = ADDR_MANAGER.settlementToken();
 
-        if (userId != blindBox.minterIdOf(boxId_)) {
+        if (userId != BlindBox.minterIdOf(boxId_)) {
             // others sell
-            if (blindBox.getDeadline(boxId_) >= block.timestamp) {
+            if (BlindBox.getDeadline(boxId_) >= block.timestamp) {
                 revert DeadlineNotOver();
             }
             _boxExchengData[boxId_]._sellerId = userId;
 
-            // if the _seller is not the minter, they can't set the price
+            // if the _sellerId is not the minter, they can't set the price
             price_ = 0;
         } else {
-            // NOTE minter sell
-            if (acceptedToken_ != token && acceptedToken_ != address(0)) {
-                if (!ADDR_MANAGER.isTokenSupported(acceptedToken_)) {
-                    revert TokenNotSupported();
-                }
+            if (
+                acceptedToken_ != token && 
+                ADDR_MANAGER.isTokenSupported(acceptedToken_)
+            ) {
+                
                 _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
                 token = acceptedToken_;
             }
         }
-        blindBox.setBasicData(
+
+        BlindBox.setBasicData(
             boxId_,
             price_,
             status_,
@@ -132,55 +127,9 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         emit RequestDeadlineChanged(boxId_, deadline);
     }
 
-    // ========================================================================================================
-    //                                          Buying related functions
-    // ========================================================================================================
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid资格
-     * @param boxId_ Box ID
-     */
-    function _bidPrice(uint256 boxId_) internal returns (uint256) {
-        IBlindBox blindBox = BLIND_BOX;
-        (Status status, uint256 price, uint256 deadline) = blindBox
-            .getBasicData(boxId_);
-
-        // canBid?
-        if (deadline < block.timestamp) revert DeadlineIsOver();
-        if (status != Status.Auctioning) revert InvalidStatus();
-
-        // NOTE: mainnet 30 days---- testnet 3 days
-        _setRefundRequestDeadline(boxId_, block.timestamp + 3 days);
-        uint256 newPrice = (price * _bidIncrementRate) / 100; // If bidIncrementRate is 110, then it is 110%
-
-        blindBox.setBasicData(
-            boxId_,
-            newPrice,
-            Status.Auctioning,
-            block.timestamp + 3 days
-        );
-
-        return price;
-    }
-
-    /**
-     * @notice Bid function, the bidder needs to pay a higher price to get the bid qualification
-     * @param boxId_ Box ID
-     * Need to check: deadline、status、buyer.
-     * Bid will modify: buyer、price、deadline.
-     * Bid also needs to calculate, and pay: payAmount
-     */
-
-    function _calcPayMoney(
-        uint256 boxId_,
-        bytes32 userId_,
-        uint256 price_
-    ) internal view returns (uint256) {
-        uint256 balance = FUND_MANAGER.restrictedGetOrderAmounts(
-            boxId_,
-            userId_
-        );
-        uint256 amount = price_ - balance;
-        return amount;
+    function _setRefundPermitTrue(uint256 boxId_) internal {
+        _boxExchengData[boxId_]._refundPermit = true;
+        emit RefundPermitChanged(boxId_, true);
     }
 
     // ========================================================================================================
@@ -212,10 +161,10 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
         return token;
     }
 
-    function _refundReviewDeadline(
+    function _arbitrationDeadline(
         uint256 boxId_
     ) internal view returns (uint256) {
-        return _boxExchengData[boxId_]._refundReviewDeadline;
+        return _boxExchengData[boxId_]._arbitrationDeadline;
     }
 
     function _refundRequestDeadline(
@@ -223,4 +172,6 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context, SiweContext {
     ) internal view returns (uint256) {
         return _boxExchengData[boxId_]._refundRequestDeadline;
     }
+
+    // -------------------------------------------------------------------
 }

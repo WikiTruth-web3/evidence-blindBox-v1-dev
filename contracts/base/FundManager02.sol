@@ -7,18 +7,16 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-
-// import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
-    FundsType,
+    FundType,
     RewardType
-} from "@interfaces/sapphire/IFundManager.sol";
-import {IExchange} from "@interfaces/sapphire/IExchange.sol";
-import {SiweContext} from "@siwe/SiweContext.sol";
+} from "@interfaces/IFundManager.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
+import {IPriceOracle} from "../oracle/IPriceOracle.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {ISwapRouter} from "@uniswap-v3/interfaces/ISwapRouter.sol";
-import {IQuoter} from "@uniswap-v3/interfaces/IQuoter.sol";
 
 import {FundManager01} from "./FundManager01.sol";
 
@@ -28,20 +26,14 @@ import {FundManager01} from "./FundManager01.sol";
  * Inherits IFundManager interface to ensure consistency between interface and implementation
  */
 
-contract FundManager02 is
-    FundManager01,
-    FundManagerEvents,
-    ERC2771Context,
-    SiweContext
-{
+contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
     using SafeERC20 for IERC20;
 
     // ====================================================================================================================
-
     /// @dev Total reward amounts
     mapping(address token => uint256) internal _totalRewardAmounts;
 
-    // Order amounts mapping (by token recorded by EXCHANGE contract, boxId and buyer userId)
+    // Order amounts mapping (by token recorded by EXCHANGE contract, boxId and buyer address)
     mapping(uint256 boxId => mapping(bytes32 userId => uint256))
         internal _orderAmounts;
 
@@ -51,10 +43,7 @@ contract FundManager02 is
 
     // ====================================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) FundManager01(addrManager_) ERC2771Context(trustedForwarder_) {}
+    constructor(address addrManager_, address trustForwarder_) FundManager01(addrManager_) ERC2771Context(trustForwarder_) {}
 
     // ====================================================================================================================
     // Reward Allocation Functions
@@ -62,166 +51,88 @@ contract FundManager02 is
     /**
      * @dev Internal method: Calculate allocation
      * @param boxId_ BlindBox ID
-     * @param minterId_ Minter userId
      * @param amount_ Amount
      * @param token_ Token address
      */
     function _calculateAllocation(
         uint256 boxId_,
-        bytes32 minterId_,
-        uint256 amount_,
-        address token_
+        address token_,
+        uint256 amount_
     ) internal {
-        // Get various rates and roles
-        bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
+        // Record total reward amount
+        _totalRewardAmounts[token_] += amount_;
+
+        bytes32 minterId = BLIND_BOX.minterIdOf(boxId_);
         bytes32 sellerId = EXCHANGE.sellerIdOf(boxId_);
-        uint8 sellerRate;
-        uint8 completerRate;
-        // Calculate rewards
+        bytes32 completerId = EXCHANGE.completerIdOf(boxId_);
 
-        if (completerId != bytes32(0)) {
-            completerRate = _helperRewardRate;
-        }
-        // If there is a seller, it means the token is the original token
-        if (sellerId != bytes32(0)) {
-            sellerRate = _helperRewardRate;
-        }
-
-        uint8 totalRate = _serviceFeeRate + sellerRate + completerRate;
+        uint256 toDaoTreasury = (amount_ * _serviceFeeRate) / 1000; // accepted token
+        uint256 helperRewards = (amount_ * _helperFeeRate) / 1000; // accepted token
+        uint256 helperRewards2 = helperRewards;
 
         address settlementToken = ADDR_MANAGER.settlementToken();
-
-        uint256 amountIn; // accepted token
-        uint256 amountOut; // settlement token
+        amount_ -= toDaoTreasury;
 
         if (token_ != settlementToken) {
-            // Add extra fee rate to total rate
-            totalRate += _extraFeeRate;
-            // If token is not settlement token, it needs to be swapped
-            (amountIn, amountOut) = _swap(
-                boxId_,
-                token_,
-                settlementToken,
-                amount_,
-                totalRate
-            );
-        } else {
-            // If token is settlement token, calculate allocation directly, and amountOut and amountIn are equal
-            amountIn = (amount_ * totalRate) / 1000;
-            amountOut = amountIn;
-        }
+            helperRewards2 = _convertAmount( token_, settlementToken, helperRewards);
+        } 
 
         unchecked {
-            // Calculate allocation amounts
-            uint256 sellerRewards = (amountOut * sellerRate) / totalRate;
-            uint256 completerRewards = (amountOut * completerRate) / totalRate;
 
-            if (completerRewards > 0) {
-                _rewardAmounts[completerId][
-                    settlementToken
-                ] += completerRewards;
-                emit RewardsAdded(
+            // If it is already the settlement token, no conversion needed
+            if (sellerId != bytes32(0)) {
+                _rewardAmounts[sellerId][settlementToken] += helperRewards2;
+                amount_ -= helperRewards;
+                if (token_ != settlementToken) {
+                    toDaoTreasury += helperRewards;
+                }
+                emit RewardAdded(
                     boxId_,
                     settlementToken,
-                    completerRewards,
-                    RewardType.Completer
-                );
-            }
-            // If there is a seller, it means the token is the original token
-            if (sellerRewards > 0) {
-                _rewardAmounts[sellerId][settlementToken] += sellerRewards;
-                emit RewardsAdded(
-                    boxId_,
-                    settlementToken,
-                    sellerRewards,
+                    helperRewards2,
                     RewardType.Seller
                 );
             }
+
+            if (completerId != bytes32(0)) {
+                _rewardAmounts[completerId][settlementToken] += helperRewards2;
+                amount_ -= helperRewards;
+                if (token_ != settlementToken) {
+                    toDaoTreasury += helperRewards;
+                }
+                emit RewardAdded(
+                    boxId_,
+                    settlementToken,
+                    helperRewards2,
+                    RewardType.Completer
+                );
+            }
+
             // Update minter rewards (using original token)
-            _rewardAmounts[minterId_][token_] += (amount_ - amountIn);
-            emit RewardsAdded(
+            _rewardAmounts[minterId][token_] += amount_;
+            emit RewardAdded(
                 boxId_,
                 token_,
-                (amount_ - amountIn),
+                amount_,
                 RewardType.Minter
             );
 
-            // Assign service fee to DAO fund manager
-            IERC20(settlementToken).safeTransfer(
-                ADDR_MANAGER.daoFundManager(),
-                (amountOut - sellerRewards - completerRewards)
+            // Send serviceFee (and helperRewards if converted) to DAO treasury
+            IERC20(token_).safeTransfer(
+                DAO_TREASURY,
+                toDaoTreasury
             );
-
-            // Record total reward amount
-            _totalRewardAmounts[token_] += amount_;
-            emit RewardsAdded(boxId_, token_, amount_, RewardType.Total);
         }
     }
 
-    /**
-     * @dev Calculate how much tokenIn is needed to swap and how much tokenOut can be swapped
-     * @param boxId_ BlindBox ID
-     * @param tokenIn_ Token address (the token to be swapped)
-     * @param tokenOut_ Token address (the token to be swapped to)
-     * @param amount_ Amount
-     * @param totalRate_ Total rate
-     * @return amountIn_ Amount of tokenIn_ needed to swap
-     * @return amountOut_ Amount of tokenOut_ can be swapped
-     */
-    function _swap(
-        uint256 boxId_,
-        address tokenIn_,
-        address tokenOut_,
-        uint256 amount_,
-        uint8 totalRate_
-    ) internal returns (uint256, uint256) {
-        address[] memory swapContracts = ADDR_MANAGER.swapContracts();
-        if (swapContracts.length == 0) revert EmptyList();
-        // address swapContract = swapContracts[0];
-        // address quoter = swapContracts[1];
-
-        // check allowance and approve
-        if (
-            IERC20(tokenIn_).allowance(address(this), swapContracts[0]) <
-            amount_
-        ) {
-            _approveToken(tokenIn_, swapContracts[0]);
-        }
-
-        // step 1: calculate the amount of tokenOut that can be exchanged for tokenIn
-        // using quoter to calculate the amount of tokenOut that can be exchanged for tokenIn
-        uint256 totalAmountOut = IQuoter(swapContracts[1])
-            .quoteExactInputSingle(
-                tokenIn_,
-                tokenOut_,
-                3000, // 0.3% service fee
-                amount_, // using the exact amount of tokenIn
-                0 // no price limit
-            );
-
-        // step 2: calculate the amount of tokenOut that can be exchanged for tokenIn
-        uint256 amountOut_ = (totalAmountOut * totalRate_) / 1000;
-
-        // step 3: execute the swap, using exactOutputSingle to exchange the exact amount of tokenOut
-        uint256 amountIn_ = ISwapRouter(swapContracts[0]).exactOutputSingle(
-            ISwapRouter.ExactOutputSingleParams({
-                tokenIn: tokenIn_,
-                tokenOut: tokenOut_,
-                fee: 3000, // 0.3% service fee
-                recipient: address(this),
-                deadline: block.timestamp + 300,
-                amountOut: amountOut_, // exact amount of tokenOut
-                amountInMaximum: amount_,
-                sqrtPriceLimitX96: 0
-            })
-        );
-
-        // step 4: reset the price of BlindBox
-        // Because the delay fee must be in the settlementToken,
-        // so we need to reset the price of BlindBox
-        BLIND_BOX.setPrice(boxId_, totalAmountOut);
-
-        return (amountIn_, amountOut_);
+    function _convertAmount(address tokenIn_, address tokenOut_, uint256 amount_) internal view returns(uint256) {
+        // If it is not the settlement token, use Oracle to convert helper rewards
+        address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle");
+        uint256 price = IPriceOracle(oracleAddr).getPrice(tokenIn_, tokenOut_);
+        
+        uint8 decimalsA = IERC20Metadata(tokenIn_).decimals();
+        uint8 decimalsB = IERC20Metadata(tokenOut_).decimals();
+        return (amount_ * price * (10 ** decimalsB)) / (1e18 * (10 ** decimalsA));
     }
 
     // Fund Deposit Functions
@@ -232,20 +143,22 @@ contract FundManager02 is
     }
 
     // ====================================================================================================================
-
     // Withdrawal Functions
     /**
      * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
      * @param token_ Token address
      * @param list_ List of BlindBox IDs
-     * @param type_ Type of withdrawal, either 0(order) or 1(refund)
+     * @param receiver_ user virtual address(privacy erc20)
+     * @param type_ Type of withdrawal, order or refund
      */
     function _withdrawOrderAmounts(
         address token_,
         uint256[] calldata list_,
-        FundsType type_
+        address receiver_,
+        FundType type_
     ) internal nonReentrant whenNotPaused {
         if (list_.length == 0) revert EmptyList();
+        if (receiver_ == address(0)) revert ZeroAddress();
         uint256 amount;
         IExchange exchange = EXCHANGE;
         // erc2771 - _msgSender() is the real caller
@@ -261,15 +174,17 @@ contract FundManager02 is
                 revert AmountIsZero();
             }
 
-            if (type_ == FundsType.Order) {
+            if (type_ == FundType.Order) {
                 // Cannot be the current buyer
                 if (userId == buyerId) revert InvalidCaller();
-            } else if (type_ == FundsType.Refund) {
+            } else if (type_ == FundType.Refund) {
                 // The caller must be the buyer and the refund must be permitted
-                if (userId != buyerId || !exchange.refundPermit(boxId)) {
+                if (
+                    userId != buyerId || 
+                    !exchange.refundPermit(boxId)
+                ) {
                     revert WithdrawError();
                 }
-                exchange.setRefundPermit(boxId, false);
             }
 
             // Confirm token type matches
@@ -283,12 +198,15 @@ contract FundManager02 is
         }
 
         // Execute refund
-        IERC20(token_).safeTransfer(sender, amount);
+        IERC20(token_).safeTransfer(receiver_, amount);
 
-        emit OrderAmountWithdraw(list_, token_, userId, amount, type_);
+        if (type_ == FundType.Order) {
+            emit OrderAmountWithdraw(list_, token_, userId, amount);
+        } else {
+            emit RefundAmountWithdraw(list_, token_, userId, amount);
+        }
+
     }
-    // ===================================================================================
-    //                                       View function
     // ===================================================================================
 
     /**

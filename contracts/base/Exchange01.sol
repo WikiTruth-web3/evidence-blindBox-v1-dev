@@ -3,41 +3,82 @@
 
 pragma solidity ^0.8.24;
 
-import {ModifierV2} from "../modifier/ModifierV2.sol";
+import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
+import {IFundManager} from "@interfaces/IFundManager.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
+import {IAddressManager} from "@interfaces/IAddressManager.sol";
+import {IBlindBox} from "@interfaces/sapphire/IBlindBox.sol";
+
+import {Main} from "@interfaces/base/IContracts.sol";
+import {Modifier} from "../modifier/Modifier.sol";
+
+// import {SetContracts} from "../modifier/SetContracts.sol";
 
 /**
  *  @title Exchange01
  *  @dev This contract is used to manage the exchange
- *  @dev Inherits ModifierV2 to support modifiers
+ *  @dev Inherits SetContracts to support modifiers
  */
 
-contract Exchange01 is ModifierV2 {
+contract Exchange01 is Modifier {
+    error NotBuyContract();
+    IBlindBox internal BLIND_BOX;
+    IUserManager internal USER_MANAGER;
+    // IExchange internal EXCHANGE;
+    IFundManager internal FUND_MANAGER;
+
     uint256 internal _refundRequestPeriod;
-    uint256 internal _refundReviewPeriod;
+    uint256 internal _arbitrationPeriod;
 
     uint8 internal _bidIncrementRate;
 
     // ========================================================================================================
 
-    constructor(address addrManager_) ModifierV2(addrManager_) {
+    constructor(address addrManager_) Modifier(addrManager_) {
         _bidIncrementRate = 110;
         _refundRequestPeriod = 7 days;
-        _refundReviewPeriod = 15 days;
+        _arbitrationPeriod = 15 days;
+    }
+
+    // ========================================================================================================
+    function _setContracts() internal {
+        IAddressManager addrMgr = ADDR_MANAGER;
+
+        address blindBox = addrMgr.getMainContract(Main.BlindBox);
+        if (blindBox != address(BLIND_BOX)) {
+            BLIND_BOX = IBlindBox(blindBox);
+        }
+
+        // address exchange = addrMgr.getMainContract(Main.Exchange);
+        // if (exchange != address(EXCHANGE)) {
+        //     EXCHANGE = IExchange(exchange);
+        // }
+
+        address fundManager = addrMgr.getMainContract(Main.FundManager);
+        if (fundManager != address(FUND_MANAGER) ) {
+            FUND_MANAGER = IFundManager(fundManager);
+        }
+
+        address userManager = addrMgr.getMainContract(Main.UserManager);
+        if (userManager != address(USER_MANAGER) ) {
+            USER_MANAGER = IUserManager(userManager);
+        }
+
     }
 
     // =====================================================================================
     //                                      Basic Parameter Settings
     // =====================================================================================
 
-    // mainnet==testnet 7~15
+    // 7~15  || 1~7
     function setRefundRequestPeriod(uint256 period_) external onlyDAO {
         if (period_ < 7 days || period_ > 15 days) revert InvalidPeriod();
         _refundRequestPeriod = period_;
     }
-    // mainnet==testnet 15~60
-    function setRefundReviewPeriod(uint256 period_) external onlyDAO {
+    // 15~60  || 1~7
+    function setArbitrationPeriod(uint256 period_) external onlyDAO {
         if (period_ < 15 days || period_ > 60 days) revert InvalidPeriod();
-        _refundReviewPeriod = period_;
+        _arbitrationPeriod = period_;
     }
 
     // 110
@@ -53,10 +94,12 @@ contract Exchange01 is ModifierV2 {
     function refundRequestPeriod() external view returns (uint256) {
         return _refundRequestPeriod;
     }
-    function refundReviewPeriod() external view returns (uint256) {
-        return _refundReviewPeriod;
+    function arbitrationPeriod() external view returns (uint256) {
+        return _arbitrationPeriod;
     }
     function bidIncrementRate() external view returns (uint8) {
         return _bidIncrementRate;
     }
+
+
 }

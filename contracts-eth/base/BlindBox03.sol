@@ -188,12 +188,5 @@ contract BlindBox03 is BlindBox02 {
         emit BoxStatusChanged(boxId_, BoxStatus.Blacklisted);
     }
 
-    // ==========================================================================================================
-    //                                      Getter Functions
-    // ==========================================================================================================
-    function _minterIdOf(uint256 boxId_) internal view returns (bytes32) {
-        bytes32 minterId = _secretData[boxId_]._minterId;
-        if (minterId == bytes32(0)) revert BoxNotExists();
-        return minterId;
-    }
+
 }

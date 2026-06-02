@@ -2,15 +2,9 @@
 
 pragma solidity ^0.8.24;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {CoreContracts} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
-import {
-    IFundManager,
-    FundsType,
-    RewardType
-} from "@interfaces/sapphire/IFundManager.sol";
+import {IFundManager,FundType} from "@interfaces/IFundManager.sol";
 import {FundManager03} from "./base/FundManager03.sol";
 /**
  * @title FundManager
@@ -19,24 +13,27 @@ import {FundManager03} from "./base/FundManager03.sol";
  */
 
 contract FundManager is FundManager03, IFundManager {
-    using SafeERC20 for IERC20;
     // ====================================================================================================================
 
-    constructor(
-        address addrManager_,
-        address trustedForwarder_
-    ) FundManager03(addrManager_, trustedForwarder_) {}
+    constructor(address addrManager_, address trustForwarder_) FundManager03(addrManager_, trustForwarder_) {}
 
     /**
      * @notice Set contract addresses
      * @dev Get and set related contract addresses from AddressManager
      */
-    function setAddress() external onlyManager {
-        _setAddress(CoreContracts.FundManager);
+    function setContracts() external onlyAdmin{
+        _setContracts();
     }
 
     // ====================================================================================================================
 
+    /**
+     * @dev Pay order amount
+     * @param boxId_ BlindBox ID
+     * @param buyer_ Buyer address
+     * @param amount_ Amount to pay
+     * @param userId_ Buyer id
+     */
     function payOrderAmount(
         uint256 boxId_,
         address buyer_,
@@ -46,6 +43,12 @@ contract FundManager is FundManager03, IFundManager {
         _payOrderAmount(boxId_, buyer_, amount_, userId_);
     }
 
+    /**
+     * @dev Pay delay fee
+     * @param boxId_ BlindBox ID
+     * @param sender_ Sender address
+     * @param amount_ Amount to pay
+     */
     function payDelayFee(
         uint256 boxId_,
         address sender_,
@@ -55,60 +58,86 @@ contract FundManager is FundManager03, IFundManager {
     }
 
     // ====================================================================================================================
+    // Reward Allocation Functions
 
+    /**
+     * @dev Allocate rewards
+     * @param boxId_ BlindBox ID
+     */
     function allocationRewards(uint256 boxId_) external onlyProjectContract {
         _allocationRewards(boxId_);
     }
 
     // ====================================================================================================================
     // Withdrawal Functions
-
+    /**
+     * @dev Withdraw order amounts (Refund or Order , for buyers who failed to participate in bidding)
+     * @param token_ Token address
+     * @param list_ List of BlindBox IDs
+     * @param receiver_ user virtual address(privacy erc20)
+     */
     function withdrawOrderAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Order);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundType.Order);
     }
 
+    /**
+     * @dev Withdraw refund amounts (Refund or Order , for buyers who failed to participate in bidding)
+     * @param token_ Token address
+     * @param list_ List of BlindBox IDs
+     * @param receiver_ user virtual address(privacy erc20)
+     */
     function withdrawRefundAmounts(
         address token_,
-        uint256[] calldata list_
+        uint256[] calldata list_,
+        address receiver_
     ) external {
-        _withdrawOrderAmounts(token_, list_, FundsType.Refund);
+        _withdrawOrderAmounts(token_, list_, receiver_, FundType.Refund);
+
     }
 
-    function withdrawRewards(address token_) external {
-        _withdrawRewards(token_);
+    //--------------------------------------------------
+
+    /**
+     * @dev Withdraw rewards
+     * @param token_ Token address
+     * @param receiver_ user virtual address(privacy erc20)
+     */
+    function withdrawRewards(address token_, address receiver_) external {
+        _withdrawRewards(token_, receiver_);
     }
 
     // ====================================================================================================================
     //                    Query Functions
     // ====================================================================================================================
 
-    function restrictedGetOrderAmounts(
+    /**
+     * @dev Get order amount
+     * @param boxId_ BlindBox ID
+     * @param userId_ User ID
+     * @return Order amount
+     */
+    function orderAmounts(
         uint256 boxId_,
         bytes32 userId_
-    ) external view onlyProjectContract returns (uint256) {
+    ) external view returns (uint256) {
         return _orderAmounts[boxId_][userId_];
     }
 
-    function orderAmounts(
-        uint256 boxId_,
-        bytes memory siweToken_
+        /**
+     * @dev Get reward amount
+     * @param userId_ User ID
+     * @param token_ BlindBox ID
+     * @return Order amount
+     */
+    function rewardAmounts(
+        bytes32 userId_,
+        address token_
     ) external view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        return _orderAmounts[boxId_][userId];
+        return _rewardAmounts[userId_][token_];
     }
 
-    function rewardAmounts(
-        address token_,
-        bytes memory siweToken_
-    ) external view returns (uint256) {
-        // Use SiweContext get sender
-        address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
-        bytes32 userId = USER_MANAGER.getUserId(sender);
-        return _rewardAmounts[userId][token_];
-    }
 }

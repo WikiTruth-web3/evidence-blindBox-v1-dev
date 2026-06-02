@@ -6,79 +6,45 @@ import {
     ERC2771Forwarder
 } from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 
-import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
-import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
-import {IForwarder} from "@interfaces/sapphire/IForwarder.sol";
-import {Modifier} from "./modifier/Modifier.sol";
+import {IForwarder} from "@interfaces/IForwarder.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 import {Pausable} from "./abstract/Pausable.sol";
 
+import {Forwarder01} from "./base/Forwarder01.sol";
 /**
  * @title Forwarder
  * @dev Has enhanced control functions ERC-2771 forwarder.
  * Includes: relayer whitelist, target contract whitelist, gas limit and emergency pause function.
  * This contract is specifically used to handle meta-transactions, using EIP-712 signatures.
  */
-contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
-    error RelayerIsBlacklisted();
+contract Forwarder is IForwarder, ERC2771Forwarder, Forwarder01, Pausable {
     error NotWhitelistedTarget();
     error GasLimitExceeded();
-    error ContractPaused();
 
     // ========================
 
-    IUserManager internal USER_MANAGER;
-
-    mapping(address => bool) internal _targetWhitelist;
-
-    uint256 internal _maxGasLimit;
 
     // =====================================================================================
 
     constructor(
         string memory name,
         address addrManager_
-    ) ERC2771Forwarder(name) Modifier(addrManager_) {}
+    ) ERC2771Forwarder(name) Forwarder01(addrManager_) {}
 
-    // =====================================================================================
-    //                                  System Configuration
     // =====================================================================================
 
     /**
      * @notice Initialize contract references
      */
-    function setAddress() external onlyManager {
-        address userMgr = ADDR_MANAGER.userManager();
-        if (userMgr != address(0)) {
-            USER_MANAGER = IUserManager(userMgr);
-        }
+    function setContracts() external onlyAdmin {
+        _setContracts();
     }
 
-    // =====================================================================================
-    //                                     Modifiers
-    // =====================================================================================
-
-    modifier onlyValidRelayer() {
-        if (
-            address(USER_MANAGER) != address(0) &&
-            USER_MANAGER.isBlacklisted(msg.sender)
-        ) {
-            revert RelayerIsBlacklisted();
-        }
-        _;
-    }
 
     // =====================================================================================
     //                                  Management Functions
     // =====================================================================================
-
-    function setTargetStatus(address target_, bool status_) external onlyAdmin {
-        _targetWhitelist[target_] = status_;
-    }
-
-    function setMaxGasLimit(uint256 maxGasLimit_) external onlyAdmin {
-        _maxGasLimit = maxGasLimit_;
-    }
 
     function pause() external onlyAdminDAO {
         _pause();
@@ -124,15 +90,5 @@ contract Forwarder is IForwarder, ERC2771Forwarder, Modifier, Pausable {
             revert GasLimitExceeded();
     }
 
-    // =====================================================================================
-    //                                     Getters
-    // =====================================================================================
 
-    function isTargetWhitelisted(address target_) external view returns (bool) {
-        return _targetWhitelist[target_];
-    }
-
-    function getMaxGasLimit() external view returns (uint256) {
-        return _maxGasLimit;
-    }
 }

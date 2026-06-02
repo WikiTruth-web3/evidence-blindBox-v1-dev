@@ -6,7 +6,7 @@ import {
     Sapphire
 } from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {BlindBox02} from "./BlindBox02.sol";
-import {Status} from "@interfaces/sapphire/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/sapphire/IBlindBox.sol";
 
 /**
  *  @notice BlindBox03 contract
@@ -30,21 +30,21 @@ contract BlindBox03 is BlindBox02 {
      * @param boxId_ The ID of the box
      * @return The status of the box
      */
-    function _getStatus(uint256 boxId_) internal view returns (Status) {
-        Status status = _basicData[boxId_]._status;
+    function _getStatus(uint256 boxId_) internal view returns (BoxStatus) {
+        BoxStatus status = _basicData[boxId_]._status;
         // If the deadline has passed, then you need to judge the status of the box
         if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
-            if (status == Status.Selling || status == Status.Auctioning) {
+            if (status == BoxStatus.Selling || status == BoxStatus.Auctioning) {
                 if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
-                    return Status.Published;
+                    return BoxStatus.Published;
                 } else {
                     // If there is a buyer, then the status is Paid
-                    return Status.Paid;
+                    return BoxStatus.Paid;
                 }
-            } else if (status == Status.Delaying) {
+            } else if (status == BoxStatus.Delaying) {
                 // 2, Box in Delaying status, then the status is Published
-                return Status.Published;
+                return BoxStatus.Published;
             }
         }
         return status;
@@ -69,16 +69,14 @@ contract BlindBox03 is BlindBox02 {
         // Use SiweContext get sender
         address sender = _msgSenderSiwe(SIWE_AUTH, siweToken_);
         bytes32 userId = USER_MANAGER.getUserId(sender);
-        Status status = _getStatus(boxId_);
+        BoxStatus status = _getStatus(boxId_);
 
         if (
-            status == Status.Storing ||
-            status == Status.Selling ||
-            status == Status.Auctioning
+            status <= BoxStatus.Auctioning // Storing\Selling\Auctioning
         ) {
             // The value of the status: if it is Storing, Selling, Auctioning, then check if the msg.sender is minter
             if (userId != _minterIdOf(boxId_)) revert NotMinter();
-        } else if (status == Status.Delaying || status == Status.Paid) {
+        } else if (status == BoxStatus.Delaying || status == BoxStatus.Paid) {
             // The value of the status: if it is Delaying, Paid, then check if the msg.sender is buyer
             if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
         }
@@ -107,12 +105,12 @@ contract BlindBox03 is BlindBox02 {
     //                               Checker Functions
     // ==================================================================================================
 
-    function _checkStatus(uint256 boxId_, Status status_) internal view {
-        if (_basicData[boxId_]._status != status_) revert InvalidStatus();
+    function _isStatus(uint256 boxId_, BoxStatus status_) internal view {
+        if (_getStatus(boxId_) != status_) revert InvalidStatus();
     }
 
     function _checkIsBlacklisted(uint256 boxId_) internal view {
-        if (_basicData[boxId_]._status == Status.Blacklisted)
+        if (_basicData[boxId_]._status == BoxStatus.Blacklisted)
             revert InBlacklist();
     }
 
@@ -152,11 +150,11 @@ contract BlindBox03 is BlindBox02 {
         emit DeadlineChanged(boxId_, newDeadline);
     }
 
-    function _setStatus(uint256 boxId_, Status status_) internal {
+    function _setStatus(uint256 boxId_, BoxStatus status_) internal {
         // If the incoming status is Storing status, then do not set
-        if (status_ == Status.Storing) revert InvalidStatus();
+        if (status_ == BoxStatus.Storing) revert InvalidStatus();
 
-        if (status_ == Status.Delaying) {
+        if (status_ == BoxStatus.Delaying) {
             _setDeadline(boxId_, block.timestamp + 15 days); // NOTE mainnet 365 days ---- testnet 15 days
         }
         if (status_ != _basicData[boxId_]._status) {
@@ -172,7 +170,7 @@ contract BlindBox03 is BlindBox02 {
     // If the caster wishes to extend the confidentiality period, they will need to verify by minter account
     function _extendDeadline(uint256 boxId_, uint256 time_) internal {
         _checkMinter(boxId_);
-        _checkStatus(boxId_, Status.Storing);
+        _isStatus(boxId_, BoxStatus.Storing);
         _isInWindowPeriod(boxId_);
         if (time_ > 15 days) revert InvalidPeriod(); // NOTE: mainnet 365 days ---- testnet 15 days
 
@@ -180,14 +178,16 @@ contract BlindBox03 is BlindBox02 {
     }
 
     function _delay(uint256 boxId_) internal {
+        _isStatus(boxId_, BoxStatus.Delaying);
+        _isInWindowPeriod(boxId_);
         uint256 amount = _basicData[boxId_]._price;
 
         FUND_MANAGER.payDelayFee(boxId_, _msgSender(), amount); // erc2771
 
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);
-        // NOTE: 365----15
-        _addDeadline(boxId_, 15 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
+        // NOTE: 365 days ----15 days
+        _addDeadline(boxId_, 365 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
     }
 
     // ==========================================================================================================
@@ -199,37 +199,15 @@ contract BlindBox03 is BlindBox02 {
 
         _checkIsBlacklisted(boxId_);
 
+        _basicData[boxId_]._status = BoxStatus.Blacklisted;
+
         // If the Box has a buyer, then set RefundPermit to true
         if (EXCHANGE.buyerIdOf(boxId_) != bytes32(0)) {
-            EXCHANGE.setRefundPermit(boxId_, true);
+            EXCHANGE.setRefundPermitTrue(boxId_);
         }
 
-        _basicData[boxId_]._status = Status.Blacklisted;
-
-        emit BoxStatusChanged(boxId_, Status.Blacklisted);
+        emit BoxStatusChanged(boxId_, BoxStatus.Blacklisted);
     }
 
-    // ==========================================================================================================
-    //                                      Getter Functions
-    // ==========================================================================================================
-    function _checkMinter(uint256 boxId_) internal view {
-        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
-        if (userId != _secretData[boxId_]._minterId) revert NotMinter();
-    }
 
-    function _checkBuyer(uint256 boxId_) internal view {
-        bytes32 buyerId = EXCHANGE.buyerIdOf(boxId_);
-        bytes32 userId = USER_MANAGER.getUserId(_msgSender());
-        if (userId != buyerId) revert NotBuyer();
-    }
-
-    function _boxExists(uint256 boxId_) internal view {
-        if (boxId_ >= _nextBoxId) revert BoxNotExists();
-    }
-
-    function _minterIdOf(uint256 boxId_) internal view returns (bytes32) {
-        bytes32 minterId = _secretData[boxId_]._minterId;
-        if (minterId == bytes32(0)) revert BoxNotExists();
-        return minterId;
-    }
 }
