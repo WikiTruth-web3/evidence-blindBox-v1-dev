@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 pragma solidity ^0.8.24;
-
-enum Status {
-    Storing,
-    Selling,
-    Auctioning,
-    Paid,
-    Delaying,
-    Refunding,
-    Published,
-    Blacklisted
-}
+import {BoxStatus} from "../base/BoxStatus.sol";
 
 interface BlindBoxEvents {
     event BoxCreated(
@@ -19,14 +9,9 @@ interface BlindBoxEvents {
         bytes32 indexed userId,
         string boxInfoCID
     );
-    event BoxStatusChanged(uint256 indexed boxId, Status status);
+    event BoxStatusChanged(uint256 indexed boxId, BoxStatus status);
     event PriceChanged(uint256 indexed boxId, uint256 price);
     event DeadlineChanged(uint256 indexed boxId, uint256 deadline);
-    event PrivateKeyPublished(
-        uint256 boxId,
-        bytes privateKey,
-        bytes32 indexed userId
-    );
 }
 
 /**
@@ -78,9 +63,9 @@ interface IBlindBox {
     /**
      * @notice Get the status of a box
      * @param boxId_ Box ID
-     * @return Status of the box
+     * @return BoxStatus of the box
      */
-    function getStatus(uint256 boxId_) external view returns (Status);
+    function getStatus(uint256 boxId_) external view returns (BoxStatus);
 
     /**
      * @notice Get the price of a box
@@ -99,13 +84,13 @@ interface IBlindBox {
     /**
      * @notice Get basic data of a box (status, price, deadline)
      * @param boxId_ Box ID
-     * @return status Status of the box
+     * @return status BoxStatus of the box
      * @return price Price of the box
      * @return deadline Deadline of the box
      */
     function getBasicData(
         uint256 boxId_
-    ) external view returns (Status, uint256, uint256);
+    ) external view returns (BoxStatus, uint256, uint256);
 
     /**
      * @notice Get secret data of a box (key)
@@ -124,7 +109,7 @@ interface IBlindBox {
      * @param status_ New status
      * @dev Only callable by project contracts
      */
-    function setStatus(uint256 boxId_, Status status_) external;
+    function setStatus(uint256 boxId_, BoxStatus status_) external;
 
     /**
      * @notice Set the price of a box
@@ -153,7 +138,7 @@ interface IBlindBox {
     function setBasicData(
         uint256 boxId_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 deadline_
     ) external;
 

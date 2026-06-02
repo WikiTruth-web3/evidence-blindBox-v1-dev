@@ -7,8 +7,10 @@ import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {ExchangeEvents} from "@interfaces/eth/IExchange.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+
+import {ExchangeEvents} from "@interfaces/IExchange.sol";
 import {Exchange01} from "./Exchange01.sol";
 // import {SiweContext} from "@siwe/SiweContext.sol";
 
@@ -46,7 +48,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
      * @param boxId_ Box ID
      * If the box status is Auctioning, and the deadline is over, then it is directly Paid.
      */
-    // function _isStatus(uint256 boxId_, Status status_) internal view {
+    // function _isStatus(uint256 boxId_, BoxStatus status_) internal view {
     //     if (BLIND_BOX.getStatus(boxId_) != status_) revert InvalidStatus();
     // }
     // Check the refund timestamp. Within the refund time,
@@ -73,11 +75,11 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         uint256 boxId_,
         address acceptedToken_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 seconds_
     ) internal {
         IBlindBox BlindBox = BLIND_BOX;
-        if (BlindBox.getStatus(boxId_) != Status.Storing)
+        if (BlindBox.getStatus(boxId_) != BoxStatus.Storing)
             revert InvalidStatus();
         // erc2771 - _msgSender() is the real caller
         address sender = _msgSender();

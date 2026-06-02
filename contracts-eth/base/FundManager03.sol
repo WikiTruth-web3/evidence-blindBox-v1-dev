@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {FundType} from "@interfaces/eth/IFundManager.sol";
+import {FundType} from "@interfaces/IFundManager.sol";
 import {FundManager02} from "./FundManager02.sol";
 
 /**

@@ -3,8 +3,9 @@
 pragma solidity ^0.8.24;
 
 import {BlindBox03} from "./base/BlindBox03.sol";
-import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {Main} from "@interfaces/IContracts.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 /**
  *  @notice BlindBox contract
@@ -70,7 +71,7 @@ contract BlindBox is BlindBox03, IBlindBox {
 
     function setStatus(
         uint256 boxId_,
-        Status status_
+        BoxStatus status_
     ) external onlyProjectContract {
         _setStatus(boxId_, status_);
     }
@@ -78,7 +79,7 @@ contract BlindBox is BlindBox03, IBlindBox {
     function setBasicData(
         uint256 boxId_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 deadline_
     ) external onlyProjectContract {
         _setPrice(boxId_, price_);
@@ -108,8 +109,8 @@ contract BlindBox is BlindBox03, IBlindBox {
      */
     function publishByMinter(uint256 boxId_) external {
         _checkMinter(boxId_);
-        _isStatus(boxId_, Status.Storing);
-        _setStatus(boxId_, Status.Published);
+        _isStatus(boxId_, BoxStatus.Storing);
+        _setStatus(boxId_, BoxStatus.Published);
     }
 
     /**
@@ -118,15 +119,15 @@ contract BlindBox is BlindBox03, IBlindBox {
      */
     function publishByBuyer(uint256 boxId_) external {
         _checkBuyer(boxId_);
-        _isStatus(boxId_, Status.Delaying);
-        _setStatus(boxId_, Status.Published);
+        _isStatus(boxId_, BoxStatus.Delaying);
+        _setStatus(boxId_, BoxStatus.Published);
     }
 
     // ==========================================================================================================
     //                                                getter Functions
     // ==========================================================================================================
 
-    function getStatus(uint256 boxId_) external view returns (Status) {
+    function getStatus(uint256 boxId_) external view returns (BoxStatus) {
         return _getStatus(boxId_);
     }
 
@@ -150,8 +151,8 @@ contract BlindBox is BlindBox03, IBlindBox {
      */
     function getBasicData(
         uint256 boxId_
-    ) external view returns (Status, uint256, uint256) {
-        Status status = _getStatus(boxId_);
+    ) external view returns (BoxStatus, uint256, uint256) {
+        BoxStatus status = _getStatus(boxId_);
         return (
             status,
             _basicData[boxId_]._price,
@@ -179,6 +180,6 @@ contract BlindBox is BlindBox03, IBlindBox {
     }
 
     function isInBlacklist(uint256 boxId_) public view returns (bool) {
-        return _basicData[boxId_]._status == Status.Blacklisted;
+        return _basicData[boxId_]._status == BoxStatus.Blacklisted;
     }
 }

@@ -4,12 +4,12 @@
 pragma solidity ^0.8.24;
 
 import {IUserManager} from "@interfaces/eth/IUserManager.sol";
-import {IFundManager} from "@interfaces/eth/IFundManager.sol";
-import {IExchange} from "@interfaces/eth/IExchange.sol";
-import {IAddressManager} from "@interfaces/eth/IAddressManager.sol";
+import {IFundManager} from "@interfaces/IFundManager.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
+import {IAddressManager} from "@interfaces/IAddressManager.sol";
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
-import {Main} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 import {Modifier} from "../modifier/Modifier.sol";
 
 // import {SetContracts} from "../modifier/SetContracts.sol";

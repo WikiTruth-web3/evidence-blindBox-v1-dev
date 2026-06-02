@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.24;
 
-import {Main} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
-import {IFundManager,FundType} from "@interfaces/eth/IFundManager.sol";
+import {IFundManager,FundType} from "@interfaces/IFundManager.sol";
 import {FundManager03} from "./base/FundManager03.sol";
 /**
  * @title FundManager

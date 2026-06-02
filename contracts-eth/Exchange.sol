@@ -3,10 +3,11 @@
 
 pragma solidity ^0.8.24;
 
-import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
-import {IExchange} from "@interfaces/eth/IExchange.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
 import {Exchange03} from "./base/Exchange03.sol";
-import {Main} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 /**
  *  @notice Exchange contract
@@ -43,7 +44,7 @@ contract Exchange is Exchange03, IExchange {
             boxId_,
             acceptedToken_,
             price_,
-            Status.Selling,
+            BoxStatus.Selling,
             365 days
         );
     }
@@ -58,7 +59,7 @@ contract Exchange is Exchange03, IExchange {
             boxId_,
             acceptedToken_,
             price_,
-            Status.Auctioning,
+            BoxStatus.Auctioning,
             30 days
         );
     }

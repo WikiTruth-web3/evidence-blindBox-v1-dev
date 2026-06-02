@@ -3,7 +3,8 @@
 pragma solidity ^0.8.24;
 
 import {BlindBox01} from "./BlindBox01.sol";
-import {BlindBoxEvents, Status} from "@interfaces/eth/IBlindBox.sol";
+import {BlindBoxEvents} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
 import {
     ERC2771Context
 } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
@@ -16,7 +17,7 @@ import {
 
 contract BlindBox02 is BlindBox01, BlindBoxEvents, ERC2771Context {
     struct BasicData {
-        Status _status;
+        BoxStatus _status;
         uint256 _price;
         uint256 _deadline;
     }
@@ -49,7 +50,7 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents, ERC2771Context {
     function _setBoxData(
         string calldata boxInfoCID_,
         uint256 price_,
-        Status status_,
+        BoxStatus status_,
         uint256 deadline_,
         bytes memory key_
     ) internal returns (uint256) {
@@ -110,7 +111,7 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents, ERC2771Context {
         uint256 boxId = _setBoxData(
             boxInfoCID_,
             price_,
-            Status.Storing,
+            BoxStatus.Storing,
             deadline,
             key_
         );
@@ -127,9 +128,9 @@ contract BlindBox02 is BlindBox01, BlindBoxEvents, ERC2771Context {
     ) internal returns (uint256) {
         _checkCID(boxInfoCID_);
 
-        uint256 boxId = _setBoxData(boxInfoCID_, 0, Status.Published, 0, "");
+        uint256 boxId = _setBoxData(boxInfoCID_, 0, BoxStatus.Published, 0, "");
 
-        emit BoxStatusChanged(boxId, Status.Published);
+        emit BoxStatusChanged(boxId, BoxStatus.Published);
         return boxId;
     }
 

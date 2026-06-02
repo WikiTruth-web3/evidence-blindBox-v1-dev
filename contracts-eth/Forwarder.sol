@@ -6,10 +6,10 @@ import {
     ERC2771Forwarder
 } from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 
-import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
-import {IUserManager} from "@interfaces/sapphire/IUserManager.sol";
-import {IForwarder} from "@interfaces/eth/IForwarder.sol";
-import {Main} from "@interfaces/IContracts.sol";
+import {IAddressManager} from "@interfaces/IAddressManager.sol";
+import {IUserManager} from "@interfaces/eth/IUserManager.sol";
+import {IForwarder} from "@interfaces/IForwarder.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 import {Pausable} from "./abstract/Pausable.sol";
 

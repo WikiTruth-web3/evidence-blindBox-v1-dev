@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.24;
 
-import {Status} from "./IBlindBox.sol";
-
 interface ExchangeEvents {
     event BoxListed(
         uint256 indexed boxId,

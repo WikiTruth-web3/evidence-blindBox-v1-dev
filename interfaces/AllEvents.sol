@@ -2,18 +2,54 @@
 
 pragma solidity ^0.8.24;
 
+// ====================
+enum BoxStatus {
+    Storing,
+    Selling,
+    Auctioning,
+    Paid,
+    Delaying,
+    Refunding,
+    Published,
+    Blacklisted
+}
+enum RewardType {
+    Minter,
+    Seller,
+    Completer
+}
+enum FundType {
+    Order,
+    Refund
+}
+
 interface AllEvents {
+    // ========== BlindBox ==========
+    event BoxCreated(
+        uint256 indexed boxId,
+        bytes32 indexed userId,
+        string boxInfoCID
+    );
+    event BoxStatusChanged(uint256 indexed boxId, BoxStatus status);
+    event PriceChanged(uint256 indexed boxId, uint256 price);
+    event DeadlineChanged(uint256 indexed boxId, uint256 deadline);
+    // event PrivateKeyPublished(
+    //     uint256 boxId,
+    //     bytes privateKey,
+    //     bytes32 indexed userId
+    // );
+
     // ========== Exchange ==========
     event BoxListed(
         uint256 indexed boxId,
-        bytes32 indexed userId,
+        bytes32 userId,
         address acceptedToken
     );
     event BoxPurchased(uint256 indexed boxId, bytes32 indexed userId);
     event BidPlaced(uint256 indexed boxId, bytes32 indexed userId);
     event CompleterAssigned(uint256 indexed boxId, bytes32 indexed userId);
     event RequestDeadlineChanged(uint256 indexed boxId, uint256 deadline);
-    event ReviewDeadlineChanged(uint256 indexed boxId, uint256 deadline);
+    event ArbitrationDeadineChanged(uint256 indexed boxId, uint256 deadline);
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
 
     // ========== FundManager ==========
@@ -28,18 +64,24 @@ interface AllEvents {
         uint256[] list,
         address indexed token,
         bytes32 indexed userId,
-        uint256 amount,
-        FundsType fundsType
+        uint256 amount
     );
 
-    event RewardsAdded(
+    event RefundAmountWithdraw(
+        uint256[] list,
+        address indexed token,
+        bytes32 indexed userId,
+        uint256 amount
+    );
+
+    event RewardAdded(
         uint256 indexed boxId,
         address indexed token,
         uint256 amount,
-        RewardType rewardType
+        RewardType type_
     );
 
-    event RewrdsWithdraw(
+    event RewardsWithdraw(
         bytes32 indexed userId,
         address indexed token,
         uint256 amount
@@ -49,20 +91,6 @@ interface AllEvents {
     // event Paused(address indexed account);
     // event Unpaused(address indexed account);
 
-    // ========== BlindBox ==========
-    event BoxCreated(
-        uint256 indexed boxId,
-        bytes32 indexed userId,
-        string boxInfoCID
-    );
-    event BoxStatusChanged(uint256 indexed boxId, Status status);
-    event PriceChanged(uint256 indexed boxId, uint256 price);
-    event DeadlineChanged(uint256 indexed boxId, uint256 deadline);
-    event PrivateKeyPublished(
-        uint256 boxId,
-        bytes privateKey,
-        bytes32 indexed userId
-    );
 
     // ========== UserManager ==========
     event Blacklisted(address user, bool status);
@@ -71,26 +99,6 @@ interface AllEvents {
     event Paused(address indexed account);
     event Unpaused(address indexed account);
 
-    // ====================
-    enum Status {
-        Storing,
-        Selling,
-        Auctioning,
-        Paid,
-        Refunding,
-        InSecrecy,
-        Published,
-        Blacklisted
-    }
-    enum RewardType {
-        Minter,
-        Seller,
-        Completer,
-        Total
-    }
-    enum FundsType {
-        Order,
-        Refund
-    }
+
     // enum TokenEnum { UnExsited, Active, Inactive }
 }

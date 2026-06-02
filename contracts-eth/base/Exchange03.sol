@@ -3,9 +3,11 @@
 
 pragma solidity ^0.8.24;
 
-import {IBlindBox, Status} from "@interfaces/eth/IBlindBox.sol";
+import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+
 import {Exchange02} from "./Exchange02.sol";
-import {Main} from "@interfaces/IContracts.sol";
+import {Main} from "@interfaces/base/IContracts.sol";
 
 /**
  *  @notice Exchange03 contract

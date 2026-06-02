@@ -3,7 +3,8 @@
 pragma solidity ^0.8.24;
 
 import {BlindBox02} from "./BlindBox02.sol";
-import {Status} from "@interfaces/eth/IBlindBox.sol";
+import {BoxStatus} from "@interfaces/base/BoxStatus.sol";
+
 
 /**
  *  @notice BlindBox03 contract
@@ -23,21 +24,21 @@ contract BlindBox03 is BlindBox02 {
      * @param boxId_ The ID of the box
      * @return The status of the box
      */
-    function _getStatus(uint256 boxId_) internal view returns (Status) {
-        Status status = _basicData[boxId_]._status;
+    function _getStatus(uint256 boxId_) internal view returns (BoxStatus) {
+        BoxStatus status = _basicData[boxId_]._status;
         // If the deadline has passed, then you need to judge the status of the box
         if (_basicData[boxId_]._deadline < block.timestamp) {
             // 1, Box in selling/auctioning, if there is no buyer, then the status is Published
-            if (status == Status.Selling || status == Status.Auctioning) {
+            if (status == BoxStatus.Selling || status == BoxStatus.Auctioning) {
                 if (EXCHANGE.buyerIdOf(boxId_) == bytes32(0)) {
-                    return Status.Published;
+                    return BoxStatus.Published;
                 } else {
                     // If there is a buyer, then the status is Paid
-                    return Status.Paid;
+                    return BoxStatus.Paid;
                 }
-            } else if (status == Status.Delaying) {
+            } else if (status == BoxStatus.Delaying) {
                 // 2, Box in Delaying status, then the status is Published
-                return Status.Published;
+                return BoxStatus.Published;
             }
         }
         return status;
@@ -56,17 +57,17 @@ contract BlindBox03 is BlindBox02 {
     function _getSecretData(
         uint256 boxId_
     ) internal view returns (bytes memory) {
-        Status status = _getStatus(boxId_);
+        BoxStatus status = _getStatus(boxId_);
         bytes32 userId = USER_MANAGER.getUserId(_msgSender());
 
         if (
-            status <= Status.Auctioning // Storing\Selling\Auctioning
+            status <= BoxStatus.Auctioning // Storing\Selling\Auctioning
         ) {
             // Role verification is handled by calling the function.
             // Since this is a view function, getUserId might not work if it needs to register.
             // But we can use getUserId.
             if (userId != _minterIdOf(boxId_)) revert NotMinter();
-        } else if (status == Status.Delaying || status == Status.Paid) {
+        } else if (status == BoxStatus.Delaying || status == BoxStatus.Paid) {
             if (userId != EXCHANGE.buyerIdOf(boxId_)) revert NotBuyer();
         }
         // The value of the status:
@@ -83,12 +84,12 @@ contract BlindBox03 is BlindBox02 {
     //                               Checker Functions
     // ==================================================================================================
 
-    function _isStatus(uint256 boxId_, Status status_) internal view {
+    function _isStatus(uint256 boxId_, BoxStatus status_) internal view {
         if (_getStatus(boxId_) != status_) revert InvalidStatus();
     }
 
     function _checkIsBlacklisted(uint256 boxId_) internal view {
-        if (_basicData[boxId_]._status == Status.Blacklisted)
+        if (_basicData[boxId_]._status == BoxStatus.Blacklisted)
             revert InBlacklist();
     }
 
@@ -128,11 +129,11 @@ contract BlindBox03 is BlindBox02 {
         emit DeadlineChanged(boxId_, newDeadline);
     }
 
-    function _setStatus(uint256 boxId_, Status status_) internal {
+    function _setStatus(uint256 boxId_, BoxStatus status_) internal {
         // If the incoming status is Storing status, then do not set
-        if (status_ == Status.Storing) revert InvalidStatus();
+        if (status_ == BoxStatus.Storing) revert InvalidStatus();
 
-        if (status_ == Status.Delaying) {
+        if (status_ == BoxStatus.Delaying) {
             _setDeadline(boxId_, block.timestamp + 365 days); // NOTE 365----15
         }
         if (status_ != _basicData[boxId_]._status) {
@@ -148,7 +149,7 @@ contract BlindBox03 is BlindBox02 {
     // If the caster wishes to extend the confidentiality period, they will need to verify by minter account
     function _extendDeadline(uint256 boxId_, uint256 time_) internal {
         _checkMinter(boxId_);
-        _isStatus(boxId_, Status.Storing);
+        _isStatus(boxId_, BoxStatus.Storing);
         _isInWindowPeriod(boxId_);
         if (time_ > 365 days) revert InvalidPeriod(); // NOTE: 365----15
 
@@ -156,7 +157,7 @@ contract BlindBox03 is BlindBox02 {
     }
 
     function _delay(uint256 boxId_) internal {
-        _isStatus(boxId_, Status.Delaying);
+        _isStatus(boxId_, BoxStatus.Delaying);
         _isInWindowPeriod(boxId_);
         uint256 amount = _basicData[boxId_]._price;
 
@@ -177,14 +178,14 @@ contract BlindBox03 is BlindBox02 {
 
         _checkIsBlacklisted(boxId_);
 
-        _basicData[boxId_]._status = Status.Blacklisted;
+        _basicData[boxId_]._status = BoxStatus.Blacklisted;
 
         // If the Box has a buyer, then set RefundPermit to true
         if (EXCHANGE.buyerIdOf(boxId_) != bytes32(0)) {
             EXCHANGE.setRefundPermitTrue(boxId_);
         }
 
-        emit BoxStatusChanged(boxId_, Status.Blacklisted);
+        emit BoxStatusChanged(boxId_, BoxStatus.Blacklisted);
     }
 
     // ==========================================================================================================

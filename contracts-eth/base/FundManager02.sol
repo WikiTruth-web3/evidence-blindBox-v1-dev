@@ -12,8 +12,8 @@ import {
     FundManagerEvents,
     FundType,
     RewardType
-} from "@interfaces/eth/IFundManager.sol";
-import {IExchange} from "@interfaces/eth/IExchange.sol";
+} from "@interfaces/IFundManager.sol";
+import {IExchange} from "@interfaces/IExchange.sol";
 import {IPriceOracle} from "../oracle/IPriceOracle.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 

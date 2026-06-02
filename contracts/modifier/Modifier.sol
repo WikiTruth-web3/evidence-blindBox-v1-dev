@@ -2,17 +2,17 @@
 
 pragma solidity ^0.8.24;
 
-import {IAddressManager} from "@interfaces/sapphire/IAddressManager.sol";
+import {IAddressManager} from "@interfaces/IAddressManager.sol";
 import {Error} from "@interfaces/Error.sol";
-
+import {Main} from "@interfaces/common/IContracts.sol";
 /**
  * @title Modifier
  * @dev This contract is used to manage modifiers
  */
 
 contract Modifier is Error {
-    IAddressManager internal ADDR_MANAGER;
     address internal ADMIN;
+    IAddressManager internal ADDR_MANAGER;
 
     // =======================================================================================================
     constructor(address addrManager_) {
@@ -28,9 +28,9 @@ contract Modifier is Error {
         ADMIN = admin_;
     }
 
-    // function admin() external view returns (address) {
-    //     return ADMIN;
-    // }
+    function admin() external view returns (address) {
+        return ADMIN;
+    }
 
     // =====================================================================================
 
@@ -40,22 +40,22 @@ contract Modifier is Error {
     }
 
     modifier onlyDAO() {
-        if (msg.sender != ADDR_MANAGER.dao()) revert NotDAO();
+        if (msg.sender != ADDR_MANAGER.getMainContract(Main.Dao)) revert NotDAO();
         _;
     }
 
     modifier onlyAdminDAO() {
-        if (msg.sender != ADDR_MANAGER.dao() && msg.sender != ADMIN)
+        if (msg.sender != ADDR_MANAGER.getMainContract(Main.Dao) && msg.sender != ADMIN)
             revert NotAdminOrDAO();
         _;
     }
 
-    modifier onlyManager() {
-        if (msg.sender != address(ADDR_MANAGER) && msg.sender != ADMIN) {
-            revert InvalidCaller();
-        }
-        _;
-    }
+    // modifier onlyManager() {
+    //     if (msg.sender != address(ADDR_MANAGER) && msg.sender != ADMIN) {
+    //         revert InvalidCaller();
+    //     }
+    //     _;
+    // }
 
     modifier onlyProjectContract() {
         if (!ADDR_MANAGER.isProjectContract(msg.sender)) {

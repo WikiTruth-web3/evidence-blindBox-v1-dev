@@ -166,10 +166,4 @@ interface IFundManager {
         address token_
     ) external view returns (uint256);
 
-    /**
-     * @notice Get total reward amount
-     * @param token_ Token address
-     * @return Total reward amount
-     */
-    // function totalRewardAmounts(address token_) external view returns (uint256);
 }
