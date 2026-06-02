@@ -131,8 +131,8 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
         uint256 price = IPriceOracle(oracleAddr).getPrice(tokenIn_, tokenOut_);
         
         uint8 decimalsA = IERC20Metadata(tokenIn_).decimals();
-        uint8 decimalsB = IERC20Metadata(tokenOut_).decimals();
-        return (amount_ * price * (10 ** decimalsB)) / (1e18 * (10 ** decimalsA));
+        // uint8 decimalsB = IERC20Metadata(tokenOut_).decimals();
+        return (amount_ * price * (10 ** 18)) / (1e18 * (10 ** decimalsA));
     }
 
     // Fund Deposit Functions

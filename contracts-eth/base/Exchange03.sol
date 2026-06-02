@@ -190,9 +190,9 @@ contract Exchange03 is Exchange02 {
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
             _boxExchengData[boxId_]._refundPermit = true;
+            emit RefundPermitChanged(boxId_, true);
         }
         blindBox.setStatus(boxId_, BoxStatus.Published);
-        emit RefundPermitChanged(boxId_, true);
     }
 
     // =========================================================================================================

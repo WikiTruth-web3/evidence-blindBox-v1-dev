@@ -13,7 +13,7 @@ import {IAddressManager} from "@interfaces/IAddressManager.sol";
 // import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 
 import {Main} from "@interfaces/base/IContracts.sol";
-import {Modifier} from "../modifier/Modifier.sol";
+import {Modifier02} from "../modifier/Modifier02.sol";
 
 
 /**
@@ -21,7 +21,7 @@ import {Modifier} from "../modifier/Modifier.sol";
  * @dev Forwarder contract that supports multiple tokens
  */
 
-contract Forwarder01 is Modifier {
+contract Forwarder01 is Modifier02 {
     error RelayerIsBlacklisted();
 
     // =====================================================================================
@@ -36,7 +36,7 @@ contract Forwarder01 is Modifier {
 
 
     // =====================================================================================
-    constructor(address addrManager_) Modifier(addrManager_) {
+    constructor(address addrManager_) Modifier02(addrManager_) {
     }
 
     // =====================================================================================
