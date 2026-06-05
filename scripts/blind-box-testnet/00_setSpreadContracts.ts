@@ -2,7 +2,6 @@ import { ethers } from "hardhat";
 import { user_oasis } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import { main_contracts_address, token_contracts_address } from "../utils/contracts_address";
 import { CallFunctionParams } from "../types/call-params";
 import { Main } from "../types/enums";
 /**

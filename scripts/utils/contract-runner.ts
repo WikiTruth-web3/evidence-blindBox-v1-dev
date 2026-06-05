@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
-import { core_contracts_address, token_contracts_address } from "./contracts_address";
+import deploymentInfo from "../../deployments/main_contracts_testnet.json";
+import deploymentToken from "../../deployments/sapphire_testnet_erc20.json";
 
 import { CallFunctionParams } from "../types/call-params";
 
@@ -16,17 +17,30 @@ export class ContractRunner {
     static async execute(params: CallFunctionParams) {
         const { contractsName, contractAddress, functionName, params: funcArgs, signer } = params;
 
-        // 1. 获取合约地址 (优先级: 参数传入 > 配置文件定义)
-        // 支持模糊匹配：尝试 PascalCase 和 camelCase
-        const lowerFirst = contractsName.charAt(0).toLowerCase() + contractsName.slice(1);
+        // 1. 获取合约地址 (优先级: 参数传入 > JSON 部署配置)
+        const pascalCase = contractsName.charAt(0).toUpperCase() + contractsName.slice(1);
+        const camelCase = contractsName.charAt(0).toLowerCase() + contractsName.slice(1);
+
+        // 兼容代币别名的映射转换
+        const tokenAliasMap: Record<string, string> = {
+            "EMC_Privacy": "EMC_Privacy",
+            "settlementToken": "EMC_Privacy",
+            "EMC": "EMC",
+            "wROSE": "wROSE"
+        };
+        const mappedTokenKey = tokenAliasMap[contractsName] || tokenAliasMap[camelCase] || tokenAliasMap[pascalCase];
+
         const address = contractAddress 
-            || (core_contracts_address as any)[contractsName] 
-            || (core_contracts_address as any)[lowerFirst]
-            || (token_contracts_address as any)[contractsName]
-            || (token_contracts_address as any)[lowerFirst];
+            || (deploymentInfo as any)[contractsName]
+            || (deploymentInfo as any)[pascalCase]
+            || (deploymentInfo as any)[camelCase]
+            || (deploymentToken as any)[contractsName]
+            || (deploymentToken as any)[pascalCase]
+            || (deploymentToken as any)[camelCase]
+            || (mappedTokenKey ? (deploymentToken as any)[mappedTokenKey] : undefined);
 
         if (!address) {
-            throw new Error(`未找到合约 "${contractsName}" 的地址，请在参数、core_contracts_address 或 token_contracts_address 中提供。`);
+            throw new Error(`未找到合约 "${contractsName}" 的地址，请在参数中提供，或检查 deployments 部署 JSON 文件。`);
         }
 
 
@@ -38,7 +52,7 @@ export class ContractRunner {
 
         // 2. 实例化合约
         // 注意：这里假设 contractsName 对应的就是合约的 Artifact 名称
-        // 如果不一样（例如 MockERC20 部署为 OfficialToken），建议在 params 中增加 fileName 字段
+        // 如果不一样（例如 MockERC20 部署为 EMC），建议在 params 中增加 fileName 字段
         const contractFactory = await ethers.getContractAt(contractsName, address);
         const contract = signer ? contractFactory.connect(signer) : contractFactory;
 

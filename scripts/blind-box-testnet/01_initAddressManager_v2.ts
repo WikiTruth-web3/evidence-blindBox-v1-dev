@@ -2,7 +2,8 @@ import { ethers } from "hardhat";
 import { user_oasis } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import { main_contracts_address, token_contracts_address } from "../utils/contracts_address";
+import token_contracts_address from "../../deployments/sapphire_testnet_erc20.json";
+
 import { CallFunctionParams } from "../types/call-params";
 // import { v3_core_testnet_address, v3_periphery_testnet_address } from "../utils/v3_testnet_address";
 
@@ -32,14 +33,14 @@ async function main() {
             taskName: "设置结算代币",
             contractsName: "AddressManager",
             functionName: "setSettlementToken",
-            params: [token_contracts_address.settlementToken],
+            params: [token_contracts_address.EMC_Privacy],
             signer: adminSigner
         },
         {
             taskName: "添加支持代币 (wROSE.P)",
             contractsName: "AddressManager",
             functionName: "addToken",
-            params: [token_contracts_address.wrosePrivacy],
+            params: [token_contracts_address.wROSE_Privacy],
             signer: adminSigner
         },
     ];

@@ -3,19 +3,19 @@
 pragma solidity ^0.8.24;
 
 import {IPriceOracle} from "./IPriceOracle.sol";
-import {Modifier} from "../modifier/Modifier.sol";
+import {Modifier01} from "../modifier/Modifier01.sol";
 
 /**
  * @title MockPriceOracle
  * @notice A mock price oracle for local testing on Hardhat
  */
-contract MockPriceOracle is IPriceOracle, Modifier {
+contract MockPriceOracle is IPriceOracle, Modifier01 {
     // Mapping: tokenA => tokenB => price (with 18 decimals)
     mapping(address => mapping(address => uint256)) private _prices;
 
     event PriceSet(address indexed tokenA, address indexed tokenB, uint256 price);
 
-    constructor(address addrManager_) Modifier(addrManager_) {}
+    constructor()  {}
 
     /**
      * @notice Set exchange rate of tokenA to tokenB

@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import { main_contracts_address } from "../utils/contracts_address";
+import main_contracts_address from "../../deployments/main_contracts_testnet.json"
 
 /**
  * 跨合约 SIWE 认证读取批处理脚本
@@ -40,7 +40,7 @@ async function main() {
     const testTokenAddr = ethers.ZeroAddress;
 
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.SiweAuth);
 
     
 

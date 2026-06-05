@@ -50,7 +50,7 @@ async function deployContracts() {
   const userManager = await UserManager.deploy(addressManager.target);
 
   const MockPriceOracle = await ethers.getContractFactory("MockPriceOracle");
-  const mockPriceOracle = await MockPriceOracle.deploy(addressManager.target);
+  const mockPriceOracle = await MockPriceOracle.deploy();
 
   return {
     signers: {

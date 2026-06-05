@@ -31,13 +31,6 @@ async function main() {
             params: [''],
             signer: minterSigner
         },
-        {
-            taskName: "设置addressManager",
-            contractsName: "MockPriceOracle",
-            functionName: "setAddressManager",
-            params: [''],
-            signer: minterSigner
-        },
 
         {
             taskName: "设置价格",
