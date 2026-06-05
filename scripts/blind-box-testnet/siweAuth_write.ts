@@ -3,16 +3,18 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import { core_contracts_address } from "../utils/contracts_address";
+import { main_contracts_address } from "../utils/contracts_address";
 
 /**
  * SiweAuth 合约写入（撤销）批处理脚本
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/siweAuth_write.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/siweAuth_write.ts --network sapphire-testnet
  */
 
 // 当前需要执行的任务列表
-const current_executes = [
-    'removeAuthToken',
+const executes = [
+    "addDomain",
+    // 'removeDomain',
+    // 'removeAuthToken',
 ];
 
 async function main() {
@@ -34,23 +36,37 @@ async function main() {
     // 1. 生成一个测试用 SIWE Token 用于撤销测试
     console.log("🎫 正在生成测试用 SIWE Token...");
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, adminSigner, chainId, core_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.siweAuth);
         
+
     // 2. 定义所有可能的写入任务
-    const all_tasks: { [key: string]: CallFunctionParams } = {
-        'removeAuthToken': {
+    const tasks: CallFunctionParams[]= [
+        {
+            taskName: "添加域名",
+            contractsName: "SiweAuth",
+            functionName:"addDomain",
+            params: ["evidencemarket.org"],
+            signer: adminSigner // 必须有签名者进行交易
+        },
+        {
+            taskName: "移除域名",
+            contractsName: "SiweAuth",
+            functionName:"removeDomain",
+            params: ["evidencemarket.org"],
+            signer: adminSigner // 必须有签名者进行交易
+        },
+        {
             taskName: "撤销 SIWE 认证 Token",
             contractsName: "SiweAuth",
             functionName: "removeAuthToken",
             params: [token],
             signer: adminSigner // 必须有签名者进行交易
         }
-    };
+    ];
 
     // 3. 根据 current_executes 编排待执行任务
-    const tasks_to_run: CallFunctionParams[] = current_executes
-        .map(key => all_tasks[key])
-        .filter(task => task !== undefined);
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
+    
 
     if (tasks_to_run.length === 0) {
         console.log("⚠️ 没有匹配的任务需要执行，请检查 current_executes 数组");

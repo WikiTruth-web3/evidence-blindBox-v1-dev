@@ -4,7 +4,7 @@ import deploymentImplementation from "../../deployments/sapphire_testnet_impleme
 
 
 
-export const core_contracts_address = {
+export const main_contracts_address = {
     addressManager: deploymentInfo.AddressManager,
     forwarder: deploymentInfo.Forwarder,
     blindBox: deploymentInfo.BlindBox,

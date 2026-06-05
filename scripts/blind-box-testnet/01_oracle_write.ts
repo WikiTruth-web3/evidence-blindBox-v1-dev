@@ -8,7 +8,10 @@ import { CallFunctionParams } from "../types/call-params";
  */
 
 const executes = [
-    'create',
+    // "setAdmin",
+    'setPrice',
+    "setAddressManager",
+    // 'getPrice',
     // 'createAndPublish',
 ];
 
@@ -21,19 +24,40 @@ async function main() {
     const price = ethers.parseEther("0.1");
 
     const tasks: CallFunctionParams[] = [
+        {
+            taskName: "设置admin",
+            contractsName: "MockPriceOracle",
+            functionName: "setAdmin",
+            params: [''],
+            signer: minterSigner
+        },
+        {
+            taskName: "设置addressManager",
+            contractsName: "MockPriceOracle",
+            functionName: "setAddressManager",
+            params: [''],
+            signer: minterSigner
+        },
 
         {
-            taskName: "创建 BlindBox",
-            contractsName: "BlindBox",
-            functionName: "create",
+            taskName: "设置价格",
+            contractsName: "MockPriceOracle",
+            functionName: "setPrice",
             params: [boxCID, key, price],
             signer: minterSigner
         },
         {
-            taskName: "创建并直接发布",
-            contractsName: "BlindBox",
-            functionName: "createAndPublish",
-            params: [boxCID],
+            taskName: "读取价格",
+            contractsName: "MockPriceOracle",
+            functionName: "getPrice",
+            params: [boxCID, key],
+            signer: minterSigner
+        },
+        {
+            taskName: "读取admin",
+            contractsName: "MockPriceOracle",
+            functionName: "admin",
+            params: [],
             signer: minterSigner
         },
     ];

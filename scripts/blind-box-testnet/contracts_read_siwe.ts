@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import { core_contracts_address } from "../utils/contracts_address";
+import { main_contracts_address } from "../utils/contracts_address";
 
 /**
  * 跨合约 SIWE 认证读取批处理脚本
@@ -15,7 +15,7 @@ import { core_contracts_address } from "../utils/contracts_address";
 const current_executes = [
     'myUserId',
     // 'getSecretData',
-    // 'calcPayMoney',
+    // 'calcPayAmount',
     // 'orderAmounts',
     // 'rewardAmounts'
 ];
@@ -40,7 +40,7 @@ async function main() {
     const testTokenAddr = ethers.ZeroAddress;
 
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, adminSigner, chainId, core_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.siweAuth);
 
     
 
@@ -60,10 +60,10 @@ async function main() {
             params: [testBoxId, token],
             signer: null
         },
-        'calcPayMoney': {
+        'calcPayAmount': {
             taskName: "Exchange: 计算待支付金额",
             contractsName: "Exchange",
-            functionName: "calcPayMoney",
+            functionName: "calcPayAmount",
             params: [testBoxId, token],
             signer: null
         },

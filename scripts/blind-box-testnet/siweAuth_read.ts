@@ -2,21 +2,21 @@ import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
-import { TaskMap, ISiweAuthRead } from "../types/contracts-functions";
 import { get_siwe_token } from "../utils/SiweAuth";
-import { core_contracts_address } from "../utils/contracts_address";
+import { main_contracts_address } from "../utils/contracts_address";
 /**
  * SiweAuth 合约读取（查询）批处理脚本
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/siweAuth_read.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/siweAuth_read.ts --network sapphire-testnet
  */
 
 // 当前需要执行的查询列表
-const current_executes: (keyof ISiweAuthRead)[] = [
-    'getMsgSender',
-    'getStatement',
-    'getResources',
-    'testStatementVerification',
-    'testHasResourceAccess'
+const executes = [
+    "allDomains",
+    // 'getMsgSender',
+    // 'getStatement',
+    // 'getResources',
+    // 'testStatementVerification',
+    // 'testHasResourceAccess'
 ];
 
 
@@ -42,52 +42,58 @@ async function main() {
     const statement = "Sign in to WikiTruth for authentication test.";
     const resources = ["https://wikitruth.xyz/api/v1"];
     
-    const token = await get_siwe_token(domain, adminSigner, chainId, core_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.siweAuth);
     
     // 2. 定义所有可能的读取任务
-    const all_tasks: TaskMap<ISiweAuthRead> = {
+    const tasks: CallFunctionParams[] = [
 
-        'getMsgSender': {
+        {
+            taskName: "获取 Token 对应的消息发送者",
+            contractsName: "SiweAuth",
+            functionName: "allDomains",
+            params: [],
+            signer: null
+        },
+        {
             taskName: "获取 Token 对应的消息发送者",
             contractsName: "SiweAuth",
             functionName: "getMsgSender",
             params: [token],
             signer: null
         },
-        'getStatement': {
+        {
             taskName: "获取 Token 中的 Statement",
             contractsName: "SiweAuth",
             functionName: "getStatement",
             params: [token],
             signer: null
         },
-        'getResources': {
+        {
             taskName: "获取 Token 中的 Resources 列表",
             contractsName: "SiweAuth",
             functionName: "getResources",
             params: [token],
             signer: null
         },
-        'testStatementVerification': {
+        {
             taskName: "验证 Statement 是否匹配",
             contractsName: "SiweAuth",
             functionName: "testStatementVerification",
             params: [token, statement],
             signer: null
         },
-        'testHasResourceAccess': {
+        {
             taskName: "验证资源访问权限",
             contractsName: "SiweAuth",
             functionName: "testHasResourceAccess",
             params: [token, resources[0]],
             signer: null
         }
-    };
+    ];
 
     // 3. 根据 current_executes 编排待执行任务
-    const tasks_to_run: CallFunctionParams[] = current_executes
-        .map(key => all_tasks[key])
-        .filter(task => task !== undefined);
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
+    
 
     if (tasks_to_run.length === 0) {
         console.log("⚠️ 没有匹配的任务需要执行，请检查 current_executes 数组");

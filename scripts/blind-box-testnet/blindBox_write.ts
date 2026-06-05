@@ -7,7 +7,7 @@ import { CallFunctionParams } from "../types/call-params";
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/blindBox_write.ts --network sapphire-testnet
  */
 
-const current_executes = [
+const executes = [
     'publishByMinter',
     'extendDeadline'
 ];
@@ -18,45 +18,46 @@ async function main() {
 
     const { adminSigner, minterSigner } = await getSigners_SapphireTestnet();
 
-    const all_tasks: { [key: string]: CallFunctionParams } = {
-        'setAddress': {
+    const tasks:  CallFunctionParams[] = [
+        {
             taskName: "设置关联地址",
             contractsName: "BlindBox",
-            functionName: "setAddress",
+            functionName: "setContracts",
             params: [],
             signer: adminSigner
         },
-        'publishByMinter': {
+        {
             taskName: "由铸造者发布",
             contractsName: "BlindBox",
             functionName: "publishByMinter",
             params: [boxId],
             signer: minterSigner
         },
-        'extendDeadline': {
+        {
             taskName: "延长截止日期",
             contractsName: "BlindBox",
             functionName: "extendDeadline",
             params: [boxId, 3600],
             signer: adminSigner
         },
-        'delay': {
+        {
             taskName: "宽限延期 (Delay)",
             contractsName: "BlindBox",
             functionName: "delay",
             params: [boxId],
             signer: adminSigner
         },
-        'addToBlacklist': {
+        {
             taskName: "加入黑名单",
             contractsName: "BlindBox",
             functionName: "addToBlacklist",
             params: [boxId],
             signer: adminSigner
         }
-    };
+    ];
 
-    const tasks_to_run = current_executes.map(k => all_tasks[k]).filter(t => !!t);
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
+    
     await ContractRunner.executeBatch(tasks_to_run, 8000);
 }
 

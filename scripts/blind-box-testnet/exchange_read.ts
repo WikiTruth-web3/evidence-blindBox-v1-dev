@@ -2,7 +2,6 @@ import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
-import { TaskMap, IExchangeRead } from "../types/contracts-functions";
 
 /**
  * Exchange 合约读取（查询）批处理脚本
@@ -10,7 +9,7 @@ import { TaskMap, IExchangeRead } from "../types/contracts-functions";
  */
 
 // 当前需要执行的查询列表
-const current_executes: (keyof IExchangeRead)[] = [
+const executes = [
     'acceptedToken',
     // 'refundPermit',
     // 'isInReviewDeadline'
@@ -32,63 +31,61 @@ async function main() {
     const dummySiweToken = "0x"; // 示例 SIWE Token
 
     // 定义所有可能的读取任务
-    const all_tasks: TaskMap<IExchangeRead> = {
+    const tasks: CallFunctionParams[] = [
 
-        'calcPayMoney': {
+        {
             taskName: "计算待支付金额",
             contractsName: "Exchange",
-            functionName: "calcPayMoney",
+            functionName: "calcPayAmount",
             params: [boxId, dummySiweToken],
             signer: null
         },
-        'acceptedToken': {
+        {
             taskName: "获取接受的代币地址",
             contractsName: "Exchange",
             functionName: "acceptedToken",
             params: [boxId],
             signer: null
         },
-        'refundPermit': {
+        {
             taskName: "检查退款许可",
             contractsName: "Exchange",
             functionName: "refundPermit",
             params: [boxId],
             signer: null
         },
-        'refundRequestDeadline': {
+        {
             taskName: "获取退款申请截止时间",
             contractsName: "Exchange",
             functionName: "refundRequestDeadline",
             params: [boxId],
             signer: null
         },
-        'refundReviewDeadline': {
+        {
             taskName: "获取退款审核截止时间",
             contractsName: "Exchange",
-            functionName: "refundReviewDeadline",
+            functionName: "arbitrationDeadline",
             params: [boxId],
             signer: null
         },
-        'isInRequestRefundDeadline': {
-            taskName: "检查是否在退款申请期内",
-            contractsName: "Exchange",
-            functionName: "isInRequestRefundDeadline",
-            params: [boxId],
-            signer: null
-        },
-        'isInReviewDeadline': {
-            taskName: "检查是否在退款审核期内",
-            contractsName: "Exchange",
-            functionName: "isInReviewDeadline",
-            params: [boxId],
-            signer: null
-        }
-    };
+        // 'isInRequestRefundDeadline': {
+        //     taskName: "检查是否在退款申请期内",
+        //     contractsName: "Exchange",
+        //     functionName: "isInRequestRefundDeadline",
+        //     params: [boxId],
+        //     signer: null
+        // },
+        // 'isInReviewDeadline': {
+        //     taskName: "检查是否在退款审核期内",
+        //     contractsName: "Exchange",
+        //     functionName: "isInReviewDeadline",
+        //     params: [boxId],
+        //     signer: null
+        // }
+    ];
 
     // 根据 current_executes 编排待执行任务
-    const tasks_to_run: CallFunctionParams[] = current_executes
-        .map(key => all_tasks[key])
-        .filter(task => task !== undefined);
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
 
     if (tasks_to_run.length === 0) {
         console.log("⚠️ 没有匹配的任务需要执行，请检查 current_executes 数组");

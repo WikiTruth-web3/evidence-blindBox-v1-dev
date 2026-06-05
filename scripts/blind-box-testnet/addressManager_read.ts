@@ -1,8 +1,8 @@
 import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import { CallFunctionParams } from "../types/call-params";
-import { TaskMap, IAddressManagerRead } from "../types/contracts-functions";
+import { CallFunctionParams, ContractFunctions } from "../types/call-params";
+import { AddressManager } from "../../typechain-types";
 
 /**
  * AddressManager 合约读取（查询）批处理脚本
@@ -10,7 +10,7 @@ import { TaskMap, IAddressManagerRead } from "../types/contracts-functions";
  */
 
 // 当前需要执行的查询列表
-const current_executes: (keyof IAddressManagerRead)[] = [
+const executes = [
     'settlementToken',
 ];
 
@@ -24,54 +24,51 @@ async function main() {
     }
 
     const { adminSigner } = await getSigners_SapphireTestnet();
+    if (!adminSigner) {
+        console.error("未找到有效的签名者 (adminSigner)");
+        return;
+    }
 
     // 测试数据定义
     const testTokenAddress = "0x"; // 示例 SIWE Token
     const testContractAddress = "0x"; // 示例合约地址
 
     // 定义所有可能的读取任务
-    const all_tasks: TaskMap<IAddressManagerRead> = {
+    const tasks: CallFunctionParams[] = [
 
-        'admin': {
+        {
             taskName: "获取管理员地址",
             contractsName: "AddressManager",
             functionName: "admin",
             params: [],
-            signer: null
+            signer: adminSigner
         },
-        'settlementToken': {
+        {
             taskName: "获取结算代币地址",
             contractsName: "AddressManager",
             functionName: "settlementToken",
             params: [],
-            signer: null
+            signer: adminSigner
         },
-        'isProjectContract': {
+        {
             taskName: "检查合约是否是项目合约",
             contractsName: "AddressManager",
             functionName: "isProjectContract",
             params: [testContractAddress],
-            signer: null
+            signer: adminSigner
         },
  
-        'isTokenSupported': {
+        {
             taskName: "检查代币是否支持",
             contractsName: "AddressManager",
             functionName: "isTokenSupported",
             params: [testTokenAddress],
-            signer: null
+            signer: adminSigner
         },
-    };
+    ];
 
     // 根据 current_executes 编排待执行任务
-    const tasks_to_run: CallFunctionParams[] = current_executes
-        .map(key => all_tasks[key])
-        .filter(task => task !== undefined);
-
-    if (tasks_to_run.length === 0) {
-        console.log("⚠️ 没有匹配的任务需要执行，请检查 current_executes 数组");
-        return;
-    }
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
 
     // 执行批量查询
     // 读取操作通常不需要长延迟，设为 1000ms 即可

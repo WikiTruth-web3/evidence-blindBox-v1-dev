@@ -4,13 +4,24 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { main_contracts_address, token_contracts_address } from "../utils/contracts_address";
 import { CallFunctionParams } from "../types/call-params";
-// import { v3_core_testnet_address, v3_periphery_testnet_address } from "../utils/v3_testnet_address";
-
+import { Main } from "../types/enums";
 /**
  * 示例：使用批量模式初始化 AddressManager
  * 我们可以将多个初始化步骤编排在一个数组中
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/01_initAddressManager_v2.ts --network sapphire-testnet
  */
+
+const MainList = [
+    {
+        contract:Main.BlindBox,
+        address:main_contracts_address.blindBox
+    },
+    {
+        contract:Main.Exchange,
+        address:main_contracts_address.exchange
+    },
+]
+
 async function main() {
     console.log("🚀 开始执行 AddressManager 批量初始化流程...");
 
@@ -26,23 +37,17 @@ async function main() {
     }
 
     // 1. 编排任务清单
-    const tasks: CallFunctionParams[] = [
-
+    const tasks: CallFunctionParams[] = MainList.map(i => 
+    (
         {
-            taskName: "设置结算代币",
+            taskName: "设置核心合约",
             contractsName: "AddressManager",
-            functionName: "setSettlementToken",
-            params: [token_contracts_address.settlementToken],
+            functionName: "setMainContract",
+            params: [i.contract,i.address],
             signer: adminSigner
-        },
-        {
-            taskName: "添加支持代币 (wROSE.P)",
-            contractsName: "AddressManager",
-            functionName: "addToken",
-            params: [token_contracts_address.wrosePrivacy],
-            signer: adminSigner
-        },
-    ];
+        }
+    )
+    )
 
     // 2. 执行批量任务
     // 设置 8000ms 间隔以适应网络同步

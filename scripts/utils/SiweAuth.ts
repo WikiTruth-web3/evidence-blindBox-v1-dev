@@ -50,7 +50,7 @@ export async function get_siwe_token(
     const signature = await erc191sign(siweMsg, signer);
     
     const siweAuthAddr = siweContract;
-    const siweAuth = await ethers.getContractAt("SiweAuthWikiTruth", siweAuthAddr);
+    const siweAuth = await ethers.getContractAt("SiweAuth", siweAuthAddr);
     
     const token = await siweAuth.login(siweMsg, {
         v: signature.v,

@@ -8,7 +8,7 @@ import { CallFunctionParams } from "../types/call-params";
  * 运行命令：npx hardhat run scripts/wikiTruth-testnet/fundManager_write.ts --network sapphire-testnet
  */
 
-const current_executes = [
+const executes = [
     'withdrawOrderAmounts',
     // 'withdrawRefundAmounts',
 ];
@@ -17,41 +17,41 @@ async function main() {
     console.log("🚀 开始执行 FundManager 写入任务...");
 
     const { adminSigner } = await getSigners_SapphireTestnet();
-    const testTokenAddr = ethers.ZeroAddress;
-    const testBoxIds = [1, 2];
+    const tokenAddr = ethers.ZeroAddress;
+    const boxIds = [1, 2];
 
-    const all_tasks: { [key: string]: CallFunctionParams } = {
-        'setAddress': {
+    const tasks: CallFunctionParams[] = [
+        {
             taskName: "设置关联地址",
             contractsName: "FundManager",
-            functionName: "setAddress",
+            functionName: "setContracts",
             params: [],
             signer: adminSigner
         },
-        'withdrawOrderAmounts': {
+        {
             taskName: "提取订单金额",
             contractsName: "FundManager",
             functionName: "withdrawOrderAmounts",
-            params: [testTokenAddr, testBoxIds],
+            params: [tokenAddr, boxIds, tokenAddr],
             signer: adminSigner
         },
-        'withdrawRefundAmounts': {
+        {
             taskName: "提取退款金额",
             contractsName: "FundManager",
             functionName: "withdrawRefundAmounts",
-            params: [testTokenAddr, testBoxIds],
+            params: [tokenAddr, boxIds,tokenAddr],
             signer: adminSigner
         },
-        'withdrawRewards': {
+        {
             taskName: "提取奖励",
             contractsName: "FundManager",
             functionName: "withdrawRewards",
-            params: [testTokenAddr],
+            params: [tokenAddr,tokenAddr],
             signer: adminSigner
         }
-    };
+    ];
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
 
-    const tasks_to_run = current_executes.map(k => all_tasks[k]).filter(t => !!t);
     await ContractRunner.executeBatch(tasks_to_run, 8000);
 }
 

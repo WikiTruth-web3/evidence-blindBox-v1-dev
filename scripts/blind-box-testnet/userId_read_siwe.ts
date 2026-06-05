@@ -3,13 +3,13 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import { core_contracts_address } from "../utils/contracts_address";
+import { main_contracts_address } from "../utils/contracts_address";
 
 /**
  * 运行命令：npx hardhat run scripts/blind-box-testnet/userId_read_siwe.ts --network sapphire-testnet
  */
 
-const current_executes = [
+const executes = [
     'myUserId',
 ];
 
@@ -33,23 +33,22 @@ async function main() {
     // ---------------------------------------------------------------
 
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, daoTreasurySigner, chainId, core_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, daoTreasurySigner, chainId, main_contracts_address.siweAuth);
 
     // 2. -------------------------------------------------------------------
-    const all_tasks: { [key: string]: CallFunctionParams } = {
-        'myUserId': {
+    const tasks: CallFunctionParams[] = [
+        {
             taskName: "UserManager: 获取当前用户 ID",
             contractsName: "UserManager",
             functionName: "myUserId",
             params: [token],
             signer: null
         },
-    };
+    ];
 
     // 3. 编排并执行
-    const tasks_to_run: CallFunctionParams[] = current_executes
-        .map(key => all_tasks[key])
-        .filter(task => task !== undefined);
+    const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
+
 
     if (tasks_to_run.length === 0) {
         console.log("⚠️ 没有匹配的任务需要执行");

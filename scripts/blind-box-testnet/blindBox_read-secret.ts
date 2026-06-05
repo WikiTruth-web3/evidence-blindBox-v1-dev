@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token} from "../utils/SiweAuth";
-import { core_contracts_address } from "../utils/contracts_address";
+import { main_contracts_address } from "../utils/contracts_address";
 
 /**
  * BlindBox 合约读取操作批处理脚本
@@ -32,7 +32,7 @@ async function main() {
 
     // 1. 生成加密 SIWE Token
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, userSigner, chainId, core_contracts_address.siweAuth);
+    const token = await get_siwe_token(domain, userSigner, chainId, main_contracts_address.siweAuth);
     
     const tasks_to_run: CallFunctionParams[] = boxes.map(boxId => ({
         taskName: `获取 Box #${boxId} 的解密数据`,
