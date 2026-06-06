@@ -8,7 +8,7 @@ import { Main } from "../types/enums";
 /**
  * 示例：使用批量模式初始化 AddressManager
  * 我们可以将多个初始化步骤编排在一个数组中
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/01_initAddressManager_v2.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/01_initAddressManager_v2.ts --network sapphire-testnet
  */
 
 const MainList = [

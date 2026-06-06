@@ -5,7 +5,7 @@ import { CallFunctionParams } from "../types/call-params";
 
 /**
  * Exchange 合约写入操作批处理脚本
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/exchange_write.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/exchange_write.ts --network sapphire-testnet
  */
 
 // 当前需要执行的任务列表（按顺序执行）

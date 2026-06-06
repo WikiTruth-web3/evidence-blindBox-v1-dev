@@ -33,7 +33,7 @@ contract Exchange03 is Exchange02 {
 
         blindBox.setStatus(boxId_, BoxStatus.Paid);
 
-        _boxExchengData[boxId_]._buyerId = userId;
+        _boxExchangeData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp);
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
@@ -74,7 +74,7 @@ contract Exchange03 is Exchange02 {
         uint256 price = _bidPrice(boxId_);
         uint256 payAmount = _calcPayAmount(boxId_, userId, price);
 
-        _boxExchengData[boxId_]._buyerId = userId;
+        _boxExchangeData[boxId_]._buyerId = userId;
         _setRefundRequestDeadline(boxId_, block.timestamp + 30 days); // NOTE bid refund deadline is 30 days + 7 days
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
@@ -121,7 +121,7 @@ contract Exchange03 is Exchange02 {
         if (userId != _buyerIdOf(boxId_)) revert NotBuyer();
 
         uint256 deadline = block.timestamp + _arbitrationPeriod;
-        _boxExchengData[boxId_]._arbitrationDeadline = deadline;
+        _boxExchangeData[boxId_]._arbitrationDeadline = deadline;
 
         blindBox.setStatus(boxId_, BoxStatus.Refunding);
         emit ArbitrationDeadineChanged(boxId_, deadline);
@@ -169,7 +169,7 @@ contract Exchange03 is Exchange02 {
             }
         }
         // If it exceeds the deadline, then it means anyone can call this function.
-        _boxExchengData[boxId_]._refundPermit = true;
+        _boxExchangeData[boxId_]._refundPermit = true;
         blindBox.setStatus(boxId_, BoxStatus.Published);
         emit RefundPermitChanged(boxId_, true);
 
@@ -189,7 +189,7 @@ contract Exchange03 is Exchange02 {
         if (_isInArbitrationDeadline(boxId_)) {
             FUND_MANAGER.allocationRewards(boxId_);
         } else {
-            _boxExchengData[boxId_]._refundPermit = true;
+            _boxExchangeData[boxId_]._refundPermit = true;
             emit RefundPermitChanged(boxId_, true);
         }
         blindBox.setStatus(boxId_, BoxStatus.Published);
@@ -221,7 +221,7 @@ contract Exchange03 is Exchange02 {
             if (_isInRequestRefundDeadline(boxId_)) revert DeadlineNotOver();
         }
         if (userId != blindBox.minterIdOf(boxId_)) {
-            _boxExchengData[boxId_]._completerId = userId;
+            _boxExchangeData[boxId_]._completerId = userId;
             emit CompleterAssigned(boxId_, userId);
         }
         blindBox.setStatus(boxId_, BoxStatus.Delaying);

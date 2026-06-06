@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
+// import main_contracts_address from "../../deployments/main_contracts_testnet.json"
 
 /**
  * Forwarder 合约写入操作脚本
@@ -22,13 +23,13 @@ async function main() {
             params: [],
             signer: adminSigner
         },
-        {
-            taskName: "设置目标合约白名单状态",
-            contractsName: "Forwarder",
-            functionName: "setTargetStatus",
-            params: [testTarget, true],
-            signer: adminSigner
-        },
+        // {
+        //     taskName: "设置目标合约白名单状态",
+        //     contractsName: "Forwarder",
+        //     functionName: "setTargetStatus",
+        //     params: [testTarget, true],
+        //     signer: adminSigner
+        // },
         {
             taskName: "设置最大 Gas 限制",
             contractsName: "Forwarder",

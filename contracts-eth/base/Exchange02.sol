@@ -23,7 +23,7 @@ import {Exchange01} from "./Exchange01.sol";
 contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     // =======================================================================================================
 
-    struct BoxExchengData {
+    struct ExchangeData {
         address _acceptedToken; // If address(0), then it means support settlementToken
         bytes32 _sellerId; // If address(0), then it means by minter sell
         bytes32 _buyerId;
@@ -33,7 +33,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         bool _refundPermit;
     }
 
-    mapping(uint256 boxId => BoxExchengData data) internal _boxExchengData;
+    mapping(uint256 boxId => ExchangeData data) internal _boxExchangeData;
 
     // ========================================================================================================
 
@@ -56,13 +56,13 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     function _isInRequestRefundDeadline(
         uint256 boxId_
     ) internal view returns (bool) {
-        if (_boxExchengData[boxId_]._refundRequestDeadline < block.timestamp)
+        if (_boxExchangeData[boxId_]._refundRequestDeadline < block.timestamp)
             return false;
         return true;
     }
 
     function _isInArbitrationDeadline(uint256 boxId_) internal view returns (bool) {
-        if (_boxExchengData[boxId_]._arbitrationDeadline < block.timestamp)
+        if (_boxExchangeData[boxId_]._arbitrationDeadline < block.timestamp)
             return false;
         return true;
     }
@@ -92,7 +92,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
             if (BlindBox.getDeadline(boxId_) >= block.timestamp) {
                 revert DeadlineNotOver();
             }
-            _boxExchengData[boxId_]._sellerId = userId;
+            _boxExchangeData[boxId_]._sellerId = userId;
 
             // if the _sellerId is not the minter, they can't set the price
             price_ = 0;
@@ -102,7 +102,7 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
                 ADDR_MANAGER.isTokenSupported(acceptedToken_)
             ) {
                 
-                _boxExchengData[boxId_]._acceptedToken = acceptedToken_;
+                _boxExchangeData[boxId_]._acceptedToken = acceptedToken_;
                 token = acceptedToken_;
             }
         }
@@ -122,13 +122,13 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
         uint256 timestamp
     ) internal {
         uint256 deadline = timestamp + _refundRequestPeriod;
-        _boxExchengData[boxId_]._refundRequestDeadline = deadline;
+        _boxExchangeData[boxId_]._refundRequestDeadline = deadline;
 
         emit RequestDeadlineChanged(boxId_, deadline);
     }
 
     function _setRefundPermitTrue(uint256 boxId_) internal {
-        _boxExchengData[boxId_]._refundPermit = true;
+        _boxExchangeData[boxId_]._refundPermit = true;
         emit RefundPermitChanged(boxId_, true);
     }
 
@@ -137,26 +137,26 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     // ========================================================================================================
 
     function _buyerIdOf(uint256 boxId_) internal view returns (bytes32) {
-        return _boxExchengData[boxId_]._buyerId;
+        return _boxExchangeData[boxId_]._buyerId;
     }
 
     function _sellerIdOf(uint256 boxId_) internal view returns (bytes32) {
-        return _boxExchengData[boxId_]._sellerId;
+        return _boxExchangeData[boxId_]._sellerId;
     }
 
     function _completerIdOf(uint256 boxId_) internal view returns (bytes32) {
-        return _boxExchengData[boxId_]._completerId;
+        return _boxExchangeData[boxId_]._completerId;
     }
 
     function _refundPermit(uint256 boxId_) internal view returns (bool) {
-        return _boxExchengData[boxId_]._refundPermit;
+        return _boxExchangeData[boxId_]._refundPermit;
     }
 
     /**
      * @notice Get supported token
      */
     function _acceptedToken(uint256 boxId_) internal view returns (address) {
-        address token = _boxExchengData[boxId_]._acceptedToken;
+        address token = _boxExchangeData[boxId_]._acceptedToken;
         if (token == address(0)) return ADDR_MANAGER.settlementToken();
         return token;
     }
@@ -164,13 +164,13 @@ contract Exchange02 is Exchange01, ExchangeEvents, ERC2771Context {
     function _arbitrationDeadline(
         uint256 boxId_
     ) internal view returns (uint256) {
-        return _boxExchengData[boxId_]._arbitrationDeadline;
+        return _boxExchangeData[boxId_]._arbitrationDeadline;
     }
 
     function _refundRequestDeadline(
         uint256 boxId_
     ) internal view returns (uint256) {
-        return _boxExchengData[boxId_]._refundRequestDeadline;
+        return _boxExchangeData[boxId_]._refundRequestDeadline;
     }
 
     // -------------------------------------------------------------------

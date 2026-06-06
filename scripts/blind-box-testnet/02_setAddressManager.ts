@@ -4,14 +4,14 @@ import main_contracts_address from "../../deployments/main_contracts_testnet.jso
 
 /**
  * 多个合约批量管理操作: setAddressManager / setAdmin
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/02_setAddressManager.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/02_setAddressManager.ts --network sapphire-testnet
  */
 
 type ContractTarget = {
     name: string; // artifact name
     address: string;
-    supportsSetAddressManager: boolean;
-    supportsSetAdmin: boolean;
+    setAdminAddressManager: boolean;
+    setAdmin: boolean;
 };
 
 async function main() {
@@ -33,61 +33,57 @@ async function main() {
 
     // ========= 可配置参数 =========
     const addressManagerAddr = main_contracts_address.AddressManager;
-    const newAdminAddr = signer.address; // 如需转移权限，改成目标管理员地址
     const DO_SET_ADDRESS_MANAGER = true;
     // const DO_SET_ADMIN = false; 
 
     if (!ethers.isAddress(addressManagerAddr)) {
         throw new Error(`AddressManager 地址无效: ${addressManagerAddr}`);
     }
-    if (!ethers.isAddress(newAdminAddr)) {
-        throw new Error(`newAdmin 地址无效: ${newAdminAddr}`);
-    }
 
     const targets: ContractTarget[] = [
         {
             name: "Forwarder",
             address: main_contracts_address.Forwarder,
-            supportsSetAddressManager: true,
-            supportsSetAdmin: true,
+            setAdminAddressManager: true,
+            setAdmin: true,
         },
         {
             name: "BlindBox",
             address: main_contracts_address.BlindBox,
-            supportsSetAddressManager: true,
-            supportsSetAdmin: true,
+            setAdminAddressManager: true,
+            setAdmin: true,
         },
         {
             name: "Exchange",
             address: main_contracts_address.Exchange,
-            supportsSetAddressManager: true,
-            supportsSetAdmin: true,
+            setAdminAddressManager: true,
+            setAdmin: true,
         },
         {
             name: "FundManager",
             address: main_contracts_address.FundManager,
-            supportsSetAddressManager: true,
-            supportsSetAdmin: true,
+            setAdminAddressManager: true,
+            setAdmin: true,
         },
         {
             name: "UserManager",
             address: main_contracts_address.UserManager,
-            supportsSetAddressManager: true,
-            supportsSetAdmin: true,
+            setAdminAddressManager: true,
+            setAdmin: true,
         },
         // SiweAuthWikiTruth 只有 setAdmin（无 setAddressManager）
         {
             name: "SiweAuth",
             address: main_contracts_address.SiweAuth,
-            supportsSetAddressManager: false,
-            supportsSetAdmin: true,
+            setAdminAddressManager: false,
+            setAdmin: true,
         },
         // AddressManager 本身只需要 setAdmin（一般不需要 setAddressManager）
         {
             name: "AddressManager",
             address: main_contracts_address.AddressManager,
-            supportsSetAddressManager: false,
-            supportsSetAdmin: true,
+            setAdminAddressManager: false,
+            setAdmin: true,
         },
     ];
 
@@ -100,7 +96,7 @@ async function main() {
         console.log(`\n--- ${t.name} @ ${t.address} ---`);
         const contract = await ethers.getContractAt(t.name, t.address, signer);
 
-        if (DO_SET_ADDRESS_MANAGER && t.supportsSetAddressManager) {
+        if (DO_SET_ADDRESS_MANAGER && t.setAdminAddressManager) {
             console.log(`调用 ${t.name}.setAddressManager(${addressManagerAddr})...`);
             const tx = await (contract as any).setAddressManager(addressManagerAddr);
             console.log(`tx: ${tx.hash}`);
@@ -110,7 +106,7 @@ async function main() {
 
         
 
-        // if (DO_SET_ADMIN && t.supportsSetAdmin) {
+        // if (DO_SET_ADMIN && t.setAdmin) {
         //     console.log(`调用 ${t.name}.setAdmin(${newAdminAddr})...`);
         //     const tx = await (contract as any).setAdmin(newAdminAddr);
         //     console.log(`tx: ${tx.hash}`);

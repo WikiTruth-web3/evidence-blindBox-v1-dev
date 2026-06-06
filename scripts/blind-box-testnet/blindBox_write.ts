@@ -4,7 +4,7 @@ import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 
 /**
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/blindBox_write.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/blindBox_write.ts --network sapphire-testnet
  */
 
 const executes = [

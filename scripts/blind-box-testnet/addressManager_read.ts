@@ -6,7 +6,7 @@ import { AddressManager } from "../../typechain-types";
 
 /**
  * AddressManager 合约读取（查询）批处理脚本
- * 运行命令：npx hardhat run scripts/wikiTruth-testnet/addressManager_read.ts --network sapphire-testnet
+ * 运行命令：npx hardhat run scripts/blind-box-testnet/addressManager_read.ts --network sapphire-testnet
  */
 
 // 当前需要执行的查询列表

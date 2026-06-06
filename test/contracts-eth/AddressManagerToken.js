@@ -69,7 +69,7 @@ describe("AddressManager-Token- 相关测试", function () {
   it("addToken代币管理", async function () {
     const { 
       blindBox, exchange, fundManager, userManager, addressManager,
-      buyer, minter, dao, settlementToken, wBTC, wETH, address_zero,
+      buyer, minter, dao, settlementToken, wBTC, wETH, address_zero, settlementToken_Privacy,
       userManager_buyer, userManager_minter, userManager_DAO
     } = await loadFixture(deployBlindBoxFixture);
 
@@ -78,14 +78,16 @@ describe("AddressManager-Token- 相关测试", function () {
     await addressManager.addToken(wETH.target);
 
     const tokenList = await addressManager.getTokenList();
+    console.log("tokenList:", tokenList);
     expect(tokenList[0]).to.equal(wBTC.target);
-    expect(tokenList[1]).to.equal(wETH.target);
+    expect(tokenList[1]).to.equal(settlementToken_Privacy.target);
+    expect(tokenList[2]).to.equal(wETH.target);
 
     // 移除代币
     await addressManager.removeToken(wETH.target);
     const tokenList2 = await addressManager.getTokenList();
     // 只剩下一个 wBTC
-    expect(tokenList2.length).to.equal(1);
+    expect(tokenList2.length).to.equal(2);
     expect(tokenList2[0]).to.equal(wBTC.target);
     expect(await addressManager.isTokenSupported(wETH.target)).to.equal(false);
     // 重复移除，不会有变化

@@ -168,6 +168,8 @@ contract Exchange is Exchange03, IExchange {
         return _arbitrationDeadline(boxId_);
     }
 
+    // ==================== testnet only ===============
+
     // function isInRequestRefundDeadline(
     //     uint256 boxId_
     // ) external view returns (bool) {
@@ -175,7 +177,7 @@ contract Exchange is Exchange03, IExchange {
     // }
 
     // function isInArbitrationDeadline(uint256 boxId_) external view returns (bool) {
-    //     return _isInArbitrationDeadine(boxId_);
+    //     return _isInArbitrationDeadline(boxId_);
     // }
 
 }
