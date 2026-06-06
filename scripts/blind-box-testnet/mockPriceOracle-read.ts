@@ -2,26 +2,24 @@ import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
+import erc20 from "../../deployments/sapphire_testnet_erc20.json";
 
 /**
- * 运行命令：npx hardhat run scripts/blind-box-testnet/blindBox_write.ts --network sapphire-testnet
+npx hardhat run scripts/blind-box-testnet/mockPriceOracle-read.ts --network sapphire-testnet
  */
 
 const executes = [
     // "setAdmin",
-    'setPrice',
-    "setAddressManager",
-    // 'getPrice',
+    'getPrice',
     // 'createAndPublish',
 ];
 
 async function main() {
     console.log("🚀 开始执行 BlindBox 写入任务...");
 
-    const { minterSigner } = await getSigners_SapphireTestnet();
-    const boxCID = "QmTest123...";
-    const key = "0x1234...";
-    const price = ethers.parseEther("0.1");
+    const { adminSigner } = await getSigners_SapphireTestnet();
+    // const token1= "QmTest123...";
+    // const token2 = "0x1234...";
 
     const tasks: CallFunctionParams[] = [
         {
@@ -29,29 +27,21 @@ async function main() {
             contractsName: "MockPriceOracle",
             functionName: "setAdmin",
             params: [''],
-            signer: minterSigner
-        },
-
-        {
-            taskName: "设置价格",
-            contractsName: "MockPriceOracle",
-            functionName: "setPrice",
-            params: [boxCID, key, price],
-            signer: minterSigner
+            signer: adminSigner
         },
         {
             taskName: "读取价格",
             contractsName: "MockPriceOracle",
             functionName: "getPrice",
-            params: [boxCID, key],
-            signer: minterSigner
+            params: [erc20.EMC_Privacy, erc20.wROSE_Privacy],
+            signer: adminSigner
         },
         {
             taskName: "读取admin",
             contractsName: "MockPriceOracle",
             functionName: "admin",
             params: [],
-            signer: minterSigner
+            signer: adminSigner
         },
     ];
 

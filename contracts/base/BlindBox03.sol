@@ -187,7 +187,7 @@ contract BlindBox03 is BlindBox02 {
         uint256 newPrice = (amount * _incrementRate) / 100;
         _setPrice(boxId_, newPrice);
         // NOTE: 365 days ----15 days
-        _addDeadline(boxId_, 365 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
+        _addDeadline(boxId_, 15 days); // Here do not need to call safeAddDeadline, because the blacklist has been checked.
     }
 
     // ==========================================================================================================

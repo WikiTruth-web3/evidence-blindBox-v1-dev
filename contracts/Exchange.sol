@@ -45,7 +45,7 @@ contract Exchange is Exchange03, IExchange {
             acceptedToken_,
             price_,
             BoxStatus.Selling,
-            365 days
+            15 days
         );
     }
 
@@ -54,13 +54,13 @@ contract Exchange is Exchange03, IExchange {
         address acceptedToken_,
         uint256 price_
     ) external {
-        // NOTE: 30 days----3 days
+        // NOTE: 30 days----7 days
         _setBoxListedArgs(
             boxId_,
             acceptedToken_,
             price_,
             BoxStatus.Auctioning,
-            30 days
+            7 days
         );
     }
     // ========================================================================================================

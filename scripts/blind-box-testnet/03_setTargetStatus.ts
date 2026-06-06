@@ -5,7 +5,7 @@ import { CallFunctionParams } from "../types/call-params";
 import contractsAddress from "../../deployments/contracts-testnet.json"
 
 /**
- * Forwarder 合约写入操作脚本
+npx hardhat run scripts/blind-box-testnet/03_setTargetStatus.ts --network sapphire-testnet
  */
 
 const mainAddressList = [

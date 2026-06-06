@@ -58,7 +58,7 @@ contract Exchange03 is Exchange02 {
             boxId_,
             newPrice,
             BoxStatus.Auctioning,
-            block.timestamp + 30 days
+            block.timestamp + 7 days // NOTE bid refund deadline is 30 days + 7 days
         );
 
         return price;
@@ -75,7 +75,7 @@ contract Exchange03 is Exchange02 {
         uint256 payAmount = _calcPayAmount(boxId_, userId, price);
 
         _boxExchangeData[boxId_]._buyerId = userId;
-        _setRefundRequestDeadline(boxId_, block.timestamp + 30 days); // NOTE bid refund deadline is 30 days + 7 days
+        _setRefundRequestDeadline(boxId_, block.timestamp + 7 days); // NOTE bid refund deadline is 30 days + 7 days
         FUND_MANAGER.payOrderAmount(boxId_, sender, payAmount, userId);
 
         emit BidPlaced(boxId_, userId);

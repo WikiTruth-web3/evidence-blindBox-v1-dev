@@ -21,7 +21,6 @@ async function main() {
     console.log("🔍 开始批量读取 BlindBox 合约私密数据...");
 
     const network = await ethers.provider.getNetwork();
-    const chainId = Number(network.chainId);
     
     const { buyerSigner:userSigner } = await getSigners_SapphireTestnet();
 
@@ -30,15 +29,11 @@ async function main() {
         return;
     }
 
-    // 1. 生成加密 SIWE Token
-    const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, userSigner, chainId, contractsAddress.Main.SiweAuth);
-    
     const tasks_to_run: CallFunctionParams[] = boxes.map(boxId => ({
         taskName: `获取 Box #${boxId} 的解密数据`,
         contractsName: "BlindBox",
-        functionName: "getSecretData",
-        params: [boxId, token],
+        functionName: "getBasicData",
+        params: [boxId],
         signer: null
     }));
 

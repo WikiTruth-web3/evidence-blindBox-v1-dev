@@ -5,20 +5,32 @@ import { ContractRunner } from "../utils/contract-runner";
 import contractsAddress from "../../deployments/contracts-testnet.json"
 import { CallFunctionParams } from "../types/call-params";
 import { Main } from "../types/enums";
+
+
 /**
- * 示例：使用批量模式初始化 AddressManager
- * 我们可以将多个初始化步骤编排在一个数组中
- * 运行命令：npx hardhat run scripts/blind-box-testnet/01_initAddressManager_v2.ts --network sapphire-testnet
+npx hardhat run scripts/blind-box-testnet/00-setMainContracts.ts --network sapphire-testnet
  */
 
 const MainList = [
+    // {
+    //     contract:Main.BlindBox,
+    //     address:contractsAddress.Main.BlindBox
+    // },
+    // {
+    //     contract:Main.Exchange,
+    //     address:contractsAddress.Main.Exchange
+    // },
+    // {
+    //     contract:Main.SiweAuth,
+    //     address:contractsAddress.Main.SiweAuth
+    // },
     {
-        contract:Main.BlindBox,
-        address:contractsAddress.Main.BlindBox
+        contract:Main.DaoTreasury,
+        address:'0x67Ef70102D9Ac6d7Cc52830B0ac9349e0afb9E01' // Not contract
     },
     {
-        contract:Main.Exchange,
-        address:contractsAddress.Main.Exchange
+        contract:Main.Dao,
+        address:'0x85d526809D03d17b0dBA17372Bae2E156958F260'
     },
 ]
 

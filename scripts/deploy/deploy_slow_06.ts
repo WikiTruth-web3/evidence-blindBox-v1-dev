@@ -10,7 +10,11 @@ import {
   ExchangeModule, 
   FundManagerModule,
   MockPriceOracleModule
-} from "../ignition/modules/06_deploys";
+} from "../../ignition/modules/06_deploys";
+
+// ==============
+//  npx hardhat run scripts/deploy/deploy_slow_06.ts --network sapphire-testnet
+// ==============----------------------------------------------------------------------
 
 // Helper function to delay execution by ms
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

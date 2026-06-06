@@ -6,7 +6,7 @@ import { boxList } from "../../secret/boxList";
 import { box_private_key } from "../../secret/box-private-key";
 
 /**
- * 运行命令：npx hardhat run scripts/blind-box-testnet/blindBox_create.ts --network sapphire-testnet
+npx hardhat run scripts/blind-box-testnet/blindBox_create.ts --network sapphire-testnet
  */
 
 // ⚙️ 断点续跑配置：
@@ -64,7 +64,7 @@ async function main() {
     }
 
     // 执行批量任务，设置 8000ms 间隔以适应 Sapphire Testnet
-    await ContractRunner.executeBatch(tasks, 8000);
+    await ContractRunner.executeBatch(tasks, 10000);
 
     console.log("\n✅ BlindBox 批量铸造任务全部成功执行完毕！");
 }

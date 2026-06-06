@@ -127,7 +127,7 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
 
     function _convertAmount(address tokenIn_, address tokenOut_, uint256 amount_) internal view returns(uint256) {
         // If it is not the settlement token, use Oracle to convert helper rewards
-        address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle");
+        address oracleAddr = ADDR_MANAGER.getSpreadContract("PriceOracle"); 
         uint256 price = IPriceOracle(oracleAddr).getPrice(tokenIn_, tokenOut_);
         
         uint8 decimalsA = IERC20Metadata(tokenIn_).decimals();

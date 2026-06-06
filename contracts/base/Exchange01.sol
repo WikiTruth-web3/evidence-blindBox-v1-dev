@@ -49,11 +49,6 @@ contract Exchange01 is Modifier {
             BLIND_BOX = IBlindBox(blindBox);
         }
 
-        // address exchange = addrMgr.getMainContract(Main.Exchange);
-        // if (exchange != address(EXCHANGE)) {
-        //     EXCHANGE = IExchange(exchange);
-        // }
-
         address fundManager = addrMgr.getMainContract(Main.FundManager);
         if (fundManager != address(FUND_MANAGER) ) {
             FUND_MANAGER = IFundManager(fundManager);

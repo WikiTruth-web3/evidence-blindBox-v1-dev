@@ -5,6 +5,11 @@ import { ethers } from "ethers";
  * WikiTruth Direct Deployment Module (Non-Proxy)
  * 
  * npx hardhat ignition deploy ignition/modules/06_deploys.ts --network sapphire-testnet
+ * 
+ * or 
+ * 
+ * NOTE  npx hardhat run scripts/deploy/deploy_slow_06.ts --network sapphire-testnet
+ * 
  */
 
 // ==================== Module 1: AddressManager ====================
@@ -155,7 +160,6 @@ export default buildModule("WikiTruthDirectDeploy", (m) => {
     mockPriceOracle
   };
 });
-
 
 
 

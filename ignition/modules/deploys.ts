@@ -1,13 +1,13 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import main_contracts_address from "../../deployments/contracts-testnet.json"
 import { ethers } from "ethers";
 
 
 // 1. npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet
 // 2. npx hardhat ignition deploy ignition/modules/deploys.ts --network sapphire-testnet --deployment-id Deploy_20260424_v2_nonce286
 export default buildModule("Deploy_20260424_v2", (m) => {
-  const addressManager = main_contracts_address.AddressManager;
-  const forwarder = main_contracts_address.Forwarder;
+  const addressManager = main_contracts_address.Main.AddressManager;
+  const forwarder = main_contracts_address.Main.Forwarder;
   const pers = ethers.hexlify(ethers.randomBytes(32));
 
   const addressManager_new = m.contract("AddressManager", []);
