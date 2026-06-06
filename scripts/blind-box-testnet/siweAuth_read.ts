@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import contractsAddress from "../../deployments/contracts-testnet.json"
 /**
  * SiweAuth 合约读取（查询）批处理脚本
  * 运行命令：npx hardhat run scripts/blind-box-testnet/siweAuth_read.ts --network sapphire-testnet
@@ -42,7 +42,7 @@ async function main() {
     const statement = "Sign in to WikiTruth for authentication test.";
     const resources = ["https://wikitruth.xyz/api/v1"];
     
-    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.SiweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, contractsAddress.Main.SiweAuth);
     
     // 2. 定义所有可能的读取任务
     const tasks: CallFunctionParams[] = [

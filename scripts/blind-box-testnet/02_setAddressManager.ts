@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import contractsAddress from "../../deployments/contracts-testnet.json"
 
 /**
  * 多个合约批量管理操作: setAddressManager / setAdmin
@@ -32,7 +32,7 @@ async function main() {
     }
 
     // ========= 可配置参数 =========
-    const addressManagerAddr = main_contracts_address.AddressManager;
+    const addressManagerAddr = contractsAddress.Main.AddressManager;
     const DO_SET_ADDRESS_MANAGER = true;
     // const DO_SET_ADMIN = false; 
 
@@ -43,45 +43,45 @@ async function main() {
     const targets: ContractTarget[] = [
         {
             name: "Forwarder",
-            address: main_contracts_address.Forwarder,
+            address: contractsAddress.Main.Forwarder,
             setAdminAddressManager: true,
             setAdmin: true,
         },
         {
             name: "BlindBox",
-            address: main_contracts_address.BlindBox,
+            address: contractsAddress.Main.BlindBox,
             setAdminAddressManager: true,
             setAdmin: true,
         },
         {
             name: "Exchange",
-            address: main_contracts_address.Exchange,
+            address: contractsAddress.Main.Exchange,
             setAdminAddressManager: true,
             setAdmin: true,
         },
         {
             name: "FundManager",
-            address: main_contracts_address.FundManager,
+            address: contractsAddress.Main.FundManager,
             setAdminAddressManager: true,
             setAdmin: true,
         },
         {
             name: "UserManager",
-            address: main_contracts_address.UserManager,
+            address: contractsAddress.Main.UserManager,
             setAdminAddressManager: true,
             setAdmin: true,
         },
         // SiweAuthWikiTruth 只有 setAdmin（无 setAddressManager）
         {
             name: "SiweAuth",
-            address: main_contracts_address.SiweAuth,
+            address: contractsAddress.Main.SiweAuth,
             setAdminAddressManager: false,
             setAdmin: true,
         },
         // AddressManager 本身只需要 setAdmin（一般不需要 setAddressManager）
         {
             name: "AddressManager",
-            address: main_contracts_address.AddressManager,
+            address: contractsAddress.Main.AddressManager,
             setAdminAddressManager: false,
             setAdmin: true,
         },

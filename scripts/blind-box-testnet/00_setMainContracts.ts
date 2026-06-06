@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { user_oasis } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import contractsAddress from "../../deployments/contracts-testnet.json"
 import { CallFunctionParams } from "../types/call-params";
 import { Main } from "../types/enums";
 /**
@@ -14,11 +14,11 @@ import { Main } from "../types/enums";
 const MainList = [
     {
         contract:Main.BlindBox,
-        address:main_contracts_address.BlindBox
+        address:contractsAddress.Main.BlindBox
     },
     {
         contract:Main.Exchange,
-        address:main_contracts_address.Exchange
+        address:contractsAddress.Main.Exchange
     },
 ]
 

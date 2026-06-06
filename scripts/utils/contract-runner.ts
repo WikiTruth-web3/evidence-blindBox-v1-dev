@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import deploymentInfo from "../../deployments/main_contracts_testnet.json";
-import deploymentToken from "../../deployments/sapphire_testnet_erc20.json";
+import contracts from "../../deployments/contracts-testnet.json";
+import erc20 from "../../deployments/sapphire_testnet_erc20.json";
 
 import { CallFunctionParams } from "../types/call-params";
 
@@ -31,13 +31,16 @@ export class ContractRunner {
         const mappedTokenKey = tokenAliasMap[contractsName] || tokenAliasMap[camelCase] || tokenAliasMap[pascalCase];
 
         const address = contractAddress 
-            || (deploymentInfo as any)[contractsName]
-            || (deploymentInfo as any)[pascalCase]
-            || (deploymentInfo as any)[camelCase]
-            || (deploymentToken as any)[contractsName]
-            || (deploymentToken as any)[pascalCase]
-            || (deploymentToken as any)[camelCase]
-            || (mappedTokenKey ? (deploymentToken as any)[mappedTokenKey] : undefined);
+            || (contracts.Main as any)[contractsName]
+            || (contracts.Main as any)[pascalCase]
+            || (contracts.Main as any)[camelCase]
+            || (contracts.Spread as any)[contractsName]
+            || (contracts.Spread as any)[pascalCase]
+            || (contracts.Spread as any)[camelCase]
+            || (erc20 as any)[contractsName]
+            || (erc20 as any)[pascalCase]
+            || (erc20 as any)[camelCase]
+            || (mappedTokenKey ? (erc20 as any)[mappedTokenKey] : undefined);
 
         if (!address) {
             throw new Error(`未找到合约 "${contractsName}" 的地址，请在参数中提供，或检查 deployments 部署 JSON 文件。`);

@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import contractsAddress from "../../deployments/contracts-testnet.json"
 
 /**
  * SiweAuth 合约写入（撤销）批处理脚本
@@ -36,7 +36,7 @@ async function main() {
     // 1. 生成一个测试用 SIWE Token 用于撤销测试
     console.log("🎫 正在生成测试用 SIWE Token...");
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, adminSigner, chainId, main_contracts_address.SiweAuth);
+    const token = await get_siwe_token(domain, adminSigner, chainId, contractsAddress.Main.SiweAuth);
         
 
     // 2. 定义所有可能的写入任务

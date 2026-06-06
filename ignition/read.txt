@@ -1,0 +1,2 @@
+ 删除缓存：
+ Remove-Item -Recurse -Force ignition\deployments\slow-deploy-sapphire-testnet

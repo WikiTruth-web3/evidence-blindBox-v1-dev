@@ -119,6 +119,19 @@ export const FundManagerModule = buildModule("FundManagerModule", (m) => {
   return { fundManager };
 });
 
+// ==================== Module 8: MockPriceOracle ====================
+export const MockPriceOracleModule = buildModule("MockPriceOracleModule", (m) => {
+  const { addressManager } = m.useModule(AddressManagerModule);
+  const { fundManager } = m.useModule(FundManagerModule);
+
+  const mockPriceOracle = m.contract("MockPriceOracle", [], {
+    id: "MockPriceOracle",
+    after: [fundManager] // 强制在 FundManager 部署完成后再执行
+  });
+
+  return { mockPriceOracle };
+});
+
 // ==================== Main Module: Coordination ====================
 export default buildModule("WikiTruthDirectDeploy", (m) => {
   const { addressManager } = m.useModule(AddressManagerModule);
@@ -129,6 +142,7 @@ export default buildModule("WikiTruthDirectDeploy", (m) => {
   const { blindBox } = m.useModule(BlindBoxModule);
   const { exchange } = m.useModule(ExchangeModule);
   const { fundManager } = m.useModule(FundManagerModule);
+  const { mockPriceOracle } = m.useModule(MockPriceOracleModule);
 
   return {
     addressManager,
@@ -137,9 +151,11 @@ export default buildModule("WikiTruthDirectDeploy", (m) => {
     userManager,
     blindBox,
     exchange,
-    fundManager
+    fundManager,
+    mockPriceOracle
   };
 });
+
 
 
 

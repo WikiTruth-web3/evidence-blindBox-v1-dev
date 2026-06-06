@@ -3,7 +3,7 @@ import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
 import { CallFunctionParams } from "../types/call-params";
 import { get_siwe_token } from "../utils/SiweAuth";
-import main_contracts_address from "../../deployments/main_contracts_testnet.json"
+import contractsAddress from "../../deployments/contracts-testnet.json"
 
 /**
  * 运行命令：npx hardhat run scripts/blind-box-testnet/userId_read_siwe.ts --network sapphire-testnet
@@ -33,7 +33,7 @@ async function main() {
     // ---------------------------------------------------------------
 
     const domain = "wikitruth.xyz";
-    const token = await get_siwe_token(domain, daoTreasurySigner, chainId, main_contracts_address.SiweAuth);
+    const token = await get_siwe_token(domain, daoTreasurySigner, chainId, contractsAddress.Main.SiweAuth);
 
     // 2. -------------------------------------------------------------------
     const tasks: CallFunctionParams[] = [

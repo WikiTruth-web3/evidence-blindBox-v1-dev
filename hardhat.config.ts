@@ -161,6 +161,7 @@ const config: HardhatUserConfig = {
     'sapphire-testnet': {
       url: "https://testnet.sapphire.oasis.io",
       chainId: 0x5aff, // 23295 
+      gasPrice: 100000000000, // 100 Gwei minimum for Sapphire Testnet
       accounts: [
         sapphire_testnet_admin,
         sapphire_testnet_minter,
