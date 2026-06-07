@@ -9,14 +9,14 @@ npx hardhat run scripts/blind-box-testnet/03_setTargetStatus.ts --network sapphi
  */
 
 const mainAddressList = [
-    {
-        address:contractsAddress.Main.BlindBox,
-        status: true
-    },
-    {
-        address:contractsAddress.Main.Exchange,
-        status: true
-    },
+    // {
+    //     address:contractsAddress.Main.BlindBox,
+    //     status: true
+    // },
+    // {
+    //     address:contractsAddress.Main.Exchange,
+    //     status: true
+    // },
     {
         address:contractsAddress.Main.FundManager,
         status: true

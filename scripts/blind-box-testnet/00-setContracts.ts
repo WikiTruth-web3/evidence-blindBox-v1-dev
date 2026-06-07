@@ -21,8 +21,8 @@ const executes: ContractsWithSetAddressManager[] = [
     // 'BlindBox',
     // 'Exchange',
     'FundManager',
-    'Forwarder',
-    'UserManager',
+    // 'Forwarder',
+    // 'UserManager',
 ];
 
 async function main() {

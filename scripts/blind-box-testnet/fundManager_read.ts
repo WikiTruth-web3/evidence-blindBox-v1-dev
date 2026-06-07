@@ -9,8 +9,8 @@ import { CallFunctionParams } from "../types/call-params";
  */
 
 const executes = [
-    'withdrawOrderAmounts',
-    // 'withdrawRefundAmounts',
+    "serviceFeeRate",
+   
 ];
 
 async function main() {
@@ -22,33 +22,33 @@ async function main() {
 
     const tasks: CallFunctionParams[] = [
         {
-            taskName: "设置关联地址",
+            taskName: "读取服务费率",
             contractsName: "FundManager",
-            functionName: "setContracts",
+            functionName: "serviceFeeRate",
             params: [],
             signer: adminSigner
         },
         {
-            taskName: "提取订单金额",
+            taskName: "读取辅助者费率",
             contractsName: "FundManager",
-            functionName: "withdrawOrderAmounts",
-            params: [tokenAddr, boxIds, tokenAddr],
+            functionName: "helperFeeRate",
+            params: [],
             signer: adminSigner
         },
         {
-            taskName: "提取退款金额",
+            taskName: "读取订单金额",
             contractsName: "FundManager",
-            functionName: "withdrawRefundAmounts",
-            params: [tokenAddr, boxIds,tokenAddr],
-            signer: adminSigner
-        },
-        {
-            taskName: "提取奖励",
-            contractsName: "FundManager",
-            functionName: "withdrawReward",
+            functionName: "orderAmounts",
             params: [tokenAddr,tokenAddr],
             signer: adminSigner
-        }
+        },
+        {
+            taskName: "读取奖励额度",
+            contractsName: "FundManager",
+            functionName: "rewardAmounts",
+            params: [tokenAddr,tokenAddr],
+            signer: adminSigner
+        },
     ];
     const tasks_to_run: CallFunctionParams[] = Object.values(tasks).filter(t => executes.includes(t.functionName));
 

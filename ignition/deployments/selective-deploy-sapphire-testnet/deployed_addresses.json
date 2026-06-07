@@ -1,4 +1,5 @@
 {
   "BlindBoxSelectiveModule#BlindBox": "0x27a0DA1Fc25e3D07D07Bf9aa884cd84aF89AcF57",
-  "ExchangeSelectiveModule#Exchange": "0x3F979ef4B6188E98e220aD04c507f5Fcee093E89"
+  "ExchangeSelectiveModule#Exchange": "0x3F979ef4B6188E98e220aD04c507f5Fcee093E89",
+  "FundManagerSelectiveModule#FundManager": "0xAc1b11aA9229d34f796Ac6a9745919313c1f4e47"
 }

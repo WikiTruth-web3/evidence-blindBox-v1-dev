@@ -2,12 +2,12 @@ import { ethers } from "hardhat";
 import { user_oasis } from "../../account_admin";
 import { getSigners_SapphireTestnet } from "../utils/signers-sapphire-testnet";
 import { ContractRunner } from "../utils/contract-runner";
-import token_contracts_address from "../../deployments/sapphire_testnet_erc20.json";
+// import token_contracts_address from "../../deployments/sapphire_testnet_erc20.json";
 import contractsAddress from "../../deployments/contracts-testnet.json"
 import { CallFunctionParams } from "../types/call-params";
 
 /**
- * npx hardhat run scripts/blind-box-testnet/02-setAddressManager.ts --network sapphire-testnet
+npx hardhat run scripts/blind-box-testnet/02-setAddressManager.ts --network sapphire-testnet
  */
 
 // 1. 利用条件类型动态筛选出 AllContracts 中所有支持 "setAddressManager" 方法的合约名称

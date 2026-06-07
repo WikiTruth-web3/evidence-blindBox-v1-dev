@@ -20,18 +20,22 @@ const MainList = [
     //     contract:Main.Exchange,
     //     address:contractsAddress.Main.Exchange
     // },
+    {
+        contract:Main.FundManager,
+        address:contractsAddress.Main.FundManager
+    },
     // {
     //     contract:Main.SiweAuth,
     //     address:contractsAddress.Main.SiweAuth
     // },
-    {
-        contract:Main.DaoTreasury,
-        address:'0x67Ef70102D9Ac6d7Cc52830B0ac9349e0afb9E01' // Not contract
-    },
-    {
-        contract:Main.Dao,
-        address:'0x85d526809D03d17b0dBA17372Bae2E156958F260'
-    },
+    // {
+    //     contract:Main.DaoTreasury,
+    //     address:'0x67Ef70102D9Ac6d7Cc52830B0ac9349e0afb9E01' // Not contract
+    // },
+    // {
+    //     contract:Main.Dao,
+    //     address:'0x85d526809D03d17b0dBA17372Bae2E156958F260'
+    // },
 ]
 
 async function main() {
