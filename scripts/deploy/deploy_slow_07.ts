@@ -4,12 +4,17 @@ import * as fs from "fs";
 import * as path from "path";
 import { 
   BlindBoxSelectiveModule, 
-  ExchangeSelectiveModule 
+  ExchangeSelectiveModule,
+  FundManagerSelectiveModule,
 } from "../../ignition/modules/07_selective_deploy";
 
 // npx hardhat run scripts/deploy/deploy_slow_07.ts --network sapphire-testnet
 
-
+const deployList = [
+  'BlindBox',
+  'Exchange',
+  'FundManager'
+]
 // Helper function to delay execution by ms
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

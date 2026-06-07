@@ -50,3 +50,17 @@ export const ExchangeSelectiveModule = buildModule("ExchangeSelectiveModule", (m
 
   return { exchange };
 });
+
+// Dedicated module to deploy Exchange only, using existing AddressManager and Forwarder
+export const FundManagerSelectiveModule = buildModule("FundManagerSelectiveModule", (m) => {
+  const { addressManager, forwarder } = getCoreAddresses();
+
+  const fundManager = m.contract("FundManager", [
+    addressManager,
+    forwarder
+  ], {
+    id: "FundManager"
+  });
+
+  return { fundManager };
+});

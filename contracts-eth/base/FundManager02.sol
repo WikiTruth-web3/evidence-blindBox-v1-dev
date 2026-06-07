@@ -10,8 +10,7 @@ import {
 import {IBlindBox} from "@interfaces/eth/IBlindBox.sol";
 import {
     FundManagerEvents,
-    FundType,
-    RewardType
+    FundType
 } from "@interfaces/IFundManager.sol";
 import {IExchange} from "@interfaces/IExchange.sol";
 import {IPriceOracle} from "../oracle/IPriceOracle.sol";
@@ -88,9 +87,9 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
                 }
                 emit RewardAdded(
                     boxId_,
+                    sellerId,
                     settlementToken,
-                    helperRewards2,
-                    RewardType.Seller
+                    helperRewards2
                 );
             }
 
@@ -102,9 +101,9 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
                 }
                 emit RewardAdded(
                     boxId_,
+                    completerId,
                     settlementToken,
-                    helperRewards2,
-                    RewardType.Completer
+                    helperRewards2
                 );
             }
 
@@ -112,9 +111,9 @@ contract FundManager02 is FundManager01, FundManagerEvents, ERC2771Context {
             _rewardAmounts[minterId][token_] += amount_;
             emit RewardAdded(
                 boxId_,
+                minterId,
                 token_,
-                amount_,
-                RewardType.Minter
+                amount_
             );
 
             // Send serviceFee (and helperRewards if converted) to DAO treasury

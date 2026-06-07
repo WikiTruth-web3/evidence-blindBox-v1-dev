@@ -4,11 +4,12 @@ pragma solidity ^0.8.24;
 
 interface FundManagerEvents {
 
-    event OrderAmountPaid(
+    event Payment(
         uint256 indexed boxId,
         bytes32 indexed userId,
         address indexed token,
-        uint256 amount
+        uint256 amount,
+        PayType pt
     );
 
     event OrderAmountWithdraw(
@@ -27,12 +28,12 @@ interface FundManagerEvents {
 
     event RewardAdded(
         uint256 indexed boxId,
+        bytes32 indexed userId,
         address indexed token,
-        uint256 amount,
-        RewardType type_
+        uint256 amount
     );
 
-    event RewardsWithdraw(
+    event RewardWithdraw(
         bytes32 indexed userId,
         address indexed token,
         uint256 amount
@@ -44,10 +45,9 @@ enum FundType {
     Refund
 }
 
-enum RewardType {
-    Minter,
-    Seller,
-    Completer
+enum PayType {
+    OrderAmount,
+    DelayFee
 }
 
 /**
@@ -138,7 +138,7 @@ interface IFundManager {
      * @param token_ Token address
      * @param receiver_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_, address receiver_) external;
+    function withdrawReward(address token_, address receiver_) external;
 
     // =====================================================================================
     //                                          Getter Functions

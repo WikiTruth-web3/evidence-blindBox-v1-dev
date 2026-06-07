@@ -1,0 +1,18 @@
+# github
+
+## Repositories url
+
+git@github-work:WikiTruth-web3/evidence-blindBox-v1-dev.git
+
+## user
+
+user.name: WikiTruth-web3
+user.email: wikitruth@proton.me
+
+## set url
+
+git remote set-url origin git@github-work:WikiTruth-web3/evidence-blindBox-v1-dev.git
+
+## branch
+
+main

@@ -13,11 +13,11 @@ enum BoxStatus {
     Published,
     Blacklisted
 }
-enum RewardType {
-    Minter,
-    Seller,
-    Completer
+enum PayType {
+    OrderAmount,
+    DelayFee
 }
+
 enum FundType {
     Order,
     Refund
@@ -33,11 +33,6 @@ interface AllEvents {
     event BoxStatusChanged(uint256 indexed boxId, BoxStatus status);
     event PriceChanged(uint256 indexed boxId, uint256 price);
     event DeadlineChanged(uint256 indexed boxId, uint256 deadline);
-    // event PrivateKeyPublished(
-    //     uint256 boxId,
-    //     bytes privateKey,
-    //     bytes32 indexed userId
-    // );
 
     // ========== Exchange ==========
     event BoxListed(
@@ -53,11 +48,12 @@ interface AllEvents {
     event RefundPermitChanged(uint256 indexed boxId, bool permission);
 
     // ========== FundManager ==========
-    event OrderAmountPaid(
+    event Payment(
         uint256 indexed boxId,
         bytes32 indexed userId,
         address indexed token,
-        uint256 amount
+        uint256 amount,
+        PayType pt
     );
 
     event OrderAmountWithdraw(
@@ -76,12 +72,12 @@ interface AllEvents {
 
     event RewardAdded(
         uint256 indexed boxId,
+        bytes32 indexed userId,
         address indexed token,
-        uint256 amount,
-        RewardType type_
+        uint256 amount
     );
 
-    event RewardsWithdraw(
+    event RewardWithdraw(
         bytes32 indexed userId,
         address indexed token,
         uint256 amount

@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {FundType} from "@interfaces/IFundManager.sol";
+import {FundType, PayType} from "@interfaces/IFundManager.sol";
 import {FundManager02} from "./FundManager02.sol";
 
 /**
@@ -54,7 +54,7 @@ contract FundManager03 is FundManager02 {
 
         _orderAmounts[boxId_][userId_] += amount_;
 
-        emit OrderAmountPaid(boxId_, userId_, token, amount_);
+        emit Payment(boxId_, userId_, token, amount_, PayType.OrderAmount);
     }
 
     /**
@@ -75,6 +75,9 @@ contract FundManager03 is FundManager02 {
             address(this),
             amount_
         );
+        bytes32 userId = USER_MANAGER.getUserId(from_);
+
+        emit Payment(boxId_, userId, settlementToken, amount_, PayType.DelayFee);
 
         _calculateAllocation(boxId_, settlementToken, amount_);
     }
@@ -105,7 +108,7 @@ contract FundManager03 is FundManager02 {
      * @param token_ Token address
      * @param receiver_ user virtual address(privacy erc20)
      */
-    function _withdrawRewards(
+    function _withdrawReward(
         address token_,
         address receiver_
     ) internal nonReentrant whenNotPaused {
@@ -122,6 +125,6 @@ contract FundManager03 is FundManager02 {
         // Execute safeTransfer
         IERC20(token_).safeTransfer(receiver_, amount);
 
-        emit RewardsWithdraw(userId, token_, amount);
+        emit RewardWithdraw(userId, token_, amount);
     }
 }

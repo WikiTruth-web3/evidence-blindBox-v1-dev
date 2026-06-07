@@ -106,8 +106,8 @@ contract FundManager is FundManager03, IFundManager {
      * @param token_ Token address
      * @param receiver_ user virtual address(privacy erc20)
      */
-    function withdrawRewards(address token_, address receiver_) external {
-        _withdrawRewards(token_, receiver_);
+    function withdrawReward(address token_, address receiver_) external {
+        _withdrawReward(token_, receiver_);
     }
 
     // ====================================================================================================================
